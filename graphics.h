@@ -11,7 +11,6 @@ struct sprite
 {
     float x;
     float y;
-    float z;
     int w;
     int h;
     SDL_Texture *texture;

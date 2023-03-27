@@ -91,7 +91,6 @@ struct sprite* newSprite()
     struct sprite *s = malloc(sizeof(struct sprite));
     s->x = 0;
     s->y = 0;
-    s->z = 0;
     s->w = 0;
     s->h = 0;
     s->renderer = NULL;
