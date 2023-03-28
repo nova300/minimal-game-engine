@@ -1,7 +1,7 @@
 #include "graphics.h"
 
 
-int freeSprite(struct sprite *spr)
+int sprite_free(sprite *spr)
 {
     if (spr->texture != NULL)
     {
@@ -12,7 +12,7 @@ int freeSprite(struct sprite *spr)
     }
 }
 
-int renderSprite(struct sprite *spr, SDL_Rect *clip)
+int sprite_render(sprite *spr, SDL_Rect *clip)
 {
     if (spr->renderer == NULL) return 1;
     if (spr->texture == NULL) return 2;
@@ -25,13 +25,13 @@ int renderSprite(struct sprite *spr, SDL_Rect *clip)
     SDL_RenderCopy( spr->renderer, spr->texture, clip, &r );
 }
 
-int positionSprite(int x, int y, struct sprite *spr)
+int sprite_position(int x, int y, sprite *spr)
 {
     spr->x = x;
     spr->y = y;
 }
 
-int colourSprite(unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, struct sprite *spr)
+int sprite_colour(unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, sprite *spr)
 {
     SDL_SetTextureColorMod(spr->texture, red, green, blue);
     SDL_SetTextureAlphaMod(spr->texture, alpha);
@@ -54,10 +54,10 @@ SDL_Texture* loadTexture(const char *name, SDL_Renderer *rend)
     return t;
 }
 
-int loadFromFile(const char* filename, struct sprite *spr)
+int sprite_loadFromFile(const char* filename, sprite *spr)
 {
     
-    freeSprite(spr);
+    sprite_free(spr);
     
     SDL_Texture *t = NULL;
     SDL_Surface *s = IMG_Load(filename);
@@ -86,9 +86,9 @@ int loadFromFile(const char* filename, struct sprite *spr)
     return 0;
 }
 
-struct sprite* newSprite()
+sprite* sprite_new()
 {
-    struct sprite *s = malloc(sizeof(struct sprite));
+    sprite *s = malloc(sizeof(sprite));
     s->x = 0;
     s->y = 0;
     s->w = 0;
@@ -98,7 +98,8 @@ struct sprite* newSprite()
     return s;
 }
 
-void deleteSprite(struct sprite *spr)
+void sprite_delete(sprite *spr)
 {
+    sprite_free(spr);
     free(spr);
 }

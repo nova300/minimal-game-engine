@@ -203,7 +203,7 @@ SDL_Texture* raycast(SDL_Renderer *rend)
         float cameraAngle = playerAngle - rayAngle;
         if (cameraAngle < 0)
         {
-            cameraAngle += 2*pi;
+            cameraAngle -= 2*pi;
         }
         if (cameraAngle < 2 * pi)
         {
@@ -229,10 +229,7 @@ SDL_Texture* raycast(SDL_Renderer *rend)
             SDL_SetRenderDrawColor( sr, 0x00, 0xff, 0xff, 0xff);
         }
         SDL_RenderDrawLine(sr, r*2+100, lineOffset, r*2+100, lineH + lineOffset);
-        for (int i = 1; i < 2; i++)
-        {
-            SDL_RenderDrawLine(sr, r*2+100+i, lineOffset, r*2+100+i, lineH + lineOffset);
-        }
+        SDL_RenderDrawLine(sr, r*2+100+1, lineOffset, r*2+100+1, lineH + lineOffset);
 
         rayAngle += dgr;
         if (rayAngle < 0)

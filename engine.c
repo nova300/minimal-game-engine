@@ -19,9 +19,9 @@ int ENTRYPOINT(int argc, char *argv[])
     }
     printf("ok\n");
 
-    struct sprite *bg = newSprite();
+    sprite *bg = sprite_new();
     bg->renderer = rend;
-    loadFromFile("bg.png", bg);
+    sprite_loadFromFile("bg.png", bg);
 
     while (exitLoop == 0)
     {
@@ -44,7 +44,7 @@ int ENTRYPOINT(int argc, char *argv[])
         SDL_RenderPresent(rend);
     }
 
-    deleteSprite(bg);
+    sprite_delete(bg);
 
     quit();
     printf("Goodbye.\n");

@@ -7,7 +7,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
-struct sprite
+typedef struct 
 {
     float x;
     float y;
@@ -15,16 +15,18 @@ struct sprite
     int h;
     SDL_Texture *texture;
     SDL_Renderer *renderer;
-};
+}sprite;
 
-int loadFromFile(const char* filename, struct sprite *spr);
-int freeSprite(struct sprite *spr);
-int renderSprite(struct sprite *spr, SDL_Rect *clip);
-int positionSprite(int x, int y, struct sprite *spr);
-int colourSprite(unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, struct sprite *spr);
+int sprite_loadFromFile(const char* filename, sprite *spr);
+int sprite_free(sprite *spr);
+int sprite_render(sprite *spr, SDL_Rect *clip);
+int sprite_position(int x, int y, sprite *spr);
+int sprite_colour(unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, sprite *spr);
+sprite* sprite_new();
+void sprite_delete(sprite *spr);
+
+
 SDL_Texture* loadTexture(const char *name, SDL_Renderer *rend);
-struct sprite* newSprite();
-void deleteSprite(struct sprite *spr);
 
 
 #endif
