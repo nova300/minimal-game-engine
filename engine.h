@@ -15,6 +15,7 @@
 #include <SDL2/SDL_ttf.h>
 
 #include "graphics.h"
+#include "term.h"
 
 #define TITLE "minimal game engine"
 
@@ -32,6 +33,7 @@ extern unsigned long deltaTime;
 extern SDL_RendererFlip flipType;
 
 extern Sprite *s1;
+
 
 
 

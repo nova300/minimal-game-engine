@@ -6,7 +6,7 @@ enable_testing()
 
 
 
-add_executable(engine engine.c graphics.c init.c ray.c event.c)
+add_executable(engine engine.c graphics.c init.c ray.c event.c term.c)
 
 set(LIB m SDL2 SDL2_image SDL2_ttf)
 target_link_libraries(engine ${LIB})

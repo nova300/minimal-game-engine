@@ -19,6 +19,7 @@ float degrees = 0;
 int ENTRYPOINT(int argc, char *argv[])
 {
     printf("init: ");
+    term_print("init: ");
     int err = init();
     if (err != 0)
     {
@@ -26,6 +27,7 @@ int ENTRYPOINT(int argc, char *argv[])
         printf("error %i\n", err);
     }
     printf("ok\n");
+    term_print("ok\n");
 
     font = TTF_OpenFont("tosh.ttf", 28);
     if (font == NULL)
@@ -37,24 +39,28 @@ int ENTRYPOINT(int argc, char *argv[])
     sprite_loadFromRenderedText( "hello world", tcolor, s1);
     transform_position((SCREEN_WIDTH - s1->w) / 2, (SCREEN_HEIGHT - s1->h) / 2, 0, s1);
 
+    Terminal *t1 = terminal_new(rend);
+    term_print("hello world!!");
+
     while (exitLoop == 0)
     {
+
         deltaTime = SDL_GetTicks() - time;
+        eventhandler();
+        //if (deltaTime < 1000) continue;
         if (deltaTime > 250) deltaTime = 250;
         time = SDL_GetTicks();
-        eventhandler();
         SDL_SetRenderDrawColor(rend, 0x00, 0x00, 0x00, 0x00);
         SDL_RenderClear(rend);
 
-        sprite_render(s1, NULL, degrees, NULL, flipType);
+        //sprite_render(s1, NULL, degrees, NULL, flipType);
         
-        /*
-        SDL_Rect r = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT};
-        SDL_Rect c = {0, 0, 900, 600};
-        SDL_Texture *t = raycast(rend);
-        SDL_RenderCopy(rend, t, &c, &r);
-        SDL_DestroyTexture(t);
-        */
+        terminal_render(t1);
+
+        //SDL_Rect r = {0, 0, SCREEN_HEIGHT, SCREEN_WIDTH};
+        //SDL_Texture *t = term_get(rend);
+        //SDL_RenderCopy(rend, t, NULL, NULL);
+        //SDL_DestroyTexture(t);
 
         degrees = degrees + 0.1 * deltaTime;
 
