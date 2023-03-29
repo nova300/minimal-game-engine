@@ -19,7 +19,7 @@ float degrees = 0;
 int ENTRYPOINT(int argc, char *argv[])
 {
     printf("init: ");
-    term_print("init: ");
+    terminal_print("init: ");
     int err = init();
     if (err != 0)
     {
@@ -27,7 +27,7 @@ int ENTRYPOINT(int argc, char *argv[])
         printf("error %i\n", err);
     }
     printf("ok\n");
-    term_print("ok\n");
+    terminal_print("ok\n");
 
     font = TTF_OpenFont("tosh.ttf", 28);
     if (font == NULL)
@@ -40,7 +40,7 @@ int ENTRYPOINT(int argc, char *argv[])
     transform_position((SCREEN_WIDTH - s1->w) / 2, (SCREEN_HEIGHT - s1->h) / 2, 0, s1);
 
     Terminal *t1 = terminal_new(rend);
-    term_print("hello world!!\n");
+    terminal_print("hello world!!\n");
 
     while (exitLoop == 0)
     {

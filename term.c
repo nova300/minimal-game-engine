@@ -40,7 +40,7 @@ int terminal_render(Terminal *term)
     SDL_RenderCopy( term->renderer, term->texture, NULL, &r);
 }
 
-int term_print(const char* str)
+int terminal_print(const char* str)
 {
     if ( i >= bufflen)
     {
@@ -64,6 +64,7 @@ int term_print(const char* str)
     {
         buffer = realloc(buffer, buffalloc + 32 + len);
         buffalloc += 32 + len;
+        printf("allocated %i bytes\n", buffalloc);
     }
     strcpy(buffer + bufflen, str);
     bufflen += len;

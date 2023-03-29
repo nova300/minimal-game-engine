@@ -15,7 +15,7 @@ typedef struct
 
 
 int terminal_render(Terminal* term);
-int term_print(const char* str);
+int terminal_print(const char* str);
 Terminal* terminal_new(SDL_Renderer *r);
 
 #endif
