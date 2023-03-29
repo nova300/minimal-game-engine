@@ -116,6 +116,7 @@ void sprite_delete(Sprite *spr)
     free(spr);
 }
 
+#if defined(SDL_TTF_MAJOR_VERSION)
 int sprite_loadFromRenderedText(const char* text, SDL_Color textColor, Sprite *spr)
 {
     sprite_free(spr);
@@ -141,3 +142,4 @@ int sprite_loadFromRenderedText(const char* text, SDL_Color textColor, Sprite *s
 
     return 0;
 }
+#endif

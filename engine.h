@@ -14,7 +14,6 @@
 #include <SDL2/SDL_ttf.h>
 
 #include "graphics.h"
-#include "ray.h"
 
 #define TITLE "minimal game engine"
 

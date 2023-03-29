@@ -30,13 +30,14 @@ typedef struct
 }Sprite;
 
 int sprite_loadFromFile(const char* filename, Sprite *spr);
-int sprite_loadFromRenderedText(const char* text, SDL_Color textColor, Sprite *spr);
 int sprite_free(Sprite *spr);
 int sprite_render(Sprite *spr, SDL_Rect *clip, float angle, SDL_Point *center, SDL_RendererFlip flip);
 int sprite_colour(unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, Sprite *spr);
 Sprite* sprite_new(SDL_Renderer *r);
 void sprite_delete(Sprite *spr);
-
+#if defined(SDL_TTF_MAJOR_VERSION)
+int sprite_loadFromRenderedText(const char* text, SDL_Color textColor, Sprite *spr);
+#endif
 
 SDL_Texture* loadTexture(const char *name, SDL_Renderer *rend);
 

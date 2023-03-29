@@ -1,3 +1,4 @@
+#ifdef ray_h
 #include "ray.h"
 #include <math.h>
 
@@ -249,3 +250,5 @@ SDL_Texture* raycast(SDL_Renderer *rend)
     SDL_FreeSurface(s);
     return t;
 }
+
+#endif
