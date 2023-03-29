@@ -57,10 +57,10 @@ int term_print(const char* str)
         buffer = malloc(32);
         buffalloc = 32;
     }
-    if (bufflen + len == buffalloc)
+    if (bufflen + len >= buffalloc)
     {
-        buffer = realloc(buffer, buffalloc + 32);
-        buffalloc += 32;
+        buffer = realloc(buffer, buffalloc + 32 + len);
+        buffalloc += 32 + len;
     }
     strcpy(buffer + bufflen, str);
     bufflen += len;
