@@ -11,6 +11,10 @@
 #include <stdio.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
+
+#include "graphics.h"
+#include "ray.h"
 
 #define TITLE "minimal game engine"
 
@@ -21,16 +25,24 @@ extern int errorCode;
 extern SDL_Event e;
 extern int exitLoop;
 
+extern float degrees;
+
+extern SDL_RendererFlip flipType;
+
+extern Sprite *s1;
 
 
-extern void helloworld();
-extern int init();
-extern void quit();
-extern int eventhandler();
+
+void helloworld();
+int init();
+void quit();
+int eventhandler();
 
 extern SDL_Window *window;
 
 extern SDL_Renderer *rend;
+
+
 
 
 #endif

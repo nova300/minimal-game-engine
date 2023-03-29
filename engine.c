@@ -1,11 +1,17 @@
 #include "engine.h"
-#include "graphics.h"
-#include "ray.h"
+
 
 SDL_Window *window;
 SDL_Renderer *rend;
 
+TTF_Font *font;
+
+Sprite *s1;
+
 int exitLoop = 0;
+
+SDL_RendererFlip flipType = SDL_FLIP_NONE;
+float degrees = 0;
 
 
 int ENTRYPOINT(int argc, char *argv[])
@@ -19,9 +25,16 @@ int ENTRYPOINT(int argc, char *argv[])
     }
     printf("ok\n");
 
-    sprite *bg = sprite_new();
-    bg->renderer = rend;
-    sprite_loadFromFile("bg.png", bg);
+    font = TTF_OpenFont("tosh.ttf", 28);
+    if (font == NULL)
+    {
+        printf("failed to open font\n");
+    }
+
+    s1 = sprite_new(rend);
+    SDL_Color tcolor = { 255, 255, 255};
+    sprite_loadFromRenderedText( "hello world", tcolor, s1);
+    transform_position((SCREEN_WIDTH - s1->w) / 2, (SCREEN_HEIGHT - s1->h) / 2, 0, s1);
 
     while (exitLoop == 0)
     {
@@ -29,22 +42,20 @@ int ENTRYPOINT(int argc, char *argv[])
         SDL_SetRenderDrawColor(rend, 0x00, 0x00, 0x00, 0x00);
         SDL_RenderClear(rend);
 
-
-        //renderSprite(bg, NULL);
+        sprite_render(s1, NULL, degrees, NULL, flipType);
+        
+        /*
         SDL_Rect r = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT};
         SDL_Rect c = {0, 0, 900, 600};
-        //SDL_RenderCopy(rend, bg.texture, NULL, &r);
-
         SDL_Texture *t = raycast(rend);
-
         SDL_RenderCopy(rend, t, &c, &r);
-
         SDL_DestroyTexture(t);
+        */
 
         SDL_RenderPresent(rend);
     }
 
-    sprite_delete(bg);
+    sprite_delete(s1);
 
     quit();
     printf("Goodbye.\n");

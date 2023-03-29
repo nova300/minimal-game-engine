@@ -25,6 +25,11 @@ int init()
     {
         return 4;
     }
+
+    if ( TTF_Init() == -1)
+    {
+        return 5;
+    }
     
 
     SDL_SetRenderDrawColor( rend, 0xff, 0xff, 0xff, 0xff);
@@ -37,7 +42,10 @@ void quit()
 {
     SDL_DestroyRenderer( rend );
 
+    TTF_CloseFont( font );
+
     SDL_DestroyWindow( window );
+    TTF_Quit();
     IMG_Quit();
     SDL_Quit();
 }

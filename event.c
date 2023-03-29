@@ -16,18 +16,18 @@ int eventhandler()
 
     if (kstate[ SDL_SCANCODE_UP])
     {
-        move(0);
+        transform_move(0, -0.5, 0, s1);
     }
     else if (kstate[ SDL_SCANCODE_DOWN])
     {
-        move(1);
+        transform_move(0, 0.5, 0, s1);
     }
     if (kstate[SDL_SCANCODE_LEFT])
     {
-        pan(0);
+        transform_move(-0.5, 0, 0, s1);
     }
     else if (kstate[SDL_SCANCODE_RIGHT])
     {
-        pan(1);
+        transform_move(0.5, 0, 0, s1);
     }
 }
