@@ -16,18 +16,18 @@ int eventhandler()
 
     if (kstate[ SDL_SCANCODE_UP])
     {
-        transform_move(0, -0.5, 0, s1);
+        term_print("up input\n");
     }
     else if (kstate[ SDL_SCANCODE_DOWN])
     {
-        transform_move(0, 0.5, 0, s1);
+        term_print("down input\n");
     }
     if (kstate[SDL_SCANCODE_LEFT])
     {
-        transform_move(-0.5, 0, 0, s1);
+        term_print("left input\n");
     }
     else if (kstate[SDL_SCANCODE_RIGHT])
     {
-        transform_move(0.5, 0, 0, s1);
+        term_print("right input\n");
     }
 }

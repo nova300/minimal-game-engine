@@ -15,11 +15,12 @@ int buffalloc = 0;
 int terminal_render(Terminal *term)
 {
     timer += deltaTime;
-    if (i < bufflen && timer > 75)
+    if (i < bufflen && timer > 25)
     {
         timer = 0;
         framebuffer[i] = buffer[i];
-        framebuffer[i + 1] = '\0';
+        framebuffer[i + 1] = '*';
+        framebuffer[i + 2] = '\0';
         i++;
 
         SDL_DestroyTexture(term->texture);
@@ -44,13 +45,15 @@ int term_print(const char* str)
     if ( i >= bufflen)
     {
         bufflen = 0;
+        i = 0;
     }
     int len = strlen(str);
     if (framebuffer == NULL)
     {
         framebuffer = malloc(255);
         fblen = 0;
-        framebuffer[fblen] = '\0';
+        framebuffer[fblen] = '*';
+        framebuffer[fblen+1] = '\0';
     }
     if (buffer == NULL)
     {

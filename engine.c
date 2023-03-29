@@ -40,7 +40,7 @@ int ENTRYPOINT(int argc, char *argv[])
     transform_position((SCREEN_WIDTH - s1->w) / 2, (SCREEN_HEIGHT - s1->h) / 2, 0, s1);
 
     Terminal *t1 = terminal_new(rend);
-    term_print("hello world!!");
+    term_print("hello world!!\n");
 
     while (exitLoop == 0)
     {
