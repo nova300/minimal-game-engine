@@ -1,5 +1,7 @@
 #include "engine.h"
 
+unsigned long time = 0;
+unsigned long deltaTime = 0;
 
 SDL_Window *window;
 SDL_Renderer *rend;
@@ -30,7 +32,6 @@ int ENTRYPOINT(int argc, char *argv[])
     {
         printf("failed to open font\n");
     }
-
     s1 = sprite_new(rend);
     SDL_Color tcolor = { 255, 255, 255};
     sprite_loadFromRenderedText( "hello world", tcolor, s1);
@@ -38,6 +39,9 @@ int ENTRYPOINT(int argc, char *argv[])
 
     while (exitLoop == 0)
     {
+        deltaTime = SDL_GetTicks() - time;
+        if (deltaTime > 250) deltaTime = 250;
+        time = SDL_GetTicks();
         eventhandler();
         SDL_SetRenderDrawColor(rend, 0x00, 0x00, 0x00, 0x00);
         SDL_RenderClear(rend);
@@ -51,6 +55,8 @@ int ENTRYPOINT(int argc, char *argv[])
         SDL_RenderCopy(rend, t, &c, &r);
         SDL_DestroyTexture(t);
         */
+
+        degrees = degrees + 0.1 * deltaTime;
 
         SDL_RenderPresent(rend);
     }

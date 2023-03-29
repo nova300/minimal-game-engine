@@ -9,6 +9,7 @@
 #endif
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
@@ -25,6 +26,8 @@ extern SDL_Event e;
 extern int exitLoop;
 
 extern float degrees;
+
+extern unsigned long deltaTime;
 
 extern SDL_RendererFlip flipType;
 
