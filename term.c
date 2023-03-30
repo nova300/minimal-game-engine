@@ -27,6 +27,11 @@ int terminal_render(Terminal *term)
     if (framebuffer == NULL)
     {
         framebuffer = malloc(800);
+
+        for (int i = 0; i < 800; i++)
+        {
+            framebuffer[i] = rand();
+        }
         
         doClear = 800;
 
@@ -47,7 +52,7 @@ int terminal_render(Terminal *term)
 
     if (doClear)
     {
-        if (timer < 15) return 0;
+        if (timer < 25) return 0;
         
         for (int c = 0; c < 32; c++)
         {

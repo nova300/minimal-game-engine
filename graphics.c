@@ -159,8 +159,8 @@ int particle_render(ParticleSystem *ps)
         }
         else
         {
-            ps->particles[i].lifeTime = ps->particles[i].lifeTime - (deltaTime / 2);
-            transform_move(ps->particles[i].xdir, ps->particles[i].ydir, 0, &ps->particles[i]);
+            ps->particles[i].lifeTime = ps->particles[i].lifeTime - (deltaTime);
+            transform_move(ps->particles[i].xdir * (deltaTime*0.2), ps->particles[i].ydir * (deltaTime*0.2), 0, &ps->particles[i]);
 
             SDL_Rect p = {ps->particles[i].transform.x, ps->particles[i].transform.y, ps->w, ps->h};
 
