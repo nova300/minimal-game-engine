@@ -1,60 +1,103 @@
 #include "term.h"
 
+SDL_Texture *term_font;
+
 unsigned long timer = 0;
 
 char* buffer = NULL;
 char* framebuffer = NULL;
 
-int i = 0;
+int cursorpos = 0;
+int buffpos = 0;
 int fblen = 0;
 int bufflen = 0;
 int buffalloc = 0;
+
+int doClear = 0;
+int cleared = 0;
 
 
 
 int terminal_render(Terminal *term)
 {
     timer += deltaTime;
-    if (i < bufflen && timer > 25)
-    {
-        timer = 0;
-        framebuffer[i] = buffer[i];
-        framebuffer[i + 1] = '*';
-        framebuffer[i + 2] = '\0';
-        i++;
 
-        SDL_DestroyTexture(term->texture);
-        SDL_Color tcolor = {255, 255, 255};
-        SDL_Texture *tex = NULL;
-        SDL_Surface *s = TTF_RenderUTF8_Solid_Wrapped( font, framebuffer, tcolor, 0);
-        term->texture = SDL_CreateTextureFromSurface(term->renderer, s);
-        term->w = s->w;
-        term->h = s->h;
-        SDL_FreeSurface(s);
+    cursorpos = cursorpos % 799;
+
+    if (framebuffer == NULL)
+    {
+        framebuffer = malloc(800);
+        
+        doClear = 800;
+
+        return 0;
     }
 
-    if (term->renderer == NULL) return 1;
-    if (term->texture == NULL) return 2;
-    Transform *tra = (Transform*)term;
-    SDL_Rect r = {tra->x, tra->y, term->w, term->h};
-    SDL_RenderCopy( term->renderer, term->texture, NULL, &r);
+    int k = 0;
+    for (int i = 0; i < 19; i++)
+    {
+        for (int j = 0; j < 39; j++)
+        {
+            SDL_Rect glyph = {(16 * j) + 16 , (32 * i) + 16, 16, 32};
+            SDL_Rect clip  = term_get_glyph(framebuffer[k]);
+            SDL_RenderCopy(rend, term_font, &clip, &glyph);
+            k++;
+        }
+    }
+
+    if (doClear)
+    {
+        if (timer < 15) return 0;
+        
+        for (int c = 0; c < 32; c++)
+        {
+            framebuffer[cleared] = 0;
+            cleared++;
+            if (cleared >= doClear) 
+            {
+                doClear = 0;
+                timer = 0;
+                return 0;
+            } 
+        }
+        timer = 0;
+
+        return 0;
+    }
+
+    if (timer < 15) return 0;
+    if (buffpos >= bufflen) return 0;
+    timer = 0;
+
+    if (buffer[buffpos] == '\n') 
+    {
+        cursorpos = cursorpos + ( 39 - (cursorpos % 39));
+        buffpos++;
+    }
+    framebuffer[cursorpos] = buffer[buffpos];
+    buffpos++;
+    cursorpos++;
+}
+
+SDL_Rect term_get_glyph(int code)
+{
+    //code = code - 31;
+    SDL_Rect r = {8 * (code % 32), 16 * (((int) code / 32) % 8), 8, 16};
+    return r;
 }
 
 int terminal_print(const char* str)
 {
-    if ( i >= bufflen)
+    if (bufflen > 800)
+    {
+        bufflen = bufflen % 800;
+    }
+    if ( buffpos >= bufflen)
     {
         bufflen = 0;
-        i = 0;
+        buffpos = 0;
     }
     int len = strlen(str);
-    if (framebuffer == NULL)
-    {
-        framebuffer = malloc(255);
-        fblen = 0;
-        framebuffer[fblen] = '*';
-        framebuffer[fblen+1] = '\0';
-    }
     if (buffer == NULL)
     {
         buffer = malloc(32);

@@ -34,6 +34,7 @@ int ENTRYPOINT(int argc, char *argv[])
     {
         printf("failed to open font\n");
     }
+    term_font = loadTexture("media/font_1.png", rend);
     s1 = sprite_new(rend);
     SDL_Color tcolor = { 255, 255, 255};
     sprite_loadFromRenderedText( "hello world", tcolor, s1);
@@ -61,8 +62,6 @@ int ENTRYPOINT(int argc, char *argv[])
         //SDL_Texture *t = term_get(rend);
         //SDL_RenderCopy(rend, t, NULL, NULL);
         //SDL_DestroyTexture(t);
-
-        degrees = degrees + 0.1 * deltaTime;
 
         SDL_RenderPresent(rend);
     }
