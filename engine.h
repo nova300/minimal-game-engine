@@ -32,7 +32,7 @@ extern unsigned long deltaTime;
 
 extern SDL_RendererFlip flipType;
 
-extern Sprite *s1;
+extern ParticleSystem *p1;
 
 
 

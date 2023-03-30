@@ -1,4 +1,5 @@
 #include "graphics.h"
+#include "engine.h"
 
 int transform_position(float x, float y, float z, void *obj)
 {
@@ -143,3 +144,116 @@ int sprite_loadFromRenderedText(const char* text, SDL_Color textColor, Sprite *s
     return 0;
 }
 #endif
+
+int particle_render(ParticleSystem *ps)
+{
+    for (int i = 0; i < 5; i++)
+    {
+        if (ps->particles[i].lifeTime < 0)
+        {
+            
+            ps->particles[i].lifeTime = (rand() % 500) + 250;
+            ps->particles[i].transform = ps->transform;
+        }
+        else
+        {
+            ps->particles[i].lifeTime = ps->particles[i].lifeTime - (deltaTime / 2);
+            transform_move(rand() % 5, rand() % 5, 0, &ps->particles[i]);
+
+            SDL_Rect p = {ps->particles[i].transform.x, ps->particles[i].transform.y, ps->w, ps->h};
+
+            SDL_RenderCopy( ps->renderer, ps->texture, NULL, &p);
+
+        }
+    }
+}
+
+ParticleSystem* particle_new(SDL_Renderer *r)
+{
+    ParticleSystem *ps = malloc(sizeof(ParticleSystem));
+    Transform *t = (Transform*)ps;
+    Particle *p = malloc(sizeof(Particle) * 5);
+    t->x = 0;
+    t->y = 0;
+    t->z = 0;
+    ps->renderer = r;
+    ps->texture = NULL;
+
+    
+    for (int i = 0; i < 5; i++)
+    {
+        Transform *pt = (Transform*)&ps[i];
+        p[i].lifeTime = 0;
+        pt->x = 0;
+        pt->y = 0;
+        pt->z = 0;
+    }
+    
+    ps->particles = p;
+
+    return ps;
+}
+
+int particle_loadFromFile(const char* filename, ParticleSystem *ps)
+{
+    
+    if (ps->texture != NULL)
+    {
+        SDL_DestroyTexture(ps->texture);
+    }
+    
+    SDL_Texture *t = NULL;
+    SDL_Surface *s = IMG_Load(filename);
+    if (s == NULL)
+    {
+        printf("error loading image\n");
+        return 1;
+    }
+
+    SDL_SetColorKey(s, SDL_TRUE, SDL_MapRGB(s->format, 0, 0xff, 0xff));
+
+    t = SDL_CreateTextureFromSurface(ps->renderer, s);
+    if (t == NULL)
+    {
+        printf("error making texture\n");
+        return 2;
+    }
+
+    ps->h = s->h;
+    ps->w = s->w;
+
+    SDL_FreeSurface(s);
+
+    ps->texture = t;
+
+    return 0;
+}
+
+int particle_loadFromRenderedText(const char* text, SDL_Color textColor, ParticleSystem *ps)
+{
+    if (ps->texture != NULL)
+    {
+        SDL_DestroyTexture(ps->texture);
+    }
+    SDL_Surface *s = TTF_RenderText_Solid( font, text, textColor);
+    if( s == NULL )
+    {
+        printf("could not create text\n");
+        return 1;
+    }
+    
+    ps->texture = SDL_CreateTextureFromSurface(ps->renderer, s);
+
+    if (ps->texture == NULL)
+    {
+        printf("could not create texture from text surface\n");
+        return 2;
+    }
+
+    ps->w = s->w;
+    ps->h = s->h;
+
+    SDL_FreeSurface(s);
+
+    return 0;
+}

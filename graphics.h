@@ -7,7 +7,10 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
 
+
 extern TTF_Font *font;
+
+SDL_Texture* loadTexture(const char *name, SDL_Renderer *rend);
 
 typedef struct
 {
@@ -35,11 +38,34 @@ int sprite_render(Sprite *spr, SDL_Rect *clip, float angle, SDL_Point *center, S
 int sprite_colour(unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, Sprite *spr);
 Sprite* sprite_new(SDL_Renderer *r);
 void sprite_delete(Sprite *spr);
-#if defined(SDL_TTF_MAJOR_VERSION)
 int sprite_loadFromRenderedText(const char* text, SDL_Color textColor, Sprite *spr);
-#endif
 
-SDL_Texture* loadTexture(const char *name, SDL_Renderer *rend);
+
+typedef struct
+{
+    Transform transform;
+    int lifeTime;
+
+}Particle;
+
+typedef struct
+{
+    Transform transform;
+    Particle *particles;
+    int w;
+    int h;
+    SDL_Renderer *renderer;
+    SDL_Texture *texture;
+}ParticleSystem;
+
+ParticleSystem* particle_new(SDL_Renderer *r);
+int particle_loadFromFile(const char* filename, ParticleSystem *ps);
+int particle_loadFromRenderedText(const char* text, SDL_Color textColor, ParticleSystem *ps);
+int particle_render(ParticleSystem *ps);
+
+
+
+
 
 
 #endif

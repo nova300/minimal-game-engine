@@ -8,7 +8,7 @@ SDL_Renderer *rend;
 
 TTF_Font *font;
 
-Sprite *s1;
+ParticleSystem *p1;
 
 int exitLoop = 0;
 
@@ -29,16 +29,19 @@ int ENTRYPOINT(int argc, char *argv[])
     printf("ok\n");
     terminal_print("ok\n");
 
-    font = TTF_OpenFont("tosh.ttf", 28);
+    font = TTF_OpenFont("media/tosh.ttf", 28);
     if (font == NULL)
     {
         printf("failed to open font\n");
     }
     term_font = loadTexture("media/font_1.png", rend);
-    s1 = sprite_new(rend);
-    SDL_Color tcolor = { 255, 255, 255};
-    sprite_loadFromRenderedText( "hello world", tcolor, s1);
-    transform_position((SCREEN_WIDTH - s1->w) / 2, (SCREEN_HEIGHT - s1->h) / 2, 0, s1);
+    p1 = particle_new(rend);
+    printf("test\n");
+    SDL_Color tcolor = { 0xff, 0xff, 0xff, 0xff};
+    particle_loadFromRenderedText("*", tcolor, p1);
+    
+    transform_position((SCREEN_WIDTH - p1->w) / 2, (SCREEN_HEIGHT - p1->h) / 2, 0, p1);
+    
 
     Terminal *t1 = terminal_new(rend);
     terminal_print("hello world!!\n");
@@ -54,7 +57,7 @@ int ENTRYPOINT(int argc, char *argv[])
         SDL_SetRenderDrawColor(rend, 0x00, 0x00, 0x00, 0x00);
         SDL_RenderClear(rend);
 
-        //sprite_render(s1, NULL, degrees, NULL, flipType);
+        particle_render(p1);
         
         terminal_render(t1);
 
@@ -66,7 +69,6 @@ int ENTRYPOINT(int argc, char *argv[])
         SDL_RenderPresent(rend);
     }
 
-    sprite_delete(s1);
 
     quit();
     printf("Goodbye.\n");
