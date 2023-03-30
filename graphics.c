@@ -147,18 +147,20 @@ int sprite_loadFromRenderedText(const char* text, SDL_Color textColor, Sprite *s
 
 int particle_render(ParticleSystem *ps)
 {
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < 64; i++)
     {
         if (ps->particles[i].lifeTime < 0)
         {
             
             ps->particles[i].lifeTime = (rand() % 500) + 250;
             ps->particles[i].transform = ps->transform;
+            ps->particles[i].xdir = ((rand() - rand()) % 3) + ((rand() - rand()) % 10) * 0.1f;
+            ps->particles[i].ydir = ((rand() - rand()) % 3) + ((rand() - rand()) % 10) * 0.1f;;
         }
         else
         {
             ps->particles[i].lifeTime = ps->particles[i].lifeTime - (deltaTime / 2);
-            transform_move(rand() % 5, rand() % 5, 0, &ps->particles[i]);
+            transform_move(ps->particles[i].xdir, ps->particles[i].ydir, 0, &ps->particles[i]);
 
             SDL_Rect p = {ps->particles[i].transform.x, ps->particles[i].transform.y, ps->w, ps->h};
 
@@ -172,7 +174,7 @@ ParticleSystem* particle_new(SDL_Renderer *r)
 {
     ParticleSystem *ps = malloc(sizeof(ParticleSystem));
     Transform *t = (Transform*)ps;
-    Particle *p = malloc(sizeof(Particle) * 5);
+    Particle *p = malloc(sizeof(Particle) * 64);
     t->x = 0;
     t->y = 0;
     t->z = 0;
@@ -180,10 +182,12 @@ ParticleSystem* particle_new(SDL_Renderer *r)
     ps->texture = NULL;
 
     
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < 64; i++)
     {
-        Transform *pt = (Transform*)&ps[i];
+        Transform *pt = (Transform*)&p[i];
         p[i].lifeTime = 0;
+        p[i].xdir = 0;
+        p[i].ydir = 0;
         pt->x = 0;
         pt->y = 0;
         pt->z = 0;
@@ -234,6 +238,7 @@ int particle_loadFromRenderedText(const char* text, SDL_Color textColor, Particl
     if (ps->texture != NULL)
     {
         SDL_DestroyTexture(ps->texture);
+        ps->texture = NULL;
     }
     SDL_Surface *s = TTF_RenderText_Solid( font, text, textColor);
     if( s == NULL )

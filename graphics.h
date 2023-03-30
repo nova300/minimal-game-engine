@@ -45,6 +45,8 @@ typedef struct
 {
     Transform transform;
     int lifeTime;
+    float ydir;
+    float xdir;
 
 }Particle;
 
