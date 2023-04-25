@@ -13,6 +13,8 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
+#include "bgfx/include/bgfx/c99/bgfx.h"
+#include "bgfx/include/bgfx/platform.h";
 
 #include "graphics.h"
 #include "term.h"
