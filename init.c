@@ -9,8 +9,10 @@ int init()
 
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 2);
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 1);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-    window = SDL_CreateWindow(TITLE, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
+    window = SDL_CreateWindow(TITLE, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN );
     if (window == NULL)
     {
         return 2;
@@ -63,7 +65,7 @@ void quit()
 int initGL()
 {
     GLenum error = GL_NO_ERROR;
-
+    glViewport( 0.f, 0.f, SCREEN_WIDTH, SCREEN_HEIGHT );
     glMatrixMode( GL_PROJECTION );
     glLoadIdentity();
     glOrtho( 0.0, SCREEN_WIDTH, SCREEN_HEIGHT, 0.0, 1.0, -1.0 );

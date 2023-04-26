@@ -2,6 +2,7 @@
 
 SDL_Event e;
 
+
 int eventhandler()
 {
     while (SDL_PollEvent(&e))

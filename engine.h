@@ -22,8 +22,8 @@
 
 #define TITLE "minimal game engine"
 
-#define SCREEN_WIDTH 1024
-#define SCREEN_HEIGHT 768
+extern int SCREEN_WIDTH;
+extern int SCREEN_HEIGHT;
 
 extern int errorCode;
 extern SDL_Event e;
