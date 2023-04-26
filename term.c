@@ -45,7 +45,7 @@ int terminal_render(Terminal *term)
         {
             SDL_Rect glyph = {(16 * j) + 16 , (32 * i) + 16, 16, 32};
             SDL_Rect clip  = term_get_glyph(framebuffer[k]);
-            SDL_RenderCopy(rend, term_font, &clip, &glyph);
+            SDL_RenderCopy(term->renderer, term_font, &clip, &glyph);
             k++;
         }
     }
