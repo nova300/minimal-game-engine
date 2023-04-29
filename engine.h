@@ -15,7 +15,7 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_opengl.h>
-#include <GL/GLU.h>
+#include <GL/glu.h>
 
 #include "graphics.h"
 #include "term.h"
