@@ -9,7 +9,7 @@ enable_testing()
 add_executable(engine engine.c graphics.c init.c ray.c event.c term.c)
 add_executable(engine-win engine.c graphics.c init.c ray.c event.c term.c)
 
-set(LIB m SDL2 GL GLU SDL2_image SDL2_ttf)
+set(LIB m SDL2 GLEW GL GLU SDL2_image SDL2_ttf)
 target_link_libraries(engine ${LIB})
 
 set(LIBWIN m SDL2 opengl32 glu32 SDL2_image SDL2_ttf)

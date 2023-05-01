@@ -7,10 +7,8 @@ int init()
         return 1;
     }
 
-    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 1);
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 3);
 
     window = SDL_CreateWindow(TITLE, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN );
     if (window == NULL)
@@ -24,13 +22,13 @@ int init()
         return 3;
     }
 
-    
     if (SDL_GL_SetSwapInterval( 1 ) < 0 )
     {
         printf("non fatal error: could not set vsync\n");
     }
 
-    if ( initGL() )
+    glewExperimental = GL_TRUE;
+    if ( glewInit() != GLEW_OK )
     {
         return 4;
     }
@@ -65,34 +63,6 @@ void quit()
 int initGL()
 {
     GLenum error = GL_NO_ERROR;
-    glViewport( 0.f, 0.f, SCREEN_WIDTH, SCREEN_HEIGHT );
-    glMatrixMode( GL_PROJECTION );
-    glLoadIdentity();
-    glOrtho( 0.0, SCREEN_WIDTH, SCREEN_HEIGHT, 0.0, 1.0, -1.0 );
-
-    error = glGetError();
-    if ( error != GL_NO_ERROR )
-    {
-        printf("GL ERROR: %s\n", gluErrorString( error ));
-        return 1;
-    }
-
-    glMatrixMode( GL_MODELVIEW );
-    glLoadIdentity();
-
-    if ( error != GL_NO_ERROR )
-    {
-        printf("GL ERROR: %s\n", gluErrorString( error ));
-        return 2;
-    }
-
-    glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
-
-    if ( error != GL_NO_ERROR )
-    {
-        printf("GL ERROR: %s\n", gluErrorString( error ));
-        return 3;
-    }
 
     return 0;
 }
