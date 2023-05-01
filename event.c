@@ -17,11 +17,13 @@ int eventhandler()
 
     if (kstate[ SDL_SCANCODE_UP])
     {
-        terminal_print("up input\n");
+        degrees += 0.05;
+        printf("degrees %f\n", degrees);
     }
     else if (kstate[ SDL_SCANCODE_DOWN])
     {
-        terminal_print("down input\n");
+        degrees -= 0.05;
+        printf("degrees %f\n", degrees);
     }
     if (kstate[SDL_SCANCODE_LEFT])
     {

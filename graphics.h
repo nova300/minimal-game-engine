@@ -3,12 +3,44 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
 
 
 extern TTF_Font *font;
+
+typedef union
+{
+	 float m[4];
+	 struct 
+     {
+	 	float x, y, z, w;
+	 };
+}vec4;
+
+typedef struct
+{
+	float m[16];
+}mat4;
+
+static const mat4 IDENTITY_MATRIX = 
+{{
+	1, 0, 0, 0,
+	0, 1, 0, 0,
+	0, 0, 1, 0,
+	0, 0, 0, 1
+}};
+
+mat4 multiplymat4(const mat4* m1, const mat4* m2);
+mat4 lookAt(vec4 pos, vec4 dir);
+mat4 perspective(float fovy, float aspect_ratio, float near_plane, float far_plane);
+float dotvec4(vec4 v1, vec4 v2);
+vec4 crossvec4(vec4 v1, vec4 v2);
+void normalizevec4(vec4* v);
+void rotateY(const mat4* m, float angle);
+
 
 int LoadShaders(const char *vertex_source, const char *fragment_source);
 
