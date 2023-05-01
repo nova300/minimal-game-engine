@@ -10,6 +10,8 @@
 
 extern TTF_Font *font;
 
+int LoadShaders(const char *vertex_source, const char *fragment_source);
+
 SDL_Texture* loadTexture(const char *name, SDL_Renderer *rend);
 
 typedef struct

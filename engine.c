@@ -1,4 +1,5 @@
 #include "engine.h"
+#include "shaders.h"
 
 int SCREEN_WIDTH = 1024;
 int SCREEN_HEIGHT = 768;
@@ -50,6 +51,8 @@ ENTRYPOINT
     glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
 
 
+    int prg = LoadShaders(vertex_shader_0, fragment_shader_0);
+
     
 
     while (exitLoop == 0)
@@ -58,8 +61,10 @@ ENTRYPOINT
         eventhandler();
         if (deltaTime > 250) deltaTime = 250;
         time = SDL_GetTicks();
-        
-        glClear( GL_COLOR_BUFFER_BIT);
+        glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
+        glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+        glUseProgram(prg);
 
         glEnableVertexAttribArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);

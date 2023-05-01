@@ -1,6 +1,77 @@
 #include "graphics.h"
 #include "engine.h"
 
+
+/* GL Functions */
+
+int LoadShaders(const char *vertex_source, const char *fragment_source)
+{
+    GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
+    GLuint FragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
+
+    GLint Result = GL_FALSE;
+    int InfoLogLength;
+
+    printf("Compiling Vertex Shader\n");
+    glShaderSource(VertexShaderID, 1, &vertex_source, NULL);
+    glCompileShader(VertexShaderID);
+
+    glGetShaderiv(VertexShaderID, GL_COMPILE_STATUS, &Result);
+    glGetShaderiv(VertexShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
+    if ( InfoLogLength > 0 )
+    {
+        char *errmsg = malloc(InfoLogLength + 1);
+        glGetShaderInfoLog(VertexShaderID, InfoLogLength, NULL, errmsg);
+        printf("%s\n", errmsg);
+        free(errmsg);
+    }
+
+    printf("Compiling Fragment Shader\n");
+    glShaderSource(FragmentShaderID, 1, &fragment_source, NULL);
+    glCompileShader(FragmentShaderID);
+
+    glGetShaderiv(FragmentShaderID, GL_COMPILE_STATUS, &Result);
+    glGetShaderiv(FragmentShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
+    if ( InfoLogLength > 0 )
+    {
+        char *errmsg = malloc(InfoLogLength + 1);
+        glGetShaderInfoLog(FragmentShaderID, InfoLogLength, NULL, errmsg);
+        printf("%s\n", errmsg);
+        free(errmsg);
+    }
+
+    printf("linking program\n");
+    GLuint ProgramID = glCreateProgram();
+    glAttachShader(ProgramID, VertexShaderID);
+    glAttachShader(ProgramID, FragmentShaderID);
+    glLinkProgram(ProgramID);
+
+    glGetProgramiv(ProgramID, GL_LINK_STATUS, &Result);
+    glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
+    if ( InfoLogLength > 0 )
+    {
+        char *errmsg = malloc(InfoLogLength + 1);
+        glGetProgramInfoLog(ProgramID, InfoLogLength, NULL, errmsg);
+        printf("%s\n", errmsg);
+        free(errmsg);
+    }
+
+    glDetachShader(ProgramID, VertexShaderID);
+	glDetachShader(ProgramID, FragmentShaderID);
+	
+	glDeleteShader(VertexShaderID);
+	glDeleteShader(FragmentShaderID);
+
+	return ProgramID;
+}
+
+
+
+
+
+
+/* Graphics Objects */
+
 int transform_position(float x, float y, float z, void *obj)
 {
     Transform *t = (Transform*)obj;
