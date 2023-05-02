@@ -10,10 +10,6 @@ int init()
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 3);
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE );
-    // Enable depth test
-    glEnable(GL_DEPTH_TEST);
-    // Accept fragment if it closer to the camera than the former one
-    glDepthFunc(GL_LESS);
 
     window = SDL_CreateWindow(TITLE, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN );
     if (window == NULL)
@@ -27,26 +23,27 @@ int init()
         return 3;
     }
 
-    if (SDL_GL_SetSwapInterval( 1 ) < 0 )
-    {
-        printf("non fatal error: could not set vsync\n");
-    }
-
     glewExperimental = GL_TRUE;
     if ( glewInit() != GLEW_OK )
     {
         return 4;
     }
+
+    if ( initGL() )
+    {
+        printf("gl init error\n");
+        return 5;
+    }
     
     int imgFlags = IMG_INIT_PNG;
     if (!(IMG_Init(imgFlags) & imgFlags))
     {
-        return 5;
+        return 6;
     }
 
     if ( TTF_Init() == -1)
     {
-        return 6;
+        return 7;
     }
     
 
@@ -68,6 +65,16 @@ void quit()
 int initGL()
 {
     GLenum error = GL_NO_ERROR;
+
+    if (SDL_GL_SetSwapInterval( 1 ) < 0 )
+    {
+        printf("non fatal error: could not set vsync\n");
+    }
+
+    // Enable depth test
+    glEnable(GL_DEPTH_TEST);
+    // Accept fragment if it closer to the camera than the former one
+    glDepthFunc(GL_LESS);
 
     return 0;
 }

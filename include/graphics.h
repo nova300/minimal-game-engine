@@ -13,16 +13,27 @@ extern TTF_Font *font;
 
 typedef union
 {
-	 float m[4];
-	 struct 
-     {
-	 	float x, y, z, w;
-	 };
+	float m[4];
+	struct 
+    {
+	    float x;
+        float y;
+        float z;
+        float w;
+	};
 }vec4;
 
-typedef struct
+typedef union
 {
 	float m[16];
+    struct
+    {
+        vec4 x;
+        vec4 y;
+        vec4 z;
+        vec4 w;
+    };
+    
 }mat4;
 
 static const mat4 IDENTITY_MATRIX = 
@@ -33,25 +44,27 @@ static const mat4 IDENTITY_MATRIX =
 	0, 0, 0, 1
 }};
 
-mat4 multiplymat4(const mat4* m1, const mat4* m2);
-mat4 lookAt(vec4 pos, vec4 dir);
-mat4 perspective(float fovy, float aspect_ratio, float near_plane, float far_plane);
-float dotvec4(vec4 v1, vec4 v2);
-vec4 crossvec4(vec4 v1, vec4 v2);
-void normalizevec4(vec4* v);
-void rotateY(const mat4* m, float angle);
+
+float vector_dot(vec4 v1, vec4 v2);
+vec4 vector_cross(vec4 v1, vec4 v2);
+void vector_normalize(vec4* v);
+vec4 vector_subtract(vec4 v1, vec4 v2);
+
+void matrix_rotateY(const mat4* m, float angle);
+mat4 matrix_multiply(const mat4* m1, const mat4* m2);
+mat4 matrix_lookAt(vec4 eye, vec4 center, vec4 up);
+mat4 matrix_perspective(float fovy, float aspect_ratio, float near_plane, float far_plane);
+
+float radians(float dgr);
 
 
 int LoadShaders(const char *vertex_source, const char *fragment_source);
 
-SDL_Texture* loadTexture(const char *name, SDL_Renderer *rend);
-
 typedef struct
 {
-    float x;
-    float y;
-    float z;
-    int id;
+    vec4 position;
+    vec4 rotation;
+    vec4 scale;
 }Transform;
 
 int transform_position(float x, float y, float z, void *obj);

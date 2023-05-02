@@ -4,32 +4,48 @@
 
 /* 3D math */
 
-void normalizevec4(vec4* v) 
+float radians(float dgr)
 {
-	float sqr = v->m[0] * v->m[0] + v->m[1] * v->m[1] + v->m[2] * v->m[2];
+    float rad = dgr * 3.14 / 180;
+    return rad;
+}
+
+void vector_normalize(vec4* v) 
+{
+	float sqr = v->x * v->x + v->y * v->y + v->z * v->z;
 	if(sqr == 1 || sqr == 0)
 		return;
 	float invrt = 1.f/sqrt(sqr);
-	v->m[0] *= invrt;
-	v->m[1] *= invrt;
-	v->m[2] *= invrt;
+	v->x *= invrt;
+	v->y *= invrt;
+	v->z *= invrt;
 }
 
-float dotvec4(vec4 v1, vec4 v2) 
+float vector_dot(vec4 v1, vec4 v2) 
 {
-	return v1.m[0] * v2.m[0] + v1.m[1] * v2.m[1] + v1.m[2] * v2.m[2] + v1.m[3] * v2.m[3];
+	return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z + v1.w * v2.w;
 }
 
-vec4 crossvec4(vec4 v1, vec4 v2) 
+vec4 vector_cross(vec4 v1, vec4 v2) 
 {
 	vec4 out = {{0}};
-	out.m[0] = v1.m[1]*v2.m[2] - v1.m[2]*v2.m[1];
-	out.m[1] = v1.m[2]*v2.m[0] - v1.m[0]*v2.m[2];
-	out.m[2] = v1.m[0]*v2.m[1] - v1.m[1]*v2.m[0];
+	out.x = v1.y*v2.z - v1.z*v2.y;
+	out.y = v1.z*v2.x - v1.x*v2.z;
+	out.z = v1.x*v2.y - v1.y*v2.x;
 	return out;
 }
 
-mat4 perspective(float fovy, float aspect_ratio, float near_plane, float far_plane) 
+vec4 vector_subtract(vec4 v1, vec4 v2)
+{
+    vec4 out = {{0}};
+    out.x = v1.x - v2.x;
+    out.y = v1.y - v2.y;
+    out.z = v1.z - v2.z;
+    out.w = v1.w - v2.w;
+    return out;
+}
+
+mat4 matrix_perspective(float fovy, float aspect_ratio, float near_plane, float far_plane) 
 {
 	mat4 out = { { 0 } };
 
@@ -38,58 +54,59 @@ mat4 perspective(float fovy, float aspect_ratio, float near_plane, float far_pla
 		x_scale = y_scale / aspect_ratio,
 		frustum_length = far_plane - near_plane;
 
-	out.m[0] = x_scale;
-	out.m[5] = y_scale;
-	out.m[10] = -((far_plane + near_plane) / frustum_length);
-	out.m[11] = -1;
-	out.m[14] = -((2 * near_plane * far_plane) / frustum_length);
+	out.x.x = x_scale;
+	out.y.y = y_scale;
+	out.z.z = -((far_plane + near_plane) / frustum_length);
+	out.z.w = -1;
+	out.w.z = -((2 * near_plane * far_plane) / frustum_length);
 	
 	return out;
 }
 
-mat4 lookAt(vec4 pos, vec4 dir) 
+mat4 matrix_lookAt(vec4 eye, vec4 center, vec4 up) 
 {
-	vec4 f = dir;
-	normalizevec4(&f);
-	vec4 u = {{0, 1, 0, 0}};
-	vec4 s = crossvec4(f, u);
-	normalizevec4(&s);
-	u = crossvec4(s, f);
+    vec4 f = vector_subtract(center, eye);
+	vector_normalize(&f);
+	vec4 u = up;
+    vector_normalize(&u);
+	vec4 s = vector_cross(f, u);
+	vector_normalize(&s);
+	u = vector_cross(s, f);
 
 	mat4 out = IDENTITY_MATRIX;
-	out.m[0] = s.x;
-	out.m[4] = s.y;
-	out.m[8] = s.z;
+	out.x.x = s.x;
+	out.y.x = s.y;
+	out.z.x = s.z;
 
-	out.m[1] = u.x;
-	out.m[5] = u.y;
-	out.m[9] = u.z;
+	out.x.y = u.x;
+	out.y.y = u.y;
+	out.z.y = u.z;
 
-	out.m[2] = -f.x;
-	out.m[6] = -f.y;
-	out.m[10] = -f.z;
+	out.x.z = -f.x;
+	out.y.z = -f.y;
+	out.z.z = -f.z;
 
-	out.m[12] = -dotvec4(s, pos);
-	out.m[13] = -dotvec4(u, pos);
-	out.m[14] =  dotvec4(f, pos);
+	out.w.x = -vector_dot(s, eye);
+	out.w.y = -vector_dot(u, eye);
+	out.w.z =  vector_dot(f, eye);
 	return out;
 }
 
-void rotateY(const mat4* m, float angle) 
+void matrix_rotateY(const mat4* m, float angle) 
 {
 	mat4 rotation = IDENTITY_MATRIX;
 	float sine = (float)sin(angle);
 	float cosine = (float)cos(angle);
 	
-	rotation.m[0] = cosine;
-	rotation.m[8] = sine;
-	rotation.m[2] = -sine;
-	rotation.m[10] = cosine;
+	rotation.x.x = cosine;
+	rotation.z.x = sine;
+	rotation.x.z = -sine;
+	rotation.z.z = cosine;
 
-	memcpy(m->m, multiplymat4(m, &rotation).m, sizeof(m->m));
+	memcpy(m->m, matrix_multiply(m, &rotation).m, sizeof(m->m));
 }
 
-mat4 multiplymat4(const mat4* m1, const mat4* m2) 
+mat4 matrix_multiply(const mat4* m1, const mat4* m2) 
 {
 	mat4 out = IDENTITY_MATRIX;
 	unsigned int row, column, row_offset;
@@ -178,17 +195,19 @@ int LoadShaders(const char *vertex_source, const char *fragment_source)
 int transform_position(float x, float y, float z, void *obj)
 {
     Transform *t = (Transform*)obj;
-    t->x = x;
-    t->y = y;
-    t->z = z;
+    vec4 *pos = &(t->position);
+    pos->x = x;
+    pos->y = y;
+    pos->z = z;
 }
 
 int transform_move(float x, float y, float z, void *obj)
 {
     Transform *t = (Transform*)obj;
-    t->x += x;
-    t->y += y;
-    t->z += z;
+    vec4 *pos = &(t->position);
+    pos->x += x;
+    pos->y += y;
+    pos->z += z;
 }
 
 int sprite_free(Sprite *spr)
@@ -207,13 +226,13 @@ int sprite_render(Sprite *spr, SDL_Rect *clip, float angle, SDL_Point *center, S
     if (spr->renderer == NULL) return 1;
     if (spr->texture == NULL) return 2;
     Transform *t = (Transform*)spr;
-    SDL_Rect r = {t->x, t->y, spr->w, spr->h};
+    /*SDL_Rect r = {t->x, t->y, spr->w, spr->h};
     if (clip != NULL)
     {
         r.w = clip->w;
         r.h = clip->h;
     }
-    SDL_RenderCopyEx( spr->renderer, spr->texture, clip, &r , angle, center, flip);
+    SDL_RenderCopyEx( spr->renderer, spr->texture, clip, &r , angle, center, flip);*/
 }
 
 int sprite_colour(unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, Sprite *spr)
@@ -275,9 +294,9 @@ Sprite* sprite_new(SDL_Renderer *r)
 {
     Sprite *s = malloc(sizeof(Sprite));
     Transform *t = (Transform*)s;
-    t->x = 0;
-    t->y = 0;
-    t->z = 0;
+    t->position.x = 0;
+    t->position.y = 0;
+    t->position.z = 0;
     s->w = 0;
     s->h = 0;
     s->renderer = r;
@@ -336,7 +355,7 @@ int particle_render(ParticleSystem *ps)
             ps->particles[i].lifeTime = ps->particles[i].lifeTime - (deltaTime);
             transform_move(ps->particles[i].xdir * (deltaTime*0.2), ps->particles[i].ydir * (deltaTime*0.2), 0, &ps->particles[i]);
 
-            SDL_Rect p = {ps->particles[i].transform.x, ps->particles[i].transform.y, ps->w, ps->h};
+            SDL_Rect p = {ps->particles[i].transform.position.x, ps->particles[i].transform.position.y, ps->w, ps->h};
 
             SDL_RenderCopy( ps->renderer, ps->texture, NULL, &p);
 
@@ -349,9 +368,9 @@ ParticleSystem* particle_new(SDL_Renderer *r)
     ParticleSystem *ps = malloc(sizeof(ParticleSystem));
     Transform *t = (Transform*)ps;
     Particle *p = malloc(sizeof(Particle) * 64);
-    t->x = 0;
-    t->y = 0;
-    t->z = 0;
+    t->position.x = 0;
+    t->position.y = 0;
+    t->position.z = 0;
     ps->renderer = r;
     ps->texture = NULL;
 
@@ -362,9 +381,9 @@ ParticleSystem* particle_new(SDL_Renderer *r)
         p[i].lifeTime = 0;
         p[i].xdir = 0;
         p[i].ydir = 0;
-        pt->x = 0;
-        pt->y = 0;
-        pt->z = 0;
+        pt->position.x = 0;
+        pt->position.y = 0;
+        pt->position.z = 0;
     }
     
     ps->particles = p;

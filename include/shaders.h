@@ -12,7 +12,7 @@ const char *vertex_shader_0 =
     "{\n"
     "    mat4 mvp = PRO * VIE * MOD;\n"
     "    gl_Position = mvp * vec4(vertexPosition_modelspace,1);\n"
-    "    fragmentColor = vertexPosition_modelspace;\n"
+    "    fragmentColor = vertexColor;\n"
     "}\n";
 
 const char *fragment_shader_0 =

@@ -122,9 +122,9 @@ Terminal* terminal_new(SDL_Renderer *r)
 {
     Terminal *s = malloc(sizeof(Terminal));
     Transform *t = (Transform*)s;
-    t->x = 0;
-    t->y = 0;
-    t->z = 0;
+    t->position.x = 0;
+    t->position.y = 0;
+    t->position.z = 0;
     s->w = 0;
     s->h = 0;
     s->renderer = r;
