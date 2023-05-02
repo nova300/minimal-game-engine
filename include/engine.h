@@ -1,9 +1,10 @@
 #ifndef engine_h
 #define engine_h
 
+#define GLEW_STATIC
 
 #ifdef _WIN32
-#define ENTRYPOINT int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
+#define ENTRYPOINT int WINAPI WinMain (int argc, char **argv)
 #else
 #define ENTRYPOINT int main(int argc, char **argv)
 #endif
@@ -11,7 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <GL/glew.h>
+#include "GL/glew.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
