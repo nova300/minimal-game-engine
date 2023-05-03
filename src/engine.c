@@ -105,6 +105,7 @@ ENTRYPOINT
     glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
 
 
+
     int prg = LoadShaders(vertex_shader_0, fragment_shader_0);
 
     GLuint ViewID = glGetUniformLocation(prg, "VIE");

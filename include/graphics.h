@@ -36,6 +36,7 @@ typedef union
     
 }mat4;
 
+
 static const mat4 IDENTITY_MATRIX = 
 {{
 	1, 0, 0, 0,
@@ -80,6 +81,9 @@ typedef struct
     mat4 VIE;
     mat4 MOD;
 }GeoObject;
+
+
+int geo_loadFromFile(const char* filename, GeoObject *obj);
 
 
 typedef struct 

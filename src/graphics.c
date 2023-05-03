@@ -1,5 +1,6 @@
 #include "graphics.h"
 #include "engine.h"
+#include "stdlib.h"
 
 
 /* 3D math */
@@ -186,10 +187,6 @@ int LoadShaders(const char *vertex_source, const char *fragment_source)
 }
 
 
-
-
-
-
 /* Graphics Objects */
 
 int transform_position(float x, float y, float z, void *obj)
@@ -209,6 +206,53 @@ int transform_move(float x, float y, float z, void *obj)
     pos->y += y;
     pos->z += z;
 }
+
+int geo_loadFromFile(const char* filename, GeoObject *obj)
+{
+    float *buffer = malloc((3*sizeof(float))*64);
+    int buffLen = 64;
+    int vertCount = 0;
+
+    FILE *file = fopen(filename, "r");
+    if (file == NULL) return 1;
+
+    int fileEnded = 0;
+    while ( !fileEnded )
+    {
+        char lineHeader[128];
+        int res = fscanf(file, "%s", lineHeader);
+        if (res == EOF) fileEnded = 1;
+
+        if (strcmp(lineHeader, "v") == 0)
+        {
+            vec4 vertex;
+            fscanf(file, "%f %f %f\n", &vertex.x, &vertex.y, &vertex.z);
+            if (vertCount == buffLen)
+            {
+                buffer = realloc(buffer, ((3*sizeof(float))*buffLen) + ((3*sizeof(float))*64));
+                buffLen = buffLen + 64;
+            }
+            buffer[vertCount] = vertex.x;
+            buffer[vertCount+1] = vertex.y;
+            buffer[vertCount+2] = vertex.z;
+            vertCount = vertCount + 1;
+        }
+    }
+
+    obj->bufferLength = vertCount * 3;
+    obj->vertexBuffer = malloc((3*sizeof(float))*vertCount);
+
+    for (int i = 0; i < vertCount; i++)
+    {
+        
+    }
+
+    
+}
+
+
+
+
 
 int sprite_free(Sprite *spr)
 {
