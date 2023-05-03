@@ -70,6 +70,18 @@ typedef struct
 int transform_position(float x, float y, float z, void *obj);
 int transform_move(float x, float y, float z, void *obj);
 
+typedef struct
+{
+    float *vertexBuffer;
+    float *colorBuffer;
+    int bufferLength;
+    int triCount;
+    mat4 PRO;
+    mat4 VIE;
+    mat4 MOD;
+}GeoObject;
+
+
 typedef struct 
 {
     Transform transform;
