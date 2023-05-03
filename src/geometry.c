@@ -11,6 +11,9 @@ typedef struct
 
 int geo_obj_loadFromFile(const char* filename, GeoObject *obj)
 {
+    FILE *file = fopen(filename, "r");
+    if (file == NULL) return 1;
+
 
     vec3 *vBuffer = malloc(sizeof(vec3) * 128);
     int vBuffLen = 128;
@@ -30,8 +33,6 @@ int geo_obj_loadFromFile(const char* filename, GeoObject *obj)
 
 
 
-    FILE *file = fopen(filename, "r");
-    if (file == NULL) return 1;
 
     int fileEnded = 0;
     while ( !fileEnded )
