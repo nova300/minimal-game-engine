@@ -57,11 +57,12 @@ GLfloat cubeVertex[] = {
     1.0f,-1.0f, 1.0f
 };
 
-GLfloat triangleVertex[] = {
+vec3 triangleVertex[3]; 
+/*= {
    -1.0f, -1.0f, 0.0f,
    1.0f, -1.0f, 0.0f,
    0.0f,  1.0f, 0.0f,
-};
+};*/
 
 static GLfloat cube_color_buffer[12*3*3];
 
@@ -104,6 +105,15 @@ ENTRYPOINT
     glGenBuffers(1, &colorBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
 
+    triangleVertex[0].x = -1.0f;
+    triangleVertex[0].y = -1.0f;
+    triangleVertex[0].z =  0.0f;
+    triangleVertex[1].x =  1.0f;
+    triangleVertex[1].y = -1.0f;
+    triangleVertex[1].z =  0.0f;
+    triangleVertex[2].x =  0.0f;
+    triangleVertex[2].y =  1.0f;
+    triangleVertex[2].z =  0.0f;
 
 
     int prg = LoadShaders(vertex_shader_0, fragment_shader_0);
@@ -117,13 +127,15 @@ ENTRYPOINT
     GeoObject *cube = malloc(sizeof(GeoObject));
     GeoObject *triangle = malloc(sizeof(GeoObject));
 
-    cube->vertexBuffer = &cubeVertex;
-    cube->bufferLength = sizeof(cubeVertex);
+    geo_obj_loadFromFile("media/cube.obj", cube);
+
+    //cube->vertexBuffer = &cubeVertex;
+    //cube->bufferLength = sizeof(cubeVertex);
 
     triangle->vertexBuffer = &triangleVertex;
     triangle->bufferLength = sizeof(triangleVertex);
 
-    cube->triCount = 12;
+    //cube->triCount = 12;
     triangle->triCount = 1;
 
     cube->PRO = matrix_perspective(radians(45.0f), (float)SCREEN_WIDTH/SCREEN_HEIGHT, 0.1f, 100.0f);
@@ -133,7 +145,7 @@ ENTRYPOINT
     vec4 center = {{-3, -2, -2, 0}};
     vec4 up = {{0, 1, 0, 0}};
     cube->VIE = matrix_lookAt(eye, center, up);
-
+    
     vec4 eye1 = {{2, 1, 1, 0}};
     vec4 center1 = {{0, 0, 0, 0}};
     vec4 up1 = {{0, 1, 0, 0}};
@@ -166,10 +178,6 @@ ENTRYPOINT
 
         glUseProgram(prg);
 
-        glEnableVertexAttribArray(1);
-        glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
-        glBufferData(GL_ARRAY_BUFFER, cube->bufferLength, cube->colorBuffer, GL_STATIC_DRAW);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
         glUniformMatrix4fv(ViewID, 1, GL_FALSE, &(cube->VIE.m[0]));
         glUniformMatrix4fv(ModelID, 1, GL_FALSE, &(cube->MOD.m[0]));
@@ -180,7 +188,6 @@ ENTRYPOINT
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
         glDrawArrays(GL_TRIANGLES, 0, cube->triCount*3);
         glDisableVertexAttribArray(0);
-        glDisableVertexAttribArray(1);
 
 
         glEnableVertexAttribArray(1);

@@ -25,6 +25,18 @@ typedef union
 
 typedef union
 {
+    float m[3];
+    struct
+    {
+        float x;
+        float y;
+        float z;
+    };
+}vec3;
+
+
+typedef union
+{
 	float m[16];
     struct
     {
@@ -73,7 +85,7 @@ int transform_move(float x, float y, float z, void *obj);
 
 typedef struct
 {
-    float *vertexBuffer;
+    vec3 *vertexBuffer;
     float *colorBuffer;
     int bufferLength;
     int triCount;
@@ -83,7 +95,8 @@ typedef struct
 }GeoObject;
 
 
-int geo_loadFromFile(const char* filename, GeoObject *obj);
+int geo_obj_loadFromFile(const char* filename, GeoObject *obj);
+int geo_mdl_loadFromFile(const char* filename, GeoObject *obj);
 
 
 typedef struct 
