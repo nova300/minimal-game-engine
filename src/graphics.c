@@ -50,10 +50,9 @@ mat4 matrix_perspective(float fovy, float aspect_ratio, float near_plane, float 
 {
 	mat4 out = { { 0 } };
 
-	const float
-		y_scale = (float)(1/cos(fovy * 3.14 / 360)),
-		x_scale = y_scale / aspect_ratio,
-		frustum_length = far_plane - near_plane;
+	float y_scale = (float)(1/cos(fovy * 3.14 / 360));
+	float x_scale = y_scale / aspect_ratio;
+	float frustum_length = far_plane - near_plane;
 
 	out.x.x = x_scale;
 	out.y.y = y_scale;
@@ -93,7 +92,7 @@ mat4 matrix_lookAt(vec4 eye, vec4 center, vec4 up)
 	return out;
 }
 
-void matrix_rotateY(const mat4* m, float angle) 
+void matrix_rotateY(mat4* m, float angle) 
 {
 	mat4 rotation = IDENTITY_MATRIX;
 	float sine = (float)sin(angle);
@@ -107,7 +106,7 @@ void matrix_rotateY(const mat4* m, float angle)
 	memcpy(m->m, matrix_multiply(m, &rotation).m, sizeof(m->m));
 }
 
-mat4 matrix_multiply(const mat4* m1, const mat4* m2) 
+mat4 matrix_multiply(mat4* m1, mat4* m2) 
 {
 	mat4 out = IDENTITY_MATRIX;
 	unsigned int row, column, row_offset;

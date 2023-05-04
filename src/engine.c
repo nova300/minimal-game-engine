@@ -132,7 +132,7 @@ ENTRYPOINT
     //cube->vertexBuffer = &cubeVertex;
     //cube->bufferLength = sizeof(cubeVertex);
 
-    triangle->vertexBuffer = &triangleVertex;
+    triangle->vertexBuffer = (vec3*)&triangleVertex;
     triangle->bufferLength = sizeof(triangleVertex);
 
     //cube->triCount = 12;
@@ -155,8 +155,8 @@ ENTRYPOINT
     cube->MOD = IDENTITY_MATRIX;
     triangle->MOD = IDENTITY_MATRIX;
 
-    cube->colorBuffer = &cube_color_buffer;
-    triangle->colorBuffer = &triangle_color_buffer;
+    cube->colorBuffer = (float*)&cube_color_buffer;
+    triangle->colorBuffer = (float*)&triangle_color_buffer;
 
     while (exitLoop == 0)
     {

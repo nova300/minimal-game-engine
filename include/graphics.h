@@ -63,8 +63,8 @@ vec4 vector_cross(vec4 v1, vec4 v2);
 void vector_normalize(vec4* v);
 vec4 vector_subtract(vec4 v1, vec4 v2);
 
-void matrix_rotateY(const mat4* m, float angle);
-mat4 matrix_multiply(const mat4* m1, const mat4* m2);
+void matrix_rotateY(mat4* m, float angle);
+mat4 matrix_multiply(mat4* m1, mat4* m2);
 mat4 matrix_lookAt(vec4 eye, vec4 center, vec4 up);
 mat4 matrix_perspective(float fovy, float aspect_ratio, float near_plane, float far_plane);
 
