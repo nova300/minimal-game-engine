@@ -11,7 +11,7 @@ float radians(float dgr)
     return rad;
 }
 
-void vector_normalize(vec4* v) 
+void vector_normalize(vec3* v) 
 {
 	float sqr = v->x * v->x + v->y * v->y + v->z * v->z;
 	if(sqr == 1 || sqr == 0)
@@ -22,27 +22,26 @@ void vector_normalize(vec4* v)
 	v->z *= invrt;
 }
 
-float vector_dot(vec4 v1, vec4 v2) 
+float vector_dot(vec3 v1, vec3 v2) 
 {
-	return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z + v1.w * v2.w;
+	return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
 }
 
-vec4 vector_cross(vec4 v1, vec4 v2) 
+vec3 vector_cross(vec3 v1, vec3 v2) 
 {
-	vec4 out = {{0}};
+	vec3 out = {{0}};
 	out.x = v1.y*v2.z - v1.z*v2.y;
 	out.y = v1.z*v2.x - v1.x*v2.z;
 	out.z = v1.x*v2.y - v1.y*v2.x;
 	return out;
 }
 
-vec4 vector_subtract(vec4 v1, vec4 v2)
+vec3 vector_subtract(vec3 v1, vec3 v2)
 {
-    vec4 out = {{0}};
+    vec3 out = {{0}};
     out.x = v1.x - v2.x;
     out.y = v1.y - v2.y;
     out.z = v1.z - v2.z;
-    out.w = v1.w - v2.w;
     return out;
 }
 
@@ -63,13 +62,13 @@ mat4 matrix_perspective(float fovy, float aspect_ratio, float near_plane, float 
 	return out;
 }
 
-mat4 matrix_lookAt(vec4 eye, vec4 center, vec4 up) 
+mat4 matrix_lookAt(vec3 eye, vec3 center, vec3 up) 
 {
-    vec4 f = vector_subtract(center, eye);
+    vec3 f = vector_subtract(center, eye);
 	vector_normalize(&f);
-	vec4 u = up;
+	vec3 u = up;
     vector_normalize(&u);
-	vec4 s = vector_cross(f, u);
+	vec3 s = vector_cross(f, u);
 	vector_normalize(&s);
 	u = vector_cross(s, f);
 
@@ -203,7 +202,7 @@ int loadShaders(const char *vertex_source, const char *fragment_source)
 int transform_position(float x, float y, float z, void *obj)
 {
     Transform *t = (Transform*)obj;
-    vec4 *pos = &(t->position);
+    vec3 *pos = &(t->position);
     pos->x = x;
     pos->y = y;
     pos->z = z;
@@ -212,43 +211,14 @@ int transform_position(float x, float y, float z, void *obj)
 int transform_move(float x, float y, float z, void *obj)
 {
     Transform *t = (Transform*)obj;
-    vec4 *pos = &(t->position);
+    vec3 *pos = &(t->position);
     pos->x += x;
     pos->y += y;
     pos->z += z;
 }
 
 
-int sprite_free(Sprite *spr)
-{
-    if (spr->texture != NULL)
-    {
-        SDL_DestroyTexture(spr->texture);
-        spr->texture = NULL;
-        spr->h = 0;
-        spr->w = 0;
-    }
-}
 
-int sprite_render(Sprite *spr, SDL_Rect *clip, float angle, SDL_Point *center, SDL_RendererFlip flip)
-{
-    if (spr->renderer == NULL) return 1;
-    if (spr->texture == NULL) return 2;
-    Transform *t = (Transform*)spr;
-    /*SDL_Rect r = {t->x, t->y, spr->w, spr->h};
-    if (clip != NULL)
-    {
-        r.w = clip->w;
-        r.h = clip->h;
-    }
-    SDL_RenderCopyEx( spr->renderer, spr->texture, clip, &r , angle, center, flip);*/
-}
-
-int sprite_colour(unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, Sprite *spr)
-{
-    SDL_SetTextureColorMod(spr->texture, red, green, blue);
-    SDL_SetTextureAlphaMod(spr->texture, alpha);
-}
 
 int loadTexture(const char *name, int *texture)
 {
@@ -292,6 +262,37 @@ int loadTexture(const char *name, int *texture)
 
     *texture = textureID;
     return 0;
+}
+
+int sprite_free(Sprite *spr)
+{
+    if (spr->texture != NULL)
+    {
+        SDL_DestroyTexture(spr->texture);
+        spr->texture = NULL;
+        spr->h = 0;
+        spr->w = 0;
+    }
+}
+
+int sprite_render(Sprite *spr, SDL_Rect *clip, float angle, SDL_Point *center, SDL_RendererFlip flip)
+{
+    if (spr->renderer == NULL) return 1;
+    if (spr->texture == NULL) return 2;
+    Transform *t = (Transform*)spr;
+    /*SDL_Rect r = {t->x, t->y, spr->w, spr->h};
+    if (clip != NULL)
+    {
+        r.w = clip->w;
+        r.h = clip->h;
+    }
+    SDL_RenderCopyEx( spr->renderer, spr->texture, clip, &r , angle, center, flip);*/
+}
+
+int sprite_colour(unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, Sprite *spr)
+{
+    SDL_SetTextureColorMod(spr->texture, red, green, blue);
+    SDL_SetTextureAlphaMod(spr->texture, alpha);
 }
 
 int sprite_loadFromFile(const char* filename, Sprite *spr)

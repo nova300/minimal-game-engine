@@ -139,21 +139,21 @@ ENTRYPOINT
     cube->PRO = matrix_perspective(radians(45.0f), (float)SCREEN_WIDTH/SCREEN_HEIGHT, 0.1f, 100.0f);
     triangle->PRO = matrix_perspective(radians(90.0f), (float)SCREEN_WIDTH/SCREEN_HEIGHT, 0.1f, 100.0f);
 
-    vec4 eye = {{4, 3, 3, 0}};
-    vec4 center = {{-3, -2, -2, 0}};
-    vec4 up = {{0, 1, 0, 0}};
+    vec3 eye = {{4, 3, 3}};
+    vec3 center = {{-3, -2, -2}};
+    vec3 up = {{0, 1, 0}};
     cube->VIE = matrix_lookAt(eye, center, up);
     
-    vec4 eye1 = {{2, 1, 1, 0}};
-    vec4 center1 = {{0, 0, 0, 0}};
-    vec4 up1 = {{0, 1, 0, 0}};
+    vec3 eye1 = {{2, 1, 1}};
+    vec3 center1 = {{0, 0, 0}};
+    vec3 up1 = {{0, 1, 0}};
 
     triangle->VIE = matrix_lookAt(eye1, center1, up1);
 
     cube->MOD = IDENTITY_MATRIX;
     triangle->MOD = IDENTITY_MATRIX;
 
-    if (loadTexture("media/font_0.png", &cube->texture))
+    if (loadTexture("media/greem.png", &cube->texture))
     {
         printf("could not load texture\n");
     }
