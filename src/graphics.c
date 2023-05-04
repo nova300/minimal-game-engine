@@ -124,7 +124,7 @@ mat4 matrix_multiply(mat4* m1, mat4* m2)
 
 /* GL Functions */
 
-int LoadShaders(const char *vertex_source, const char *fragment_source)
+int loadShaders(const char *vertex_source, const char *fragment_source)
 {
     GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
     GLuint FragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
@@ -132,7 +132,7 @@ int LoadShaders(const char *vertex_source, const char *fragment_source)
     GLint Result = GL_FALSE;
     int InfoLogLength;
 
-    printf("Compiling Vertex Shader\n");
+    printf("GRAPHICS: Compiling Vertex Shader... ");
     glShaderSource(VertexShaderID, 1, &vertex_source, NULL);
     glCompileShader(VertexShaderID);
 
@@ -145,8 +145,12 @@ int LoadShaders(const char *vertex_source, const char *fragment_source)
         printf("%s\n", errmsg);
         free(errmsg);
     }
+    else
+    {
+        printf("OK\n");
+    }
 
-    printf("Compiling Fragment Shader\n");
+    printf("GRAPHICS: Compiling Fragment Shader... ");
     glShaderSource(FragmentShaderID, 1, &fragment_source, NULL);
     glCompileShader(FragmentShaderID);
 
@@ -159,8 +163,12 @@ int LoadShaders(const char *vertex_source, const char *fragment_source)
         printf("%s\n", errmsg);
         free(errmsg);
     }
+    else
+    {
+        printf("OK\n");
+    }
 
-    printf("linking program\n");
+    printf("GRAPHICS: linking program... ");
     GLuint ProgramID = glCreateProgram();
     glAttachShader(ProgramID, VertexShaderID);
     glAttachShader(ProgramID, FragmentShaderID);
@@ -174,6 +182,10 @@ int LoadShaders(const char *vertex_source, const char *fragment_source)
         glGetProgramInfoLog(ProgramID, InfoLogLength, NULL, errmsg);
         printf("%s\n", errmsg);
         free(errmsg);
+    }
+    else
+    {
+        printf("OK\n");
     }
 
     glDetachShader(ProgramID, VertexShaderID);
@@ -238,21 +250,48 @@ int sprite_colour(unsigned char red, unsigned char green, unsigned char blue, un
     SDL_SetTextureAlphaMod(spr->texture, alpha);
 }
 
-SDL_Texture* loadTexture(const char *name, SDL_Renderer *rend)
+int loadTexture(const char *name, int *texture)
 {
-    SDL_Texture *t = NULL;
     SDL_Surface *s = IMG_Load(name);
     if (s == NULL)
     {
-        printf("error loading image\n");
+        printf("could not find image file\n");
+        return 1;
     }
-    else
+
+    GLuint Mode = 0;
+    if(s->format->BytesPerPixel == 3) Mode = GL_RGB;
+    if(s->format->BytesPerPixel == 4) Mode = GL_RGBA;
+
+    if (Mode == 0)
     {
-        t = SDL_CreateTextureFromSurface( rend, s);
+        printf("TEXTURE: %s : unsupported pixel format: %dbbp. trying to convert... ", name , s->format->BytesPerPixel);
+        SDL_Surface *ptr = SDL_ConvertSurfaceFormat(s, SDL_PIXELFORMAT_RGBA32, 0);
+        if (ptr == NULL) 
+        {
+            printf("FAIL\n");
+            return 2;
+        }
+        SDL_FreeSurface(s);
+        s = ptr;
+        Mode = GL_RGBA;
+        printf("OK\n");
     }
-    if (t == NULL) printf("error creating texture\n");
+
+    GLuint textureID;
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    glTexImage2D(GL_TEXTURE_2D, 0, Mode, s->w, s->h, 0, Mode, GL_UNSIGNED_BYTE, s->pixels);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
     SDL_FreeSurface(s);
-    return t;
+
+    *texture = textureID;
+    return 0;
 }
 
 int sprite_loadFromFile(const char* filename, Sprite *spr)

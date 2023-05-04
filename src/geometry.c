@@ -11,14 +11,18 @@ typedef struct
 
 int geo_obj_loadFromFile(const char* filename, GeoObject *obj)
 {
+    printf("GEO: %s : Loading obj... ", filename);
     FILE *file = fopen(filename, "r");
-    if (file == NULL) return 1;
-
+    if (file == NULL) 
+    {
+        printf("FILE NOT FOUND\n");
+        return 1;
+    }
 
     vec3 *vBuffer = malloc(sizeof(vec3) * 128);
     int vBuffLen = 128;
     int vCount = 0;
-    vec3 *vtBuffer = malloc(sizeof(vec3) * 128);
+    vec2 *vtBuffer = malloc(sizeof(vec2) * 128);
     int vtBuffLen = 128;
     int vtCount = 0;
     vec3 *vnBuffer = malloc(sizeof(vec3) * 128);
@@ -58,12 +62,12 @@ int geo_obj_loadFromFile(const char* filename, GeoObject *obj)
         }
         else if (strcmp(lineHeader, "vt") == 0)
         {
-            vec3 uv;
+            vec2 uv;
             fscanf(file, "%f %f\n", &uv.x, &uv.y);
             if (vtCount == vtBuffLen)
             {
                 printf("vt: %d\n", vtCount);
-                vtBuffer = realloc(vtBuffer, sizeof(vec3) * (vtBuffLen + 128));
+                vtBuffer = realloc(vtBuffer, sizeof(vec2) * (vtBuffLen + 128));
                 vtBuffLen = vtBuffLen + 128;
             }
             vtBuffer[vtCount].x = uv.x;
@@ -111,26 +115,26 @@ int geo_obj_loadFromFile(const char* filename, GeoObject *obj)
         }
     }
 
-    printf("file read\n");
-    printf("polygons to render: %d\n", iCount - 1);
-    printf("polygons on disk: %d\n", vCount - 1);
+    
 
     int vertCount = (iCount - 1) * 3;
-
-    printf("verts to render: %d\n", vertCount);
-    printf("verts on disk: %d\n", (vCount - 1) * 3);
 
     obj->bufferLength = sizeof(vec3) * vertCount;
     obj->triCount = (iCount - 1);
     obj->vertexBuffer = malloc(sizeof(vec3) * vertCount);
+    obj->uvBuffer = malloc(sizeof(vec2) * vertCount);
 
     int *vi = (int*)vertexIndices;
+    int *ui = (int*)uvIndices;
 
     for (int i = 0; i < vertCount; i++)
     {
         int vertexIndex = vi[i];
+        int uvIndex = ui[i];
         vec3 vertex = vBuffer[vertexIndex - 1];
+        vec2 uv = vtBuffer[uvIndex - 1];
         obj->vertexBuffer[i] = vertex;
+        obj->uvBuffer[i] = uv;
     }
 
     fclose(file);
@@ -140,6 +144,12 @@ int geo_obj_loadFromFile(const char* filename, GeoObject *obj)
     free(vertexIndices);
     free(uvIndices);
     free(normalIndices);
+
+    printf("OK\n----------FILE STATS----------\n");
+    printf("polygons to render: %d\n", iCount - 1);
+    printf("polygons on disk: %d\n", vCount - 1);
+    printf("verts to render: %d\n", vertCount);
+    printf("verts on disk: %d\n------------------------------\n", (vCount - 1) * 3);
 
     return 0;
 }

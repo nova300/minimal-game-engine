@@ -34,6 +34,16 @@ typedef union
     };
 }vec3;
 
+typedef union
+{
+    float m[2];
+    struct
+    {
+        float x;
+        float y;
+    };
+    
+}vec2;
 
 typedef union
 {
@@ -71,7 +81,7 @@ mat4 matrix_perspective(float fovy, float aspect_ratio, float near_plane, float 
 float radians(float dgr);
 
 
-int LoadShaders(const char *vertex_source, const char *fragment_source);
+int loadShaders(const char *vertex_source, const char *fragment_source);
 
 typedef struct
 {
@@ -86,14 +96,16 @@ int transform_move(float x, float y, float z, void *obj);
 typedef struct
 {
     vec3 *vertexBuffer;
-    float *colorBuffer;
+    vec2 *uvBuffer;
     int bufferLength;
     int triCount;
+    int texture;
     mat4 PRO;
     mat4 VIE;
     mat4 MOD;
 }GeoObject;
 
+int loadTexture(const char *name, int *texture);
 
 int geo_obj_loadFromFile(const char* filename, GeoObject *obj);
 int geo_mdl_loadFromFile(const char* filename, GeoObject *obj);
