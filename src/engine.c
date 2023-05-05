@@ -121,16 +121,17 @@ ENTRYPOINT
     triangleVertex[2].z =  0.0f;
 
 
-    int prg = loadShaders(vertex_shader_0, fragment_shader_0);
+    int prg = loadShaders(vertex_shader_1, fragment_shader_1);
 
     GLuint ViewID = glGetUniformLocation(prg, "VIE");
     GLuint ModelID = glGetUniformLocation(prg, "MOD");
     GLuint ProjectionID = glGetUniformLocation(prg, "PRO");
+    GLuint colorID = glGetUniformLocation(prg, "COL");
 
     GeoObject *cube = malloc(sizeof(GeoObject));
     GeoObject *triangle = malloc(sizeof(GeoObject));
 
-    geo_obj_loadFromFile("media/sphere_smooth.obj", cube);
+    geo_obj_loadFromFile("media/sphere.obj", cube);
 
     //cube->vertexBuffer = &cubeVertex;
     //cube->bufferLength = sizeof(cubeVertex);
@@ -153,6 +154,8 @@ ENTRYPOINT
     vec3 center1 = {{0, 0, 0}};
     vec3 up1 = {{0, 1, 0}};
 
+    vec3 color1 = {{1.0f, 0.5f, 0.0f}};
+
     triangle->VIE = matrix_lookAt(eye1, center1, up1);
 
     cube->MOD = IDENTITY_MATRIX;
@@ -163,6 +166,8 @@ ENTRYPOINT
         printf("could not load texture\n");
     }
 
+    float colorTimer = 0;
+
     while (exitLoop == 0)
     {
         deltaTime = SDL_GetTicks() - time;
@@ -170,17 +175,29 @@ ENTRYPOINT
         if (deltaTime > 250) deltaTime = 250;
         time = SDL_GetTicks();
 
+        if (colorTimer < 0)
+        {
+            color1.x = ((float)(rand() % 100)/100.0f);
+            color1.y = ((float)(rand() % 100)/100.0f);
+            color1.z = ((float)(rand() % 100)/100.0f);
+            colorTimer = 200.0f;
+        }
+        else
+        {
+            colorTimer -= deltaTime;
+        }
+
         glClearColor(0.0f, 0.0f, 0.2f, 0.0f);
         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
         matrix_rotateY(&cube->MOD, 0.001 * deltaTime);
 
         glUseProgram(prg);
 
-        glBindTexture(GL_TEXTURE_2D, cube->texture);
+        /*glBindTexture(GL_TEXTURE_2D, cube->texture);
         glEnableVertexAttribArray(1);
         glBindBuffer(GL_ARRAY_BUFFER, uvBuffer);
         glBufferData(GL_ARRAY_BUFFER, cube->bufferLength, (int*)cube->uvBuffer, GL_STATIC_DRAW);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);*/
         glEnableVertexAttribArray(2);
         glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
         glBufferData(GL_ARRAY_BUFFER, cube->bufferLength, (int*)cube->normalBuffer, GL_STATIC_DRAW);
@@ -188,6 +205,7 @@ ENTRYPOINT
         glUniformMatrix4fv(ViewID, 1, GL_FALSE, &(cube->VIE.m[0]));
         glUniformMatrix4fv(ModelID, 1, GL_FALSE, &(cube->MOD.m[0]));
         glUniformMatrix4fv(ProjectionID, 1, GL_FALSE, &(cube->PRO.m[0]));
+        glUniform3fv(colorID, 1, &(color1.m[0]));
         glEnableVertexAttribArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
         glBufferData(GL_ARRAY_BUFFER, cube->bufferLength, cube->vertexBuffer, GL_STATIC_DRAW);

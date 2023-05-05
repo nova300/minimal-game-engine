@@ -39,3 +39,43 @@ const char *fragment_shader_0 =
 "   col = col * light;\n"
 "   color = col;\n"
 "}\n";
+
+const char *vertex_shader_1 = 
+    "#version 330 core\n"
+    "layout(location = 0) in vec3 vertexPosition_modelspace;\n"
+    "layout(location = 1) in vec2 vertexUV;\n"
+    "layout(location = 2) in vec3 vertexNormal;\n"
+    "out vec2 uv;\n"
+    "out float light;\n"
+    "out vec3 vertexColor;\n"
+    "uniform mat4 PRO;\n"
+    "uniform mat4 VIE;\n"
+    "uniform mat4 MOD;\n"
+    "uniform vec3 COL;\n"
+    "float lambert(vec3 N, vec3 L)\n"
+    "{\n"
+    "   vec3 nrmN = normalize(N);\n"
+    "   vec3 nrmL = normalize(L);\n"
+    "   float result = dot(nrmN, nrmL) / 1 * (1 - 0.4) + 0.4;\n"
+    "   return max(result, 0.0);\n"
+    "}\n"
+    "void main()\n"
+    "{\n"
+    "    mat4 mvp = PRO * VIE * MOD;\n"
+    "    gl_Position = mvp * vec4(vertexPosition_modelspace,1);\n"
+    "    vec3 vertexPosition_cameraspace = ( VIE * MOD * vec4(vertexPosition_modelspace,1)).xyz;\n"
+    "    vec3 vertexNormal_cameraspace = ( VIE * MOD * vec4(vertexNormal,0)).xyz;\n"
+    "    vec3 eyeDirection_cameraspace = vec3(0,0,0) - vertexPosition_cameraspace;\n"
+    "    float l = lambert(vertexNormal_cameraspace, eyeDirection_cameraspace);\n"
+    "    vertexColor = COL * l;\n"
+    "}\n";
+
+const char *fragment_shader_1 =
+"#version 330 core\n"
+"in float light;\n"
+"in vec3 vertexColor;\n"
+"out vec3 color;\n"
+"uniform sampler2D texSampler;\n"
+"void main(){\n"
+"   color = vertexColor;\n"
+"}\n";
