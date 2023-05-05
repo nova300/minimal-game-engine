@@ -97,6 +97,7 @@ typedef struct
 {
     vec3 *vertexBuffer;
     vec2 *uvBuffer;
+    vec3 *normalBuffer;
     int bufferLength;
     int triCount;
     int texture;

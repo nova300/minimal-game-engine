@@ -123,18 +123,23 @@ int geo_obj_loadFromFile(const char* filename, GeoObject *obj)
     obj->triCount = (iCount - 1);
     obj->vertexBuffer = malloc(sizeof(vec3) * vertCount);
     obj->uvBuffer = malloc(sizeof(vec2) * vertCount);
+    obj->normalBuffer = malloc(sizeof(vec3) * vertCount);
 
     int *vi = (int*)vertexIndices;
     int *ui = (int*)uvIndices;
+    int *ni = (int*)normalIndices;
 
     for (int i = 0; i < vertCount; i++)
     {
         int vertexIndex = vi[i];
         int uvIndex = ui[i];
+        int normalIndex = ni[i];
         vec3 vertex = vBuffer[vertexIndex - 1];
         vec2 uv = vtBuffer[uvIndex - 1];
+        vec3 normal = vnBuffer[normalIndex - 1];
         obj->vertexBuffer[i] = vertex;
         obj->uvBuffer[i] = uv;
+        obj->normalBuffer[i] = normal;
     }
 
     fclose(file);

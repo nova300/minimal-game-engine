@@ -105,6 +105,11 @@ ENTRYPOINT
     glGenBuffers(1, &uvBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, uvBuffer);
 
+    GLuint normalBuffer;
+    glGenBuffers(1, &normalBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
+
+
     triangleVertex[0].x = -1.0f;
     triangleVertex[0].y = -1.0f;
     triangleVertex[0].z =  0.0f;
@@ -176,6 +181,10 @@ ENTRYPOINT
         glBindBuffer(GL_ARRAY_BUFFER, uvBuffer);
         glBufferData(GL_ARRAY_BUFFER, cube->bufferLength, (int*)cube->uvBuffer, GL_STATIC_DRAW);
         glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+        glEnableVertexAttribArray(2);
+        glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
+        glBufferData(GL_ARRAY_BUFFER, cube->bufferLength, (int*)cube->normalBuffer, GL_STATIC_DRAW);
+        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
         glUniformMatrix4fv(ViewID, 1, GL_FALSE, &(cube->VIE.m[0]));
         glUniformMatrix4fv(ModelID, 1, GL_FALSE, &(cube->MOD.m[0]));
         glUniformMatrix4fv(ProjectionID, 1, GL_FALSE, &(cube->PRO.m[0]));
@@ -186,6 +195,7 @@ ENTRYPOINT
         glDrawArrays(GL_TRIANGLES, 0, cube->triCount*3);
         glDisableVertexAttribArray(0);
         glDisableVertexAttribArray(1);
+        glDisableVertexAttribArray(2);
 
 
 
