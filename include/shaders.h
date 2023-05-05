@@ -23,7 +23,7 @@ const char *vertex_shader_0 =
     "    gl_Position = mvp * vec4(vertexPosition_modelspace,1);\n"
     "    uv = vertexUV;\n"
     "    vec3 vertexPosition_cameraspace = ( VIE * MOD * vec4(vertexPosition_modelspace,1)).xyz;\n"
-    "    vec3 vertexNormal_cameraspace = ( MOD * vec4(vertexNormal,1)).xyz;\n"
+    "    vec3 vertexNormal_cameraspace = ( VIE * MOD * vec4(vertexNormal,0)).xyz;\n"
     "    vec3 eyeDirection_cameraspace = vec3(0,0,0) - vertexPosition_cameraspace;\n"
     "    light = lambert(vertexNormal_cameraspace, eyeDirection_cameraspace);\n"
     "}\n";

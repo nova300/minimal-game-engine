@@ -130,7 +130,7 @@ ENTRYPOINT
     GeoObject *cube = malloc(sizeof(GeoObject));
     GeoObject *triangle = malloc(sizeof(GeoObject));
 
-    geo_obj_loadFromFile("media/cube.obj", cube);
+    geo_obj_loadFromFile("media/sphere.obj", cube);
 
     //cube->vertexBuffer = &cubeVertex;
     //cube->bufferLength = sizeof(cubeVertex);
@@ -144,12 +144,12 @@ ENTRYPOINT
     cube->PRO = matrix_perspective(radians(45.0f), (float)SCREEN_WIDTH/SCREEN_HEIGHT, 0.1f, 100.0f);
     triangle->PRO = matrix_perspective(radians(90.0f), (float)SCREEN_WIDTH/SCREEN_HEIGHT, 0.1f, 100.0f);
 
-    vec3 eye = {{4, 3, 3}};
-    vec3 center = {{-3, -2, -2}};
+    vec3 eye = {{3, 3, 3}};
+    vec3 center = {{0, 0, 0}};
     vec3 up = {{0, 1, 0}};
     cube->VIE = matrix_lookAt(eye, center, up);
     
-    vec3 eye1 = {{2, 1, 1}};
+    vec3 eye1 = {{2, 1, -1}};
     vec3 center1 = {{0, 0, 0}};
     vec3 up1 = {{0, 1, 0}};
 
