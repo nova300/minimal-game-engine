@@ -121,7 +121,7 @@ ENTRYPOINT
     triangleVertex[2].z =  0.0f;
 
 
-    int prg = loadShaders(vertex_shader_1, fragment_shader_1);
+    int prg = loadShaders(vertex_shader_0, fragment_shader_0);
 
     GLuint ViewID = glGetUniformLocation(prg, "VIE");
     GLuint ModelID = glGetUniformLocation(prg, "MOD");
@@ -131,7 +131,7 @@ ENTRYPOINT
     GeoObject *cube = malloc(sizeof(GeoObject));
     GeoObject *triangle = malloc(sizeof(GeoObject));
 
-    geo_obj_loadFromFile("media/sphere.obj", cube);
+    geo_obj_loadFromFile("media/scene.obj", cube);
 
     //cube->vertexBuffer = &cubeVertex;
     //cube->bufferLength = sizeof(cubeVertex);
@@ -180,7 +180,7 @@ ENTRYPOINT
             color1.x = ((float)(rand() % 100)/100.0f);
             color1.y = ((float)(rand() % 100)/100.0f);
             color1.z = ((float)(rand() % 100)/100.0f);
-            colorTimer = 200.0f;
+            colorTimer = 400.0f;
         }
         else
         {
@@ -193,11 +193,11 @@ ENTRYPOINT
 
         glUseProgram(prg);
 
-        /*glBindTexture(GL_TEXTURE_2D, cube->texture);
+        glBindTexture(GL_TEXTURE_2D, cube->texture);
         glEnableVertexAttribArray(1);
         glBindBuffer(GL_ARRAY_BUFFER, uvBuffer);
         glBufferData(GL_ARRAY_BUFFER, cube->bufferLength, (int*)cube->uvBuffer, GL_STATIC_DRAW);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);*/
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
         glEnableVertexAttribArray(2);
         glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
         glBufferData(GL_ARRAY_BUFFER, cube->bufferLength, (int*)cube->normalBuffer, GL_STATIC_DRAW);
