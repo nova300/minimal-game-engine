@@ -130,7 +130,7 @@ ENTRYPOINT
     GeoObject *cube = malloc(sizeof(GeoObject));
     GeoObject *triangle = malloc(sizeof(GeoObject));
 
-    geo_obj_loadFromFile("media/sphere.obj", cube);
+    geo_obj_loadFromFile("media/sphere_smooth.obj", cube);
 
     //cube->vertexBuffer = &cubeVertex;
     //cube->bufferLength = sizeof(cubeVertex);
