@@ -131,7 +131,7 @@ ENTRYPOINT
     GeoObject *cube = malloc(sizeof(GeoObject));
     GeoObject *triangle = malloc(sizeof(GeoObject));
 
-    geo_obj_loadFromFile("media/scene.obj", cube);
+    geo_obj_loadFromFile("media/sphere.obj", cube);
 
     //cube->vertexBuffer = &cubeVertex;
     //cube->bufferLength = sizeof(cubeVertex);
@@ -161,7 +161,7 @@ ENTRYPOINT
     cube->MOD = IDENTITY_MATRIX;
     triangle->MOD = IDENTITY_MATRIX;
 
-    if (loadTexture("media/greem.png", &cube->texture))
+    if (loadTexture("media/textest.jpg", &cube->texture))
     {
         printf("could not load texture\n");
     }
