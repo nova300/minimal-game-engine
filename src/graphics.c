@@ -125,19 +125,17 @@ mat4 matrix_multiply(mat4* m1, mat4* m2)
 
 int transform_position(float x, float y, float z, Transform *t)
 {
-    vec3 *pos = &(t->position);
-    pos->x = x;
-    pos->y = y;
-    pos->z = z;
+    t->position.x = x;
+    t->position.y = y;
+    t->position.z = z;
     transform_make_matrix(t);
 }
 
 int transform_move(float x, float y, float z, Transform *t)
 {
-    vec3 *pos = &(t->position);
-    pos->x += x;
-    pos->y += y;
-    pos->z += z;
+    t->position.x += x;
+    t->position.y += y;
+    t->position.z += z;
     transform_make_matrix(t);
 }
 
@@ -163,9 +161,9 @@ int transform_make_matrix(Transform *t) {
     memset(&model_matrix, 0, sizeof(mat4));
 
     // Translation matrix
-    model_matrix.x.w = t->position.x;
-    model_matrix.y.w = t->position.y;
-    model_matrix.z.w = t->position.z;
+    model_matrix.w.x = t->position.x;
+    model_matrix.w.y = t->position.y;
+    model_matrix.w.z = t->position.z;
     model_matrix.w.w = 1.0f;
 
     // Rotation matrix
@@ -197,17 +195,6 @@ int transform_make_matrix(Transform *t) {
     model_matrix.z.x *= t->scale.z;
     model_matrix.z.y *= t->scale.z;
     model_matrix.z.z *= t->scale.z;
-
-    // Set w component to 0 for non-homogeneous coordinates
-    model_matrix.x.w = 0.0f;
-    model_matrix.y.w = 0.0f;
-    model_matrix.z.w = 0.0f;
-
-    // Set w component to 1 for homogeneous coordinates
-    model_matrix.w.x = 0.0f;
-    model_matrix.w.y = 0.0f;
-    model_matrix.w.z = 0.0f;
-    model_matrix.w.w = 1.0f;
 
     t->matrix = model_matrix;
 }
