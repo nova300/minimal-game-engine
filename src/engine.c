@@ -73,6 +73,11 @@ static GLfloat triangle_color_buffer[] =
     0.0f, 0.0f, 1.0f
 };
 
+int vertexBuffer;
+int uvBuffer;
+int normalBuffer;
+int elementBuffer;
+
 
 ENTRYPOINT
 {
@@ -97,15 +102,12 @@ ENTRYPOINT
     glGenVertexArrays(1, &VertexArrayID);
     glBindVertexArray(VertexArrayID);
 
-    GLuint vertexBuffer;
     glGenBuffers(1, &vertexBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
 
-    GLuint uvBuffer;
     glGenBuffers(1, &uvBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, uvBuffer);
 
-    GLuint normalBuffer;
     glGenBuffers(1, &normalBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
 
@@ -120,18 +122,12 @@ ENTRYPOINT
     triangleVertex[2].y =  1.0f;
     triangleVertex[2].z =  0.0f;
 
-
-    int prg = loadShaders(vertex_shader_0, fragment_shader_0);
-
-    GLuint ViewID = glGetUniformLocation(prg, "VIE");
-    GLuint ModelID = glGetUniformLocation(prg, "MOD");
-    GLuint ProjectionID = glGetUniformLocation(prg, "PRO");
-    GLuint colorID = glGetUniformLocation(prg, "COL");
-
     GeoObject *cube = malloc(sizeof(GeoObject));
     GeoObject *triangle = malloc(sizeof(GeoObject));
 
     geo_obj_loadFromFile("media/sphere.obj", cube);
+
+    cube->shader = newShaderObject(vertex_shader_0, fragment_shader_0);
 
     //cube->vertexBuffer = &cubeVertex;
     //cube->bufferLength = sizeof(cubeVertex);
@@ -191,30 +187,8 @@ ENTRYPOINT
         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
         matrix_rotateY(&cube->MOD, 0.001 * deltaTime);
 
-        glUseProgram(prg);
-
-        glBindTexture(GL_TEXTURE_2D, cube->texture);
-        glEnableVertexAttribArray(1);
-        glBindBuffer(GL_ARRAY_BUFFER, uvBuffer);
-        glBufferData(GL_ARRAY_BUFFER, cube->bufferLength, (int*)cube->uvBuffer, GL_STATIC_DRAW);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
-        glEnableVertexAttribArray(2);
-        glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
-        glBufferData(GL_ARRAY_BUFFER, cube->bufferLength, (int*)cube->normalBuffer, GL_STATIC_DRAW);
-        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-        glUniformMatrix4fv(ViewID, 1, GL_FALSE, &(cube->VIE.m[0]));
-        glUniformMatrix4fv(ModelID, 1, GL_FALSE, &(cube->MOD.m[0]));
-        glUniformMatrix4fv(ProjectionID, 1, GL_FALSE, &(cube->PRO.m[0]));
-        glUniform3fv(colorID, 1, &(color1.m[0]));
-        glEnableVertexAttribArray(0);
-        glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-        glBufferData(GL_ARRAY_BUFFER, cube->bufferLength, cube->vertexBuffer, GL_STATIC_DRAW);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-        glDrawArrays(GL_TRIANGLES, 0, cube->triCount*3);
-        glDisableVertexAttribArray(0);
-        glDisableVertexAttribArray(1);
-        glDisableVertexAttribArray(2);
-
+        
+        geo_render(cube);
 
 
         SDL_GL_SwapWindow( window );

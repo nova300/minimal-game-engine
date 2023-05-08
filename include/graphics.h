@@ -80,8 +80,17 @@ mat4 matrix_perspective(float fovy, float aspect_ratio, float near_plane, float 
 
 float radians(float dgr);
 
+typedef struct
+{
+    int ShaderID;
+    int ProjectionID;
+    int ModelID;
+    int ViewID;
+    int ColorID;
+}Shader;
 
 int loadShaders(const char *vertex_source, const char *fragment_source);
+Shader* newShaderObject(const char *vertex_source, const char *fragment_source);
 
 typedef struct
 {
@@ -93,24 +102,35 @@ typedef struct
 int transform_position(float x, float y, float z, void *obj);
 int transform_move(float x, float y, float z, void *obj);
 
+extern int vertexBuffer;
+extern int uvBuffer;
+extern int normalBuffer;
+extern int elementBuffer;
+
 typedef struct
 {
     vec3 *vertexBuffer;
     vec2 *uvBuffer;
     vec3 *normalBuffer;
+    int *indexBuffer;
     int bufferLength;
     int triCount;
     int texture;
+    vec3 color;
+    Shader *shader;
     mat4 PRO;
     mat4 VIE;
     mat4 MOD;
 }GeoObject;
 
-int loadTexture(const char *name, int *texture);
 
+
+int loadTexture(const char *name, int *texture);
 int geo_obj_loadFromFile(const char* filename, GeoObject *obj);
 int geo_mdl_loadFromFile(const char* filename, GeoObject *obj);
 
+int geo_render(GeoObject *obj);
+GeoObject *geo_new_object();
 
 typedef struct 
 {
