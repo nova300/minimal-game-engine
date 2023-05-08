@@ -157,6 +157,8 @@ ENTRYPOINT
         printf("could not load texture\n");
     }
 
+    
+
     float colorTimer = 0;
 
     while (exitLoop == 0)
@@ -178,9 +180,11 @@ ENTRYPOINT
             colorTimer -= deltaTime;
         }
 
+        cube->color = color1;
+
         glClearColor(0.0f, 0.0f, 0.2f, 0.0f);
         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-        transform_rotate(0, 0.01 * deltaTime , 0 , &cube->transform);
+        transform_rotate(0.001 * deltaTime, 0.001 * deltaTime , 0.001 * deltaTime , &cube->transform);
 
         
         geo_render(cube);
