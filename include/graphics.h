@@ -94,21 +94,29 @@ Shader* newShaderObject(const char *vertex_source, const char *fragment_source);
 
 typedef struct
 {
+    mat4 matrix;
     vec3 position;
     vec3 rotation;
     vec3 scale;
 }Transform;
 
-int transform_position(float x, float y, float z, void *obj);
-int transform_move(float x, float y, float z, void *obj);
+int transform_position(float x, float y, float z, Transform *t);
+int transform_move(float x, float y, float z, Transform *t);
+int transform_set_identity(Transform *t);
+int transform_set_rotation(float x, float y, float z, Transform *t);
+int transform_rotate(float x, float y, float z, Transform *t);
 
 extern int vertexBuffer;
 extern int uvBuffer;
 extern int normalBuffer;
 extern int elementBuffer;
 
+extern mat4 projectionMatrix;
+extern mat4 viewMatrix;
+
 typedef struct
 {
+    Transform transform;
     vec3 *vertexBuffer;
     vec2 *uvBuffer;
     vec3 *normalBuffer;
@@ -118,9 +126,6 @@ typedef struct
     int texture;
     vec3 color;
     Shader *shader;
-    mat4 PRO;
-    mat4 VIE;
-    mat4 MOD;
 }GeoObject;
 
 

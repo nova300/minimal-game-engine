@@ -78,6 +78,9 @@ int uvBuffer;
 int normalBuffer;
 int elementBuffer;
 
+mat4 projectionMatrix;
+mat4 viewMatrix;
+
 
 ENTRYPOINT
 {
@@ -138,24 +141,16 @@ ENTRYPOINT
     //cube->triCount = 12;
     triangle->triCount = 1;
 
-    cube->PRO = matrix_perspective(radians(45.0f), (float)SCREEN_WIDTH/SCREEN_HEIGHT, 0.1f, 100.0f);
-    triangle->PRO = matrix_perspective(radians(90.0f), (float)SCREEN_WIDTH/SCREEN_HEIGHT, 0.1f, 100.0f);
+    projectionMatrix = matrix_perspective(radians(45.0f), (float)SCREEN_WIDTH/SCREEN_HEIGHT, 0.1f, 100.0f);
 
     vec3 eye = {{3, 3, 3}};
     vec3 center = {{0, 0, 0}};
     vec3 up = {{0, 1, 0}};
-    cube->VIE = matrix_lookAt(eye, center, up);
-    
-    vec3 eye1 = {{2, 1, -1}};
-    vec3 center1 = {{0, 0, 0}};
-    vec3 up1 = {{0, 1, 0}};
+    viewMatrix = matrix_lookAt(eye, center, up);
 
     vec3 color1 = {{1.0f, 0.5f, 0.0f}};
 
-    triangle->VIE = matrix_lookAt(eye1, center1, up1);
-
-    cube->MOD = IDENTITY_MATRIX;
-    triangle->MOD = IDENTITY_MATRIX;
+    transform_set_identity(&cube->transform);
 
     if (loadTexture("media/textest.jpg", &cube->texture))
     {
@@ -185,7 +180,7 @@ ENTRYPOINT
 
         glClearColor(0.0f, 0.0f, 0.2f, 0.0f);
         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-        matrix_rotateY(&cube->MOD, 0.001 * deltaTime);
+        transform_rotate(0, 0.01 * deltaTime , 0 , &cube->transform);
 
         
         geo_render(cube);

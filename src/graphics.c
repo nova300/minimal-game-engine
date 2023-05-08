@@ -123,22 +123,101 @@ mat4 matrix_multiply(mat4* m1, mat4* m2)
 
 /* Object Transforms */
 
-int transform_position(float x, float y, float z, void *obj)
+int transform_position(float x, float y, float z, Transform *t)
 {
-    Transform *t = (Transform*)obj;
     vec3 *pos = &(t->position);
     pos->x = x;
     pos->y = y;
     pos->z = z;
+    transform_make_matrix(t);
 }
 
-int transform_move(float x, float y, float z, void *obj)
+int transform_move(float x, float y, float z, Transform *t)
 {
-    Transform *t = (Transform*)obj;
     vec3 *pos = &(t->position);
     pos->x += x;
     pos->y += y;
     pos->z += z;
+    transform_make_matrix(t);
+}
+
+int transform_rotate(float x, float y, float z, Transform *t)
+{
+    t->rotation.x += x;
+    t->rotation.y += y;
+    t->rotation.z += z;
+    transform_make_matrix(t);
+}
+
+int transform_set_rotation(float x, float y, float z, Transform *t)
+{
+    t->rotation.x = x;
+    t->rotation.y = y;
+    t->rotation.z = z;
+    transform_make_matrix(t);
+}
+
+int transform_make_matrix(Transform *t) {
+
+    mat4 model_matrix;
+    memset(&model_matrix, 0, sizeof(mat4));
+
+    // Translation matrix
+    model_matrix.x.w = t->position.x;
+    model_matrix.y.w = t->position.y;
+    model_matrix.z.w = t->position.z;
+    model_matrix.w.w = 1.0f;
+
+    // Rotation matrix
+    float cx = cosf(t->rotation.x);
+    float sx = sinf(t->rotation.x);
+    float cy = cosf(t->rotation.y);
+    float sy = sinf(t->rotation.y);
+    float cz = cosf(t->rotation.z);
+    float sz = sinf(t->rotation.z);
+
+    model_matrix.x.x = cy * cz;
+    model_matrix.x.y = -cy * sz;
+    model_matrix.x.z = sy;
+    model_matrix.y.x = cz * sx * sy + cx * sz;
+    model_matrix.y.y = cx * cz - sx * sy * sz;
+    model_matrix.y.z = -cy * sx;
+    model_matrix.z.x = -cx * cz * sy + sx * sz;
+    model_matrix.z.y = cz * sx + cx * sy * sz;
+    model_matrix.z.z = cx * cy;
+    model_matrix.w.w = 1.0f;
+
+    // Scale matrix
+    model_matrix.x.x *= t->scale.x;
+    model_matrix.x.y *= t->scale.x;
+    model_matrix.x.z *= t->scale.x;
+    model_matrix.y.x *= t->scale.y;
+    model_matrix.y.y *= t->scale.y;
+    model_matrix.y.z *= t->scale.y;
+    model_matrix.z.x *= t->scale.z;
+    model_matrix.z.y *= t->scale.z;
+    model_matrix.z.z *= t->scale.z;
+
+    // Set w component to 0 for non-homogeneous coordinates
+    model_matrix.x.w = 0.0f;
+    model_matrix.y.w = 0.0f;
+    model_matrix.z.w = 0.0f;
+
+    // Set w component to 1 for homogeneous coordinates
+    model_matrix.w.x = 0.0f;
+    model_matrix.w.y = 0.0f;
+    model_matrix.w.z = 0.0f;
+    model_matrix.w.w = 1.0f;
+
+    t->matrix = model_matrix;
+}
+
+int transform_set_identity(Transform* t) 
+{
+    t->position = (vec3){0.0f, 0.0f, 0.0f};
+    t->rotation = (vec3){0.0f, 0.0f, 0.0f};
+    t->scale = (vec3){1.0f, 1.0f, 1.0f};
+    t->matrix = IDENTITY_MATRIX;
 }
 
 
@@ -170,10 +249,11 @@ int geo_render(GeoObject *obj)
     glBufferData(GL_ARRAY_BUFFER, obj->bufferLength, (int *)obj->normalBuffer, GL_STATIC_DRAW);
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
 
-    glUniformMatrix4fv(obj->shader->ViewID, 1, GL_FALSE, &(obj->VIE.m[0]));
-    glUniformMatrix4fv(obj->shader->ModelID, 1, GL_FALSE, &(obj->MOD.m[0]));
-    glUniformMatrix4fv(obj->shader->ProjectionID, 1, GL_FALSE, &(obj->PRO.m[0]));
     glUniform3fv(obj->shader->ColorID, 1, &(obj->color.m[0]));
+    glUniformMatrix4fv(obj->shader->ModelID, 1, GL_FALSE, &(obj->transform.matrix.m[0]));
+
+    glUniformMatrix4fv(obj->shader->ViewID, 1, GL_FALSE, &(viewMatrix.m[0]));
+    glUniformMatrix4fv(obj->shader->ProjectionID, 1, GL_FALSE, &(projectionMatrix.m[0]));
 
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
