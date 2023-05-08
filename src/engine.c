@@ -184,7 +184,7 @@ ENTRYPOINT
         glClearColor(0.0f, 0.0f, 0.2f, 0.0f);
         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
         transform_rotate(0.001 * deltaTime, 0.001 * deltaTime , 0.001 * deltaTime , &cube->transform);
-        transform_move(0.001 * deltaTime, 0.001 * deltaTime , 0.001 * deltaTime , &cube->transform);
+        transform_move(-0.001 * deltaTime, -0.001 * deltaTime , -0.001 * deltaTime , &cube->transform);
         
         geo_render(cube);
 
