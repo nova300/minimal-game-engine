@@ -335,7 +335,7 @@ int loadTexture(const char *name, int *texture)
 
 int particle_render(ParticleSystem *ps)
 {
-    for (int i = 0; i < 64; i++)
+    for (int i = 0; i < ps->amount; i++)
     {
         if (ps->particles[i].lifeTime < 0)
         {
@@ -355,16 +355,43 @@ int particle_render(ParticleSystem *ps)
     }
 }
 
-ParticleSystem* particle_new(GeoObject *g)
+int particle_render_colorful(ParticleSystem *ps)
+{
+    for (int i = 0; i < ps->amount; i++)
+    {
+        if (ps->particles[i].lifeTime < 0)
+        {
+            
+            ps->particles[i].lifeTime = (rand() % 500) + 250;
+            ps->particles[i].transform = ps->transform;
+            ps->particles[i].xdir = ((rand() - rand()) % 3) + ((rand() - rand()) % 10) * 0.1f;
+            ps->particles[i].ydir = ((rand() - rand()) % 3) + ((rand() - rand()) % 10) * 0.1f;
+            ps->particles[i].zdir = ((rand() - rand()) % 3) + ((rand() - rand()) % 10) * 0.1f;
+            ps->particles[i].color.x = ((float)(rand() % 100)/100.0f);
+            ps->particles[i].color.y = ((float)(rand() % 100)/100.0f);
+            ps->particles[i].color.z = ((float)(rand() % 100)/100.0f);
+        }
+        else
+        {
+            ps->particles[i].lifeTime = ps->particles[i].lifeTime - (deltaTime);
+            transform_move(ps->particles[i].xdir * (deltaTime*0.01), ps->particles[i].ydir * (deltaTime*0.01), ps->particles[i].zdir * (deltaTime*0.01), &ps->particles[i].transform);
+            ps->geo->color = ps->particles[i].color;
+            geo_render_translated(ps->geo, &ps->particles[i].transform);
+        }
+    }
+}
+
+ParticleSystem* particle_new(GeoObject *g, int amount)
 {
     ParticleSystem *ps = malloc(sizeof(ParticleSystem));
     Transform *t = (Transform*)ps;
-    Particle *p = malloc(sizeof(Particle) * 64);
+    Particle *p = malloc(sizeof(Particle) * amount);
     *t = g->transform;
     ps->geo = g;
+    ps->amount = amount;
 
     
-    for (int i = 0; i < 64; i++)
+    for (int i = 0; i < amount; i++)
     {
         Transform *pt = (Transform*)&p[i];
         p[i].lifeTime = 0;

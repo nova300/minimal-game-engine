@@ -163,20 +163,20 @@ typedef struct
     float ydir;
     float xdir;
     float zdir;
-
+    vec3 color;
 }Particle;
 
 typedef struct
 {
     Transform transform;
     Particle *particles;
-    int w;
-    int h;
+    int amount;
     GeoObject *geo;
 }ParticleSystem;
 
-ParticleSystem* particle_new(GeoObject *g);
+ParticleSystem* particle_new(GeoObject *g, int amount);
 int particle_render(ParticleSystem *ps);
+int particle_render_colorful(ParticleSystem *ps);
 
 
 

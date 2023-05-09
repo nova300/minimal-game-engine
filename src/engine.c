@@ -156,9 +156,7 @@ ENTRYPOINT
         printf("could not load texture\n");
     }
 
-    p1 = particle_new(cube);
-
-    float colorTimer = 0;
+    p1 = particle_new(cube, 128);
 
     while (exitLoop == 0)
     {
@@ -167,24 +165,10 @@ ENTRYPOINT
         if (deltaTime > 250) deltaTime = 250;
         time = SDL_GetTicks();
 
-        if (colorTimer < 0)
-        {
-            color1.x = ((float)(rand() % 100)/100.0f);
-            color1.y = ((float)(rand() % 100)/100.0f);
-            color1.z = ((float)(rand() % 100)/100.0f);
-            colorTimer = 400.0f;
-        }
-        else
-        {
-            colorTimer -= deltaTime;
-        }
-
-        cube->color = color1;
-
         glClearColor(0.0f, 0.0f, 0.2f, 0.0f);
         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
         
-        particle_render(p1);
+        particle_render_colorful(p1);
 
 
         SDL_GL_SwapWindow( window );
