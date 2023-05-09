@@ -142,7 +142,7 @@ ENTRYPOINT
 
     projectionMatrix = matrix_perspective(radians(45.0f), (float)SCREEN_WIDTH/SCREEN_HEIGHT, 0.1f, 100.0f);
 
-    vec3 eye = {{3, 3, 3}};
+    vec3 eye = {{20, 20, 20}};
     vec3 center = {{0, 0, 0}};
     vec3 up = {{0, 1, 0}};
     viewMatrix = matrix_lookAt(eye, center, up);
@@ -156,7 +156,7 @@ ENTRYPOINT
         printf("could not load texture\n");
     }
 
-    
+    p1 = particle_new(cube);
 
     float colorTimer = 0;
 
@@ -183,10 +183,8 @@ ENTRYPOINT
 
         glClearColor(0.0f, 0.0f, 0.2f, 0.0f);
         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-        transform_rotate(0.001 * deltaTime, 0.001 * deltaTime , 0.001 * deltaTime , &cube->transform);
-        transform_move(-0.001 * deltaTime, -0.001 * deltaTime , -0.001 * deltaTime , &cube->transform);
         
-        geo_render(cube);
+        particle_render(p1);
 
 
         SDL_GL_SwapWindow( window );

@@ -254,6 +254,38 @@ int geo_render(GeoObject *obj)
     glDisableVertexAttribArray(2);
 }
 
+int geo_render_translated(GeoObject *obj, Transform *t)
+{
+    glUseProgram(obj->shader->ShaderID);
+    glBindTexture(GL_TEXTURE_2D, obj->texture);
+    glEnableVertexAttribArray(1);
+    glBindBuffer(GL_ARRAY_BUFFER, uvBuffer);
+    glBufferData(GL_ARRAY_BUFFER, obj->bufferLength, (int *)obj->uvBuffer, GL_STATIC_DRAW);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void *)0);
+
+    glEnableVertexAttribArray(2);
+    glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
+    glBufferData(GL_ARRAY_BUFFER, obj->bufferLength, (int *)obj->normalBuffer, GL_STATIC_DRAW);
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
+
+    glUniform3fv(obj->shader->ColorID, 1, &(obj->color.m[0]));
+    glUniformMatrix4fv(obj->shader->ModelID, 1, GL_FALSE, &(t->matrix.m[0]));
+
+    glUniformMatrix4fv(obj->shader->ViewID, 1, GL_FALSE, &(viewMatrix.m[0]));
+    glUniformMatrix4fv(obj->shader->ProjectionID, 1, GL_FALSE, &(projectionMatrix.m[0]));
+
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, obj->bufferLength, obj->vertexBuffer, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
+
+    glDrawArrays(GL_TRIANGLES, 0, obj->triCount * 3);
+
+    glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(2);
+}
+
 
 
 int loadTexture(const char *name, int *texture)
@@ -298,6 +330,55 @@ int loadTexture(const char *name, int *texture)
 
     *texture = textureID;
     return 0;
+}
+
+
+int particle_render(ParticleSystem *ps)
+{
+    for (int i = 0; i < 64; i++)
+    {
+        if (ps->particles[i].lifeTime < 0)
+        {
+            
+            ps->particles[i].lifeTime = (rand() % 500) + 250;
+            ps->particles[i].transform = ps->transform;
+            ps->particles[i].xdir = ((rand() - rand()) % 3) + ((rand() - rand()) % 10) * 0.1f;
+            ps->particles[i].ydir = ((rand() - rand()) % 3) + ((rand() - rand()) % 10) * 0.1f;
+            ps->particles[i].zdir = ((rand() - rand()) % 3) + ((rand() - rand()) % 10) * 0.1f;
+        }
+        else
+        {
+            ps->particles[i].lifeTime = ps->particles[i].lifeTime - (deltaTime);
+            transform_move(ps->particles[i].xdir * (deltaTime*0.01), ps->particles[i].ydir * (deltaTime*0.01), ps->particles[i].zdir * (deltaTime*0.01), &ps->particles[i].transform);
+            geo_render_translated(ps->geo, &ps->particles[i].transform);
+        }
+    }
+}
+
+ParticleSystem* particle_new(GeoObject *g)
+{
+    ParticleSystem *ps = malloc(sizeof(ParticleSystem));
+    Transform *t = (Transform*)ps;
+    Particle *p = malloc(sizeof(Particle) * 64);
+    *t = g->transform;
+    ps->geo = g;
+
+    
+    for (int i = 0; i < 64; i++)
+    {
+        Transform *pt = (Transform*)&p[i];
+        p[i].lifeTime = 0;
+        p[i].xdir = 0;
+        p[i].ydir = 0;
+        p[i].zdir = 0;
+        pt->position.x = 0;
+        pt->position.y = 0;
+        pt->position.z = 0;
+    }
+    
+    ps->particles = p;
+
+    return ps;
 }
 
 

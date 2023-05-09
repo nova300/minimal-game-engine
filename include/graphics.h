@@ -135,6 +135,7 @@ int geo_obj_loadFromFile(const char* filename, GeoObject *obj);
 int geo_mdl_loadFromFile(const char* filename, GeoObject *obj);
 
 int geo_render(GeoObject *obj);
+int geo_render_translated(GeoObject *obj, Transform *t);
 GeoObject *geo_new_object();
 
 typedef struct 
@@ -161,6 +162,7 @@ typedef struct
     int lifeTime;
     float ydir;
     float xdir;
+    float zdir;
 
 }Particle;
 
@@ -170,13 +172,10 @@ typedef struct
     Particle *particles;
     int w;
     int h;
-    SDL_Renderer *renderer;
-    SDL_Texture *texture;
+    GeoObject *geo;
 }ParticleSystem;
 
-ParticleSystem* particle_new(SDL_Renderer *r);
-int particle_loadFromFile(const char* filename, ParticleSystem *ps);
-int particle_loadFromRenderedText(const char* text, SDL_Color textColor, ParticleSystem *ps);
+ParticleSystem* particle_new(GeoObject *g);
 int particle_render(ParticleSystem *ps);
 
 
