@@ -78,7 +78,7 @@ ENTRYPOINT
         printf("could not load texture\n");
     }
 
-    p1 = particle_new(cube, 128);
+    p1 = particle_new(cube, 64);
 
     while (exitLoop == 0)
     {
