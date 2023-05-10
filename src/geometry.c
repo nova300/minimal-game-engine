@@ -1,6 +1,7 @@
 #include "graphics.h"
 #include "engine.h"
 #include "stdlib.h"
+#include "math.h"
 
 typedef struct
 {
@@ -119,11 +120,11 @@ int geo_obj_loadFromFile(const char* filename, GeoObject *obj)
 
     int vertCount = (iCount - 1) * 3;
 
-    obj->bufferLength = sizeof(vec3) * vertCount;
-    obj->triCount = (iCount - 1);
-    obj->vertexBuffer = malloc(sizeof(vec3) * vertCount);
-    obj->uvBuffer = malloc(sizeof(vec2) * vertCount);
-    obj->normalBuffer = malloc(sizeof(vec3) * vertCount);
+    int bufferLength = sizeof(vec3) * vertCount;
+    int triCount = (iCount - 1);
+    vec3 *vertexBuffer = malloc(sizeof(vec3) * vertCount);
+    vec2 *uvBuffer = malloc(sizeof(vec2) * vertCount);
+    vec3 *normalBuffer = malloc(sizeof(vec3) * vertCount);
 
     int *vi = (int*)vertexIndices;
     int *ui = (int*)uvIndices;
@@ -137,9 +138,9 @@ int geo_obj_loadFromFile(const char* filename, GeoObject *obj)
         vec3 vertex = vBuffer[vertexIndex - 1];
         vec2 uv = vtBuffer[uvIndex - 1];
         vec3 normal = vnBuffer[normalIndex - 1];
-        obj->vertexBuffer[i] = vertex;
-        obj->uvBuffer[i] = uv;
-        obj->normalBuffer[i] = normal;
+        vertexBuffer[i] = vertex;
+        uvBuffer[i] = uv;
+        normalBuffer[i] = normal;
     }
 
     fclose(file);
@@ -155,6 +156,52 @@ int geo_obj_loadFromFile(const char* filename, GeoObject *obj)
     printf("polygons on disk: %d\n", vCount - 1);
     printf("verts to render: %d\n", vertCount);
     printf("verts on disk: %d\n------------------------------\n", (vCount - 1) * 3);
+
+    geo_obj_createObjectData(obj, vertexBuffer, uvBuffer, normalBuffer, vertCount, 0.001f);
+
+    return 0;
+}
+
+int FloatEquals(float a, float b, float floatEqualityThreshold) 
+{
+    return fabsf(a - b) <= floatEqualityThreshold;
+}
+
+int geo_obj_createObjectData(GeoObject *obj, vec3* vertices, vec2* uvs, vec3* normals, int vertexCount, float floatEqualityThreshold) {
+    
+    obj->indexCount = vertexCount;
+
+    obj->data = (vertex *)malloc(vertexCount * sizeof(vertex));
+    
+    obj->indicies = (unsigned int*)malloc(vertexCount * sizeof(unsigned int));
+
+    int index = 0;
+    for (int i = 0; i < vertexCount; i++) {
+        int j;
+        for (j = 0; j < i; j++) {
+            if (FloatEquals(vertices[i].x, vertices[j].x, floatEqualityThreshold) &&
+                FloatEquals(vertices[i].y, vertices[j].y, floatEqualityThreshold) &&
+                FloatEquals(vertices[i].z, vertices[j].z, floatEqualityThreshold) &&
+                FloatEquals(uvs[i].x, uvs[j].x, floatEqualityThreshold) &&
+                FloatEquals(uvs[i].y, uvs[j].y, floatEqualityThreshold) &&
+                FloatEquals(normals[i].x, normals[j].x, floatEqualityThreshold) &&
+                FloatEquals(normals[i].y, normals[j].y, floatEqualityThreshold) &&
+                FloatEquals(normals[i].z, normals[j].z, floatEqualityThreshold)) {
+                obj->indicies[i] = j;
+                break;
+            }
+        }
+
+        if (j == i) {
+            obj->data[index].vertex = vertices[i];
+            obj->data[index].uv = uvs[i];
+            obj->data[index].normal = normals[i];
+            obj->indicies[i] = index;
+            index++;
+        }
+    }
+
+    obj->dataCount = index;
 
     return 0;
 }

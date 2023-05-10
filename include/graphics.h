@@ -115,16 +115,25 @@ extern int elementBuffer;
 extern mat4 projectionMatrix;
 extern mat4 viewMatrix;
 
+typedef union
+{
+    float v[8];
+    struct
+    {
+        vec3 vertex;
+        vec3 normal;
+        vec2 uv;
+    };
+    
+}vertex;
+
 typedef struct
 {
     Transform transform;
-    vec3 *vertexBuffer;
-    vec2 *uvBuffer;
-    vec3 *normalBuffer;
-    int *indexBuffer;
-    int bufferLength;
+    vertex *data;
+    int dataCount;
+    int *indicies;
     int indexCount;
-    int triCount;
     int texture;
     vec3 color;
     Shader *shader;
@@ -135,6 +144,8 @@ typedef struct
 int loadTexture(const char *name, int *texture);
 int geo_obj_loadFromFile(const char* filename, GeoObject *obj);
 int geo_mdl_loadFromFile(const char* filename, GeoObject *obj);
+
+int geo_obj_createObjectData(GeoObject *obj, vec3* vertices, vec2* uvs, vec3* normals, int vertexCount, float floatEqualityThreshold);
 
 int geo_render(GeoObject *obj);
 int geo_render_translated(GeoObject *obj, Transform *t);

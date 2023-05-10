@@ -17,62 +17,6 @@ ParticleSystem *p1;
 int exitLoop = 0;
 float degrees = 0;
 
-
-GLfloat cubeVertex[] = {
-    -1.0f,-1.0f,-1.0f, // triangle 1 : begin
-    -1.0f,-1.0f, 1.0f,
-    -1.0f, 1.0f, 1.0f, // triangle 1 : end
-    1.0f, 1.0f,-1.0f, // triangle 2 : begin
-    -1.0f,-1.0f,-1.0f,
-    -1.0f, 1.0f,-1.0f, // triangle 2 : end
-    1.0f,-1.0f, 1.0f,
-    -1.0f,-1.0f,-1.0f,
-    1.0f,-1.0f,-1.0f,
-    1.0f, 1.0f,-1.0f,
-    1.0f,-1.0f,-1.0f,
-    -1.0f,-1.0f,-1.0f,
-    -1.0f,-1.0f,-1.0f,
-    -1.0f, 1.0f, 1.0f,
-    -1.0f, 1.0f,-1.0f,
-    1.0f,-1.0f, 1.0f,
-    -1.0f,-1.0f, 1.0f,
-    -1.0f,-1.0f,-1.0f,
-    -1.0f, 1.0f, 1.0f,
-    -1.0f,-1.0f, 1.0f,
-    1.0f,-1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f,-1.0f,-1.0f,
-    1.0f, 1.0f,-1.0f,
-    1.0f,-1.0f,-1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f,-1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f,-1.0f,
-    -1.0f, 1.0f,-1.0f,
-    1.0f, 1.0f, 1.0f,
-    -1.0f, 1.0f,-1.0f,
-    -1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    -1.0f, 1.0f, 1.0f,
-    1.0f,-1.0f, 1.0f
-};
-
-vec3 triangleVertex[3]; 
-/*= {
-   -1.0f, -1.0f, 0.0f,
-   1.0f, -1.0f, 0.0f,
-   0.0f,  1.0f, 0.0f,
-};*/
-
-static GLfloat cube_color_buffer[12*3*3];
-
-static GLfloat triangle_color_buffer[] = 
-{
-    1.0f, 0.0f, 0.0f,
-    0.0f, 1.0f, 0.0f,
-    0.0f, 0.0f, 1.0f
-};
-
 int vertexBuffer;
 int uvBuffer;
 int normalBuffer;
@@ -107,41 +51,16 @@ ENTRYPOINT
     glGenBuffers(1, &vertexBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
 
-    glGenBuffers(1, &uvBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, uvBuffer);
-
-    glGenBuffers(1, &normalBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
-
     glGenBuffers(1, &elementBuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffer);
 
 
-    triangleVertex[0].x = -1.0f;
-    triangleVertex[0].y = -1.0f;
-    triangleVertex[0].z =  0.0f;
-    triangleVertex[1].x =  1.0f;
-    triangleVertex[1].y = -1.0f;
-    triangleVertex[1].z =  0.0f;
-    triangleVertex[2].x =  0.0f;
-    triangleVertex[2].y =  1.0f;
-    triangleVertex[2].z =  0.0f;
 
     GeoObject *cube = malloc(sizeof(GeoObject));
-    GeoObject *triangle = malloc(sizeof(GeoObject));
 
     geo_obj_loadFromFile("media/sphere.obj", cube);
 
     cube->shader = newShaderObject(vertex_shader_0, fragment_shader_0);
-
-    //cube->vertexBuffer = &cubeVertex;
-    //cube->bufferLength = sizeof(cubeVertex);
-
-    triangle->vertexBuffer = (vec3*)&triangleVertex;
-    triangle->bufferLength = sizeof(triangleVertex);
-
-    //cube->triCount = 12;
-    triangle->triCount = 1;
 
     projectionMatrix = matrix_perspective(radians(45.0f), (float)SCREEN_WIDTH/SCREEN_HEIGHT, 0.1f, 100.0f);
 
