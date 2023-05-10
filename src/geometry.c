@@ -159,6 +159,10 @@ int geo_obj_loadFromFile(const char* filename, GeoObject *obj)
 
     geo_obj_createObjectData(obj, vertexBuffer, uvBuffer, normalBuffer, vertCount, 0.001f);
 
+    free(vertexBuffer);
+    free(uvBuffer);
+    free(normalBuffer);
+
     return 0;
 }
 
