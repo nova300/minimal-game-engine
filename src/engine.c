@@ -113,6 +113,9 @@ ENTRYPOINT
     glGenBuffers(1, &normalBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
 
+    glGenBuffers(1, &elementBuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffer);
+
 
     triangleVertex[0].x = -1.0f;
     triangleVertex[0].y = -1.0f;

@@ -105,6 +105,7 @@ int transform_move(float x, float y, float z, Transform *t);
 int transform_set_identity(Transform *t);
 int transform_set_rotation(float x, float y, float z, Transform *t);
 int transform_rotate(float x, float y, float z, Transform *t);
+int transform_make_matrix(Transform *t); /* updates matrix in transform struct to reflect its other properties */
 
 extern int vertexBuffer;
 extern int uvBuffer;
@@ -122,6 +123,7 @@ typedef struct
     vec3 *normalBuffer;
     int *indexBuffer;
     int bufferLength;
+    int indexCount;
     int triCount;
     int texture;
     vec3 color;

@@ -247,7 +247,11 @@ int geo_render(GeoObject *obj)
     glBufferData(GL_ARRAY_BUFFER, obj->bufferLength, obj->vertexBuffer, GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
 
-    glDrawArrays(GL_TRIANGLES, 0, obj->triCount * 3);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffer);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, obj->indexCount * sizeof(unsigned int), obj->indexBuffer, GL_STATIC_DRAW);
+
+    //glDrawArrays(GL_TRIANGLES, 0, obj->triCount * 3);
+    glDrawElements(GL_TRIANGLES, obj->indexCount, GL_UNSIGNED_INT, (void*)0);
 
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);
@@ -279,7 +283,11 @@ int geo_render_translated(GeoObject *obj, Transform *t)
     glBufferData(GL_ARRAY_BUFFER, obj->bufferLength, obj->vertexBuffer, GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
 
-    glDrawArrays(GL_TRIANGLES, 0, obj->triCount * 3);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffer);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, obj->indexCount * sizeof(unsigned int), obj->indexBuffer, GL_STATIC_DRAW);
+
+    //glDrawArrays(GL_TRIANGLES, 0, obj->triCount * 3);
+    glDrawElements(GL_TRIANGLES, obj->indexCount, GL_UNSIGNED_INT, (void*)0);
 
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);
