@@ -362,6 +362,7 @@ int loadTexture(const char *name, int *texture)
 
 int particle_render(ParticleSystem *ps)
 {
+    if (ps == NULL) return 1;
     transformArray_clear(&ps->geo->transformArray);
     for (int i = 0; i < ps->amount; i++)
     {
@@ -386,6 +387,8 @@ int particle_render(ParticleSystem *ps)
 
 int particle_render_colorful(ParticleSystem *ps)
 {
+    if (ps == NULL) return 1;
+    transformArray_clear(&ps->geo->transformArray);
     for (int i = 0; i < ps->amount; i++)
     {
         if (ps->particles[i].lifeTime < 0)
@@ -405,9 +408,10 @@ int particle_render_colorful(ParticleSystem *ps)
             ps->particles[i].lifeTime = ps->particles[i].lifeTime - (deltaTime);
             transform_move(ps->particles[i].xdir * (deltaTime*0.01), ps->particles[i].ydir * (deltaTime*0.01), ps->particles[i].zdir * (deltaTime*0.01), &ps->particles[i].transform);
             ps->geo->color = ps->particles[i].color;
-            geo_render_translated(ps->geo, &ps->particles[i].transform);
+            transformArray_add(&ps->geo->transformArray, *(ps->particles[i].transform.matrix));
         }
     }
+    geo_render(ps->geo);
 }
 
 ParticleSystem* particle_new(GeoObject *g, int amount)
