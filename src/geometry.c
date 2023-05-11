@@ -210,14 +210,14 @@ int geo_obj_createObjectData(GeoObject *obj, vec3* vertices, vec2* uvs, vec3* no
     return 0;
 }
 
-void geo_init_transformArray(TransformArray *obj, int capacity) 
+void transformArray_init(TransformArray *obj, int capacity, int count) 
 {
     obj->data = malloc(capacity * sizeof(mat4));
-    obj->count = 0;
+    obj->count = count;
     obj->capacity = capacity;
 }
 
-void geo_free_transformArray(TransformArray *obj)
+void transformArray_free(TransformArray *obj)
 {
     free(obj->data);
     obj->data = NULL;
@@ -225,7 +225,7 @@ void geo_free_transformArray(TransformArray *obj)
     obj->count = 0;
 }
 
-void geo_resize_transformArray(TransformArray *obj, int newCapacity) 
+void transformArray_resize(TransformArray *obj, int newCapacity) 
 {
     mat4* newData = realloc(obj->data, newCapacity * sizeof(mat4));
 
@@ -236,11 +236,11 @@ void geo_resize_transformArray(TransformArray *obj, int newCapacity)
     }
 }
 
-void geo_add_transformArray(TransformArray *obj, mat4 matrix) 
+void transformArray_add(TransformArray *obj, mat4 matrix) 
 {
     if (obj->count == obj->capacity)
     {
-        geo_resize_transformArray(obj, obj->capacity * 2);
+        transformArray_resize(obj, obj->capacity * 2);
     }
 
     obj->data[obj->count] = matrix;
@@ -248,7 +248,7 @@ void geo_add_transformArray(TransformArray *obj, mat4 matrix)
     
 }
 
-void geo_remove_transformArray(TransformArray *obj, int index) 
+void transformArray_remove(TransformArray *obj, int index) 
 {
     if (index >= obj->count) return;
 
@@ -260,7 +260,7 @@ void geo_remove_transformArray(TransformArray *obj, int index)
     obj->count--;
 }
 
-void geo_clear_transformArray(TransformArray *obj) 
+void transformArray_clear(TransformArray *obj) 
 {
     obj->count = 0;
 }

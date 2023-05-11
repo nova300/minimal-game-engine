@@ -94,7 +94,7 @@ Shader* newShaderObject(const char *vertex_source, const char *fragment_source);
 
 typedef struct
 {
-    mat4 matrix;
+    mat4 *matrix;
     vec3 position;
     vec3 rotation;
     vec3 scale;
@@ -135,6 +135,7 @@ typedef union
 
 typedef struct
 {
+    Transform transform;
     TransformArray transformArray;
     vertex *data;
     int dataCount;
@@ -158,12 +159,12 @@ int geo_render_translated(GeoObject *obj, Transform *t);
 GeoObject *geo_new_object();
 
 
-void geo_init_transformArray(TransformArray *obj, int capacity);
-void geo_free_transformArray(TransformArray *obj);
-void geo_resize_transformArray(TransformArray *obj, int newCapacity);
-void geo_add_transformArray(TransformArray *obj, mat4 matrix);
-void geo_remove_transformArray(TransformArray *obj, int index);
-void geo_clear_transformArray(TransformArray *obj);
+void transformArray_init(TransformArray *obj, int capacity, int count);
+void transformArray_free(TransformArray *obj);
+void transformArray_resize(TransformArray *obj, int newCapacity);
+void transformArray_add(TransformArray *obj, mat4 matrix);
+void transformArray_remove(TransformArray *obj, int index);
+void transformArray_clear(TransformArray *obj);
 
 typedef struct 
 {
@@ -195,7 +196,7 @@ typedef struct
 
 typedef struct
 {
-    Transform transform;
+    Transform *transform;
     Particle *particles;
     int amount;
     GeoObject *geo;

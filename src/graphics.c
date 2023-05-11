@@ -155,7 +155,10 @@ int transform_set_rotation(float x, float y, float z, Transform *t)
     transform_make_matrix(t);
 }
 
-int transform_make_matrix(Transform *t) {
+int transform_make_matrix(Transform *t) 
+{
+
+    if (t->matrix == NULL) return 1;
 
     mat4 model_matrix;
     memset(&model_matrix, 0, sizeof(mat4));
@@ -196,7 +199,7 @@ int transform_make_matrix(Transform *t) {
     model_matrix.z.y *= t->scale.z;
     model_matrix.z.z *= t->scale.z;
 
-    t->matrix = model_matrix;
+    *t->matrix = model_matrix;
 }
 
 int transform_set_identity(Transform* t) 
@@ -204,7 +207,7 @@ int transform_set_identity(Transform* t)
     t->position = (vec3){0.0f, 0.0f, 0.0f};
     t->rotation = (vec3){0.0f, 0.0f, 0.0f};
     t->scale = (vec3){1.0f, 1.0f, 1.0f};
-    t->matrix = IDENTITY_MATRIX;
+    *t->matrix = IDENTITY_MATRIX;
 }
 
 
@@ -217,7 +220,9 @@ GeoObject *geo_new_object()
     g->indicies = NULL;
     g->shader = NULL;
 
-    geo_init_transformArray(&g->transformArray, 1);
+    transformArray_init(&g->transformArray, 2, 1);
+
+    g->transform.matrix = &(g->transformArray.data)[0];
 
     return g;
 }
@@ -282,7 +287,7 @@ int geo_render_translated(GeoObject *obj, Transform *t)
     glBindTexture(GL_TEXTURE_2D, obj->texture);
 
     glUniform3fv(obj->shader->ColorID, 1, &(obj->color.m[0]));
-    glUniformMatrix4fv(obj->shader->ModelID, 1, GL_FALSE, &(t->matrix.m[0]));
+    glUniformMatrix4fv(obj->shader->ModelID, 1, GL_FALSE, &(t->matrix->m[0]));
     glUniformMatrix4fv(obj->shader->ViewID, 1, GL_FALSE, &(viewMatrix.m[0]));
     glUniformMatrix4fv(obj->shader->ProjectionID, 1, GL_FALSE, &(projectionMatrix.m[0]));
     
@@ -357,14 +362,14 @@ int loadTexture(const char *name, int *texture)
 
 int particle_render(ParticleSystem *ps)
 {
-    geo_clear_transformArray(&ps->geo->transformArray);
+    transformArray_clear(&ps->geo->transformArray);
     for (int i = 0; i < ps->amount; i++)
     {
         if (ps->particles[i].lifeTime < 0)
         {
             
             ps->particles[i].lifeTime = (rand() % 500) + 250;
-            ps->particles[i].transform = ps->transform;
+            ps->particles[i].transform.position = ps->transform->position;
             ps->particles[i].xdir = ((rand() - rand()) % 3) + ((rand() - rand()) % 10) * 0.1f;
             ps->particles[i].ydir = ((rand() - rand()) % 3) + ((rand() - rand()) % 10) * 0.1f;
             ps->particles[i].zdir = ((rand() - rand()) % 3) + ((rand() - rand()) % 10) * 0.1f;
@@ -373,7 +378,7 @@ int particle_render(ParticleSystem *ps)
         {
             ps->particles[i].lifeTime = ps->particles[i].lifeTime - (deltaTime);
             transform_move(ps->particles[i].xdir * (deltaTime*0.01), ps->particles[i].ydir * (deltaTime*0.01), ps->particles[i].zdir * (deltaTime*0.01), &ps->particles[i].transform);
-            geo_add_transformArray(&ps->geo->transformArray, ps->particles[i].transform.matrix);
+            transformArray_add(&ps->geo->transformArray, *(ps->particles[i].transform.matrix));
         }
     }
     geo_render(ps->geo);
@@ -387,7 +392,7 @@ int particle_render_colorful(ParticleSystem *ps)
         {
             
             ps->particles[i].lifeTime = (rand() % 500) + 250;
-            ps->particles[i].transform = ps->transform;
+            ps->particles[i].transform.position = ps->transform->position;
             ps->particles[i].xdir = ((rand() - rand()) % 3) + ((rand() - rand()) % 10) * 0.1f;
             ps->particles[i].ydir = ((rand() - rand()) % 3) + ((rand() - rand()) % 10) * 0.1f;
             ps->particles[i].zdir = ((rand() - rand()) % 3) + ((rand() - rand()) % 10) * 0.1f;
@@ -407,13 +412,13 @@ int particle_render_colorful(ParticleSystem *ps)
 
 ParticleSystem* particle_new(GeoObject *g, int amount)
 {
+    //g->transform.matrix = NULL;
+    //g->transformArray.count = 0;
     ParticleSystem *ps = malloc(sizeof(ParticleSystem));
-    Transform *t = (Transform*)ps;
+    ps->transform = &(g->transform);
     Particle *p = malloc(sizeof(Particle) * amount);
     ps->geo = g;
     ps->amount = amount;
-
-    transform_set_identity(t);
 
     
     for (int i = 0; i < amount; i++)
@@ -423,9 +428,8 @@ ParticleSystem* particle_new(GeoObject *g, int amount)
         p[i].xdir = 0;
         p[i].ydir = 0;
         p[i].zdir = 0;
-        pt->position.x = 0;
-        pt->position.y = 0;
-        pt->position.z = 0;
+        pt->matrix = malloc(sizeof(mat4));
+        transform_set_identity(pt);
     }
     
     ps->particles = p;
