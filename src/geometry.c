@@ -209,3 +209,59 @@ int geo_obj_createObjectData(GeoObject *obj, vec3* vertices, vec2* uvs, vec3* no
 
     return 0;
 }
+
+void geo_init_transformArray(TransformArray *obj, int capacity) 
+{
+    obj->data = malloc(capacity * sizeof(mat4));
+    obj->count = 0;
+    obj->capacity = capacity;
+}
+
+void geo_free_transformArray(TransformArray *obj)
+{
+    free(obj->data);
+    obj->data = NULL;
+    obj->capacity = 0;
+    obj->count = 0;
+}
+
+void geo_resize_transformArray(TransformArray *obj, int newCapacity) 
+{
+    mat4* newData = realloc(obj->data, newCapacity * sizeof(mat4));
+
+    if (newData != NULL) 
+    {
+        obj->data = newData;
+        obj->capacity = newCapacity;
+    }
+}
+
+void geo_add_transformArray(TransformArray *obj, mat4 matrix) 
+{
+    if (obj->count == obj->capacity)
+    {
+        geo_resize_transformArray(obj, obj->capacity * 2);
+    }
+
+    obj->data[obj->count] = matrix;
+    obj->count++;
+    
+}
+
+void geo_remove_transformArray(TransformArray *obj, int index) 
+{
+    if (index >= obj->count) return;
+
+    for (int i = index + 1; i < obj->count; i++) 
+    {
+        obj->data[i - 1] = obj->data[i];
+    }
+
+    obj->count--;
+}
+
+void geo_clear_transformArray(TransformArray *obj) 
+{
+    obj->count = 0;
+}
+

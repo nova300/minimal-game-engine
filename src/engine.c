@@ -18,8 +18,7 @@ int exitLoop = 0;
 float degrees = 0;
 
 int vertexBuffer;
-int uvBuffer;
-int normalBuffer;
+int transformBuffer;
 int elementBuffer;
 
 mat4 projectionMatrix;
@@ -51,16 +50,17 @@ ENTRYPOINT
     glGenBuffers(1, &vertexBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
 
+    glGenBuffers(1, &transformBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, transformBuffer);
+
     glGenBuffers(1, &elementBuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffer);
 
-
-
-    GeoObject *cube = malloc(sizeof(GeoObject));
+    GeoObject *cube = geo_new_object();
 
     geo_obj_loadFromFile("media/sphere.obj", cube);
 
-    cube->shader = newShaderObject(vertex_shader_0, fragment_shader_0);
+    cube->shader = newShaderObject(vertex_shader_1, fragment_shader_1);
 
     projectionMatrix = matrix_perspective(radians(45.0f), (float)SCREEN_WIDTH/SCREEN_HEIGHT, 0.1f, 100.0f);
 
@@ -71,14 +71,15 @@ ENTRYPOINT
 
     vec3 color1 = {{1.0f, 0.5f, 0.0f}};
 
-    transform_set_identity(&cube->transform);
+    cube->color = color1;
+
 
     if (loadTexture("media/textest.jpg", &cube->texture))
     {
         printf("could not load texture\n");
     }
 
-    p1 = particle_new(cube, 64);
+    p1 = particle_new(cube, 1024);
 
     while (exitLoop == 0)
     {
@@ -90,7 +91,7 @@ ENTRYPOINT
         glClearColor(0.0f, 0.0f, 0.2f, 0.0f);
         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
         
-        particle_render_colorful(p1);
+        particle_render(p1);
 
 
         SDL_GL_SwapWindow( window );

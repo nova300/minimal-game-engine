@@ -100,6 +100,13 @@ typedef struct
     vec3 scale;
 }Transform;
 
+typedef struct
+{
+    mat4 *data;
+    int capacity;
+    int count;
+}TransformArray;
+
 int transform_position(float x, float y, float z, Transform *t);
 int transform_move(float x, float y, float z, Transform *t);
 int transform_set_identity(Transform *t);
@@ -108,8 +115,7 @@ int transform_rotate(float x, float y, float z, Transform *t);
 int transform_make_matrix(Transform *t); /* updates matrix in transform struct to reflect its other properties */
 
 extern int vertexBuffer;
-extern int uvBuffer;
-extern int normalBuffer;
+extern int transformBuffer;
 extern int elementBuffer;
 
 extern mat4 projectionMatrix;
@@ -129,7 +135,7 @@ typedef union
 
 typedef struct
 {
-    Transform transform;
+    TransformArray transformArray;
     vertex *data;
     int dataCount;
     int *indicies;
@@ -150,6 +156,14 @@ int geo_obj_createObjectData(GeoObject *obj, vec3* vertices, vec2* uvs, vec3* no
 int geo_render(GeoObject *obj);
 int geo_render_translated(GeoObject *obj, Transform *t);
 GeoObject *geo_new_object();
+
+
+void geo_init_transformArray(TransformArray *obj, int capacity);
+void geo_free_transformArray(TransformArray *obj);
+void geo_resize_transformArray(TransformArray *obj, int newCapacity);
+void geo_add_transformArray(TransformArray *obj, mat4 matrix);
+void geo_remove_transformArray(TransformArray *obj, int index);
+void geo_clear_transformArray(TransformArray *obj);
 
 typedef struct 
 {

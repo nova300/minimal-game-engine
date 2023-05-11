@@ -217,6 +217,8 @@ GeoObject *geo_new_object()
     g->indicies = NULL;
     g->shader = NULL;
 
+    geo_init_transformArray(&g->transformArray, 1);
+
     return g;
 }
 
@@ -226,12 +228,14 @@ int geo_render(GeoObject *obj)
     glBindTexture(GL_TEXTURE_2D, obj->texture);
 
     glUniform3fv(obj->shader->ColorID, 1, &(obj->color.m[0]));
-    glUniformMatrix4fv(obj->shader->ModelID, 1, GL_FALSE, &(obj->transform.matrix.m[0]));
+    //glUniformMatrix4fv(obj->shader->ModelID, 1, GL_FALSE, &(obj->transform.matrix.m[0]));
     glUniformMatrix4fv(obj->shader->ViewID, 1, GL_FALSE, &(viewMatrix.m[0]));
     glUniformMatrix4fv(obj->shader->ProjectionID, 1, GL_FALSE, &(projectionMatrix.m[0]));
     
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
     glBufferData(GL_ARRAY_BUFFER, obj->dataCount * sizeof(vertex), obj->data, GL_STATIC_DRAW);
+
+
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffer);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, obj->indexCount * sizeof(unsigned int), obj->indicies, GL_STATIC_DRAW);
@@ -239,17 +243,37 @@ int geo_render(GeoObject *obj)
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0); // Position
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float))); // Normal
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float))); // Texture coordinates
-
-
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
 
-    glDrawElements(GL_TRIANGLES, obj->indexCount, GL_UNSIGNED_INT, (void*)0);
+    glBindBuffer(GL_ARRAY_BUFFER, transformBuffer);
+    glBufferData(GL_ARRAY_BUFFER, obj->transformArray.count * sizeof(mat4), obj->transformArray.data, GL_DYNAMIC_DRAW);
+
+    int model_matrix_location = 3;
+    glEnableVertexAttribArray(model_matrix_location);
+    glEnableVertexAttribArray(model_matrix_location + 1);
+    glEnableVertexAttribArray(model_matrix_location + 2);
+    glEnableVertexAttribArray(model_matrix_location + 3);
+    glVertexAttribPointer(model_matrix_location, 4, GL_FLOAT, GL_FALSE, sizeof(mat4), (void*)0);
+    glVertexAttribPointer(model_matrix_location + 1, 4, GL_FLOAT, GL_FALSE, sizeof(mat4), (void*)(sizeof(vec4)));
+    glVertexAttribPointer(model_matrix_location + 2, 4, GL_FLOAT, GL_FALSE, sizeof(mat4), (void*)(2*sizeof(vec4)));
+    glVertexAttribPointer(model_matrix_location + 3, 4, GL_FLOAT, GL_FALSE, sizeof(mat4), (void*)(3*sizeof(vec4)));
+    glVertexAttribDivisor(model_matrix_location, 1);
+    glVertexAttribDivisor(model_matrix_location + 1, 1);
+    glVertexAttribDivisor(model_matrix_location + 2, 1);
+    glVertexAttribDivisor(model_matrix_location + 3, 1);
+
+
+    glDrawElementsInstanced(GL_TRIANGLES, obj->indexCount, GL_UNSIGNED_INT, (void*)0, obj->transformArray.count);
 
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);
     glDisableVertexAttribArray(2);
+    glDisableVertexAttribArray(3);
+    glDisableVertexAttribArray(model_matrix_location + 1);
+    glDisableVertexAttribArray(model_matrix_location + 2);
+    glDisableVertexAttribArray(model_matrix_location + 3);
 }
 
 int geo_render_translated(GeoObject *obj, Transform *t)
@@ -333,6 +357,7 @@ int loadTexture(const char *name, int *texture)
 
 int particle_render(ParticleSystem *ps)
 {
+    geo_clear_transformArray(&ps->geo->transformArray);
     for (int i = 0; i < ps->amount; i++)
     {
         if (ps->particles[i].lifeTime < 0)
@@ -348,9 +373,10 @@ int particle_render(ParticleSystem *ps)
         {
             ps->particles[i].lifeTime = ps->particles[i].lifeTime - (deltaTime);
             transform_move(ps->particles[i].xdir * (deltaTime*0.01), ps->particles[i].ydir * (deltaTime*0.01), ps->particles[i].zdir * (deltaTime*0.01), &ps->particles[i].transform);
-            geo_render_translated(ps->geo, &ps->particles[i].transform);
+            geo_add_transformArray(&ps->geo->transformArray, ps->particles[i].transform.matrix);
         }
     }
+    geo_render(ps->geo);
 }
 
 int particle_render_colorful(ParticleSystem *ps)
@@ -384,9 +410,10 @@ ParticleSystem* particle_new(GeoObject *g, int amount)
     ParticleSystem *ps = malloc(sizeof(ParticleSystem));
     Transform *t = (Transform*)ps;
     Particle *p = malloc(sizeof(Particle) * amount);
-    *t = g->transform;
     ps->geo = g;
     ps->amount = amount;
+
+    transform_set_identity(t);
 
     
     for (int i = 0; i < amount; i++)
