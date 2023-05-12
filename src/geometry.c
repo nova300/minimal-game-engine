@@ -180,23 +180,29 @@ int geo_obj_createObjectData(GeoObject *obj, vec3* vertices, vec2* uvs, vec3* no
     obj->indicies = (unsigned int*)malloc(vertexCount * sizeof(unsigned int));
 
     int index = 0;
-    for (int i = 0; i < vertexCount; i++) {
+    for (int i = 0; i < vertexCount; i++) 
+    {
+        int noMatch = 1;
         int j;
-        for (j = 0; j < i; j++) {
-            if (FloatEquals(vertices[i].x, vertices[j].x, floatEqualityThreshold) &&
-                FloatEquals(vertices[i].y, vertices[j].y, floatEqualityThreshold) &&
-                FloatEquals(vertices[i].z, vertices[j].z, floatEqualityThreshold) &&
-                FloatEquals(uvs[i].x, uvs[j].x, floatEqualityThreshold) &&
-                FloatEquals(uvs[i].y, uvs[j].y, floatEqualityThreshold) &&
-                FloatEquals(normals[i].x, normals[j].x, floatEqualityThreshold) &&
-                FloatEquals(normals[i].y, normals[j].y, floatEqualityThreshold) &&
-                FloatEquals(normals[i].z, normals[j].z, floatEqualityThreshold)) {
+        for (j = 0; j < i; j++) 
+        {
+            if (FloatEquals(vertices[i].x, obj->data[j].vertex.x, floatEqualityThreshold) &&
+                FloatEquals(vertices[i].y, obj->data[j].vertex.y, floatEqualityThreshold) &&
+                FloatEquals(vertices[i].z, obj->data[j].vertex.z, floatEqualityThreshold) &&
+                FloatEquals(uvs[i].x, obj->data[j].uv.x, floatEqualityThreshold) &&
+                FloatEquals(uvs[i].y, obj->data[j].uv.y, floatEqualityThreshold) &&
+                FloatEquals(normals[i].x, obj->data[j].normal.x, floatEqualityThreshold) &&
+                FloatEquals(normals[i].y, obj->data[j].normal.y, floatEqualityThreshold) &&
+                FloatEquals(normals[i].z, obj->data[j].normal.z, floatEqualityThreshold)) 
+            {
                 obj->indicies[i] = j;
+                noMatch = 0;
                 break;
             }
         }
 
-        if (j == i) {
+        if (j == i && noMatch) 
+        {
             obj->data[index].vertex = vertices[i];
             obj->data[index].uv = uvs[i];
             obj->data[index].normal = normals[i];

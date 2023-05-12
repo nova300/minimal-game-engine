@@ -58,7 +58,7 @@ ENTRYPOINT
 
     GeoObject *cube = geo_new_object();
 
-    geo_obj_loadFromFile("media/sphere.obj", cube);
+    geo_obj_loadFromFile("media/scene.obj", cube);
 
     cube->shader = newShaderObject(vertex_shader_1, fragment_shader_1);
 

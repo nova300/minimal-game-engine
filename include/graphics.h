@@ -79,6 +79,7 @@ mat4 matrix_lookAt(vec3 eye, vec3 center, vec3 up);
 mat4 matrix_perspective(float fovy, float aspect_ratio, float near_plane, float far_plane);
 
 float radians(float dgr);
+int FloatEquals(float a, float b, float floatEqualityThreshold);
 
 typedef struct
 {
