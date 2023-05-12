@@ -182,7 +182,6 @@ int geo_obj_createObjectData(GeoObject *obj, vec3* vertices, vec2* uvs, vec3* no
     int index = 0;
     for (int i = 0; i < vertexCount; i++) 
     {
-        int noMatch = 1;
         int j;
         for (j = 0; j < i; j++) 
         {
@@ -196,12 +195,11 @@ int geo_obj_createObjectData(GeoObject *obj, vec3* vertices, vec2* uvs, vec3* no
                 FloatEquals(normals[i].z, obj->data[j].normal.z, floatEqualityThreshold)) 
             {
                 obj->indicies[i] = j;
-                noMatch = 0;
                 break;
             }
         }
 
-        if (j == i && noMatch) 
+        if (j == i) 
         {
             obj->data[index].vertex = vertices[i];
             obj->data[index].uv = uvs[i];
