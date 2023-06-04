@@ -428,10 +428,19 @@ int geo_render_multi(GeoObject **obj, int count)
     glVertexAttribDivisor(model_matrix_location + 3, 1);
 
     int instance_offset = 0;
+    int bufferSize = 0;
     index_offset = 0;
     for (int i = 0; i < count; i++)
     {
-        glBufferData(GL_ARRAY_BUFFER, obj[i]->transformArray.count * sizeof(mat4), obj[i]->transformArray.data, GL_DYNAMIC_DRAW);
+        if (bufferSize > obj[i]->transformArray.count * sizeof(mat4))
+        {
+            glBufferSubData(GL_ARRAY_BUFFER, 0, obj[i]->transformArray.count * sizeof(mat4), obj[i]->transformArray.data);
+        }
+        else
+        {
+            glBufferData(GL_ARRAY_BUFFER, obj[i]->transformArray.count * sizeof(mat4), obj[i]->transformArray.data, GL_DYNAMIC_DRAW);
+            bufferSize = obj[i]->transformArray.count * sizeof(mat4);
+        }
         glDrawElementsInstanced(GL_TRIANGLES, obj[i]->indexCount, GL_UNSIGNED_INT, (void*)(index_offset * sizeof(unsigned int)), obj[i]->transformArray.count);
         instance_offset += obj[i]->transformArray.count;
         index_offset += obj[i]->indexCount;
