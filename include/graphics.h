@@ -119,6 +119,7 @@ int transform_make_matrix(Transform *t); /* updates matrix in transform struct t
 extern int vertexBuffer;
 extern int transformBuffer;
 extern int elementBuffer;
+extern int colorBuffer;
 
 extern mat4 projectionMatrix;
 extern mat4 viewMatrix;
@@ -144,7 +145,6 @@ typedef struct
     int *indicies;
     int indexCount;
     int texture;
-    vec3 color;
     Shader *shader;
 }GeoObject;
 
@@ -160,6 +160,7 @@ int geo_obj_createObjectData(GeoObject *obj, vec3* vertices, vec2* uvs, vec3* no
 
 int geo_render(GeoObject *obj);
 int geo_render_translated(GeoObject *obj, Transform *t);
+int geo_render_multi(GeoObject **obj, int count);
 GeoObject *geo_new_object();
 
 

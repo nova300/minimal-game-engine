@@ -318,16 +318,12 @@ int geo_render(GeoObject *obj)
 {
     glUseProgram(obj->shader->ShaderID);
     glBindTexture(GL_TEXTURE_2D, obj->texture);
-
-    glUniform3fv(obj->shader->ColorID, 1, &(obj->color.m[0]));
     //glUniformMatrix4fv(obj->shader->ModelID, 1, GL_FALSE, &(obj->transform.matrix.m[0]));
     glUniformMatrix4fv(obj->shader->ViewID, 1, GL_FALSE, &(viewMatrix.m[0]));
     glUniformMatrix4fv(obj->shader->ProjectionID, 1, GL_FALSE, &(projectionMatrix.m[0]));
     
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
     glBufferData(GL_ARRAY_BUFFER, obj->dataCount * sizeof(vertex), obj->data, GL_STATIC_DRAW);
-
-
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffer);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, obj->indexCount * sizeof(unsigned int), obj->indicies, GL_STATIC_DRAW);
@@ -368,12 +364,95 @@ int geo_render(GeoObject *obj)
     glDisableVertexAttribArray(model_matrix_location + 3);
 }
 
+int geo_render_multi(GeoObject **obj, int count)
+{
+    glUseProgram(obj[0]->shader->ShaderID);
+    glBindTexture(GL_TEXTURE_2D, obj[0]->texture);
+    glUniformMatrix4fv(obj[0]->shader->ViewID, 1, GL_FALSE, &(viewMatrix.m[0]));
+    glUniformMatrix4fv(obj[0]->shader->ProjectionID, 1, GL_FALSE, &(projectionMatrix.m[0]));
+
+    
+    int indexCount = 0;
+    int vertexCount = 0;
+    for (int i = 0; i < count; i++)
+    {
+        indexCount += obj[i]->indexCount;
+        vertexCount += obj[i]->dataCount;
+    }
+
+    int *indicies = malloc(indexCount * sizeof(int));
+    vertex *vertices = malloc(vertexCount * sizeof(vertex));
+
+    int vertex_offset = 0;
+    int index_offset = 0;
+    for (int i = 0; i < count; i++) 
+    {
+        memcpy(vertices + vertex_offset, obj[i]->data, obj[i]->dataCount * sizeof(vertex));
+        
+        for (int j = 0; j < obj[i]->indexCount; j++) 
+        {
+            indicies[index_offset + j] = obj[i]->indicies[j] + vertex_offset;
+        }
+        
+        vertex_offset += obj[i]->dataCount;
+        index_offset += obj[i]->indexCount;
+    }
+    
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, vertexCount * sizeof(vertex), vertices, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffer);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(unsigned int), indicies, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0); // Position
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float))); // Normal
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float))); // Texture coordinates
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
+
+    glBindBuffer(GL_ARRAY_BUFFER, transformBuffer);
+    //glBufferData(GL_ARRAY_BUFFER, obj[0]->transformArray.count * sizeof(mat4), obj[0]->transformArray.data, GL_DYNAMIC_DRAW);
+    int model_matrix_location = 3;
+    glEnableVertexAttribArray(model_matrix_location);
+    glEnableVertexAttribArray(model_matrix_location + 1);
+    glEnableVertexAttribArray(model_matrix_location + 2);
+    glEnableVertexAttribArray(model_matrix_location + 3);
+    glVertexAttribPointer(model_matrix_location, 4, GL_FLOAT, GL_FALSE, sizeof(mat4), (void*)0);
+    glVertexAttribPointer(model_matrix_location + 1, 4, GL_FLOAT, GL_FALSE, sizeof(mat4), (void*)(sizeof(vec4)));
+    glVertexAttribPointer(model_matrix_location + 2, 4, GL_FLOAT, GL_FALSE, sizeof(mat4), (void*)(2*sizeof(vec4)));
+    glVertexAttribPointer(model_matrix_location + 3, 4, GL_FLOAT, GL_FALSE, sizeof(mat4), (void*)(3*sizeof(vec4)));
+    glVertexAttribDivisor(model_matrix_location, 1);
+    glVertexAttribDivisor(model_matrix_location + 1, 1);
+    glVertexAttribDivisor(model_matrix_location + 2, 1);
+    glVertexAttribDivisor(model_matrix_location + 3, 1);
+
+    int instance_offset = 0;
+    index_offset = 0;
+    for (int i = 0; i < count; i++)
+    {
+        glBufferData(GL_ARRAY_BUFFER, obj[i]->transformArray.count * sizeof(mat4), obj[i]->transformArray.data, GL_DYNAMIC_DRAW);
+        glDrawElementsInstanced(GL_TRIANGLES, obj[i]->indexCount, GL_UNSIGNED_INT, (void*)(index_offset * sizeof(unsigned int)), obj[i]->transformArray.count);
+        instance_offset += obj[i]->transformArray.count;
+        index_offset += obj[i]->indexCount;
+    }
+    
+    glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(2);
+    glDisableVertexAttribArray(3);
+    glDisableVertexAttribArray(model_matrix_location + 1);
+    glDisableVertexAttribArray(model_matrix_location + 2);
+    glDisableVertexAttribArray(model_matrix_location + 3);
+    free(indicies);
+    free(vertices);
+}
+
 int geo_render_translated(GeoObject *obj, Transform *t)
 {
     glUseProgram(obj->shader->ShaderID);
     glBindTexture(GL_TEXTURE_2D, obj->texture);
 
-    glUniform3fv(obj->shader->ColorID, 1, &(obj->color.m[0]));
     glUniformMatrix4fv(obj->shader->ModelID, 1, GL_FALSE, &(t->matrix->m[0]));
     glUniformMatrix4fv(obj->shader->ViewID, 1, GL_FALSE, &(viewMatrix.m[0]));
     glUniformMatrix4fv(obj->shader->ProjectionID, 1, GL_FALSE, &(projectionMatrix.m[0]));
@@ -494,7 +573,6 @@ int particle_render_colorful(ParticleSystem *ps)
         {
             ps->particles[i].lifeTime = ps->particles[i].lifeTime - (deltaTime);
             transform_move(ps->particles[i].xdir * (deltaTime*0.01), ps->particles[i].ydir * (deltaTime*0.01), ps->particles[i].zdir * (deltaTime*0.01), &ps->particles[i].transform);
-            ps->geo->color = ps->particles[i].color;
             transformArray_add(&ps->geo->transformArray, *(ps->particles[i].transform.matrix));
         }
     }
