@@ -6,12 +6,12 @@ enable_testing()
 
 
 
-add_executable(engine src/engine.c src/graphics.c src/shaders.c src/2d.c src/geometry.c src/init.c src/ray.c src/event.c src/term.c)
+add_executable(engine src/engine.c src/graphics.c src/shaders.c src/2d.c src/geometry.c src/init.c src/ray.c src/event.c src/term.c src/shapes.c)
 set(LIB m SDL2 GLEW GL GLU SDL2_image SDL2_ttf)
 target_link_libraries(engine ${LIB})
 
 
-add_executable(engine-win lib/glew.c src/engine.c src/graphics.c src/shaders.c src/2d.c src/geometry.c src/init.c src/ray.c src/event.c src/term.c)
+add_executable(engine-win lib/glew.c src/engine.c src/graphics.c src/shaders.c src/2d.c src/geometry.c src/init.c src/ray.c src/event.c src/term.c src/shapes.c)
 set(winlib m SDL2 opengl32 glu32 SDL2_image SDL2_ttf)
 target_link_libraries(engine-win ${winlib})
 

@@ -214,58 +214,47 @@ int geo_obj_createObjectData(GeoObject *obj, vec3* vertices, vec2* uvs, vec3* no
     return 0;
 }
 
-void transformArray_init(TransformArray *obj, int capacity, int count) 
+GeoObject *geo_obj_createFromParShape(par_shapes_mesh* mesh)
 {
-    obj->data = malloc(capacity * sizeof(mat4));
-    obj->count = count;
-    obj->capacity = capacity;
-}
+    GeoObject *g = malloc(sizeof(GeoObject));
+    g->data = NULL;
+    g->indicies = NULL;
+    g->shader = NULL;
+    transformArray_init(&g->transformArray, 2, 1);
+    g->transform.matrix = &(g->transformArray.data)[0];
 
-void transformArray_free(TransformArray *obj)
-{
-    free(obj->data);
-    obj->data = NULL;
-    obj->capacity = 0;
-    obj->count = 0;
-}
+    g->dataCount = mesh->npoints;
+    g->data = (vertex*)malloc(g->dataCount * sizeof(vertex));
+    g->indexCount = mesh->ntriangles * 3;
+    g->indicies = (int*)malloc(g->indexCount * sizeof(int));
 
-void transformArray_resize(TransformArray *obj, int newCapacity) 
-{
-    mat4* newData = realloc(obj->data, newCapacity * sizeof(mat4));
-
-    if (newData != NULL) 
+    for (int i = 0; i < mesh->npoints; i++) 
     {
-        obj->data = newData;
-        obj->capacity = newCapacity;
-    }
-}
+        g->data[i].vertex.x = mesh->points[i * 3];
+        g->data[i].vertex.y = mesh->points[i * 3 + 1];
+        g->data[i].vertex.z = mesh->points[i * 3 + 2];
 
-void transformArray_add(TransformArray *obj, mat4 matrix) 
-{
-    if (obj->count == obj->capacity)
-    {
-        transformArray_resize(obj, obj->capacity * 2);
-    }
+        if (mesh->normals != NULL)
+        {
+            g->data[i].normal.x = mesh->normals[i * 3];
+            g->data[i].normal.y = mesh->normals[i * 3 + 1];
+            g->data[i].normal.z = mesh->normals[i * 3 + 2];
+        }
 
-    obj->data[obj->count] = matrix;
-    obj->count++;
-    
-}
-
-void transformArray_remove(TransformArray *obj, int index) 
-{
-    if (index >= obj->count) return;
-
-    for (int i = index + 1; i < obj->count; i++) 
-    {
-        obj->data[i - 1] = obj->data[i];
+        if (mesh->tcoords != NULL)
+        {
+            g->data[i].uv.x = mesh->tcoords[i * 2];
+            g->data[i].uv.y = mesh->tcoords[i * 2 + 1];
+        }
     }
 
-    obj->count--;
-}
+    for (int i = 0; i < mesh->ntriangles; i++) 
+    {
+        g->indicies[i * 3] = mesh->triangles[i * 3];
+        g->indicies[i * 3 + 1] = mesh->triangles[i * 3 + 1];
+        g->indicies[i * 3 + 2] = mesh->triangles[i * 3 + 2];
+    }
 
-void transformArray_clear(TransformArray *obj) 
-{
-    obj->count = 0;
+    return g;
 }
 

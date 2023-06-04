@@ -2,7 +2,6 @@
 #include "engine.h"
 #include "stdlib.h"
 
-
 /* 3D math */
 
 float radians(float dgr)
@@ -141,17 +140,44 @@ int transform_move(float x, float y, float z, Transform *t)
 
 int transform_rotate(float x, float y, float z, Transform *t)
 {
-    t->rotation.x += x;
-    t->rotation.y += y;
-    t->rotation.z += z;
+    // Convert Euler angles to quaternion
+    float cy = cosf(z * 0.5f);
+    float sy = sinf(z * 0.5f);
+    float cr = cosf(x * 0.5f);
+    float sr = sinf(x * 0.5f);
+    float cp = cosf(x * 0.5f);
+    float sp = sinf(x * 0.5f);
+
+    vec4 rotation;
+    rotation.x = sr * cp * cy - cr * sp * sy;
+    rotation.y = cr * sp * cy + sr * cp * sy;
+    rotation.z = cr * cp * sy - sr * sp * cy;
+    rotation.w = cr * cp * cy + sr * sp * sy;
+
+    vec4 rotated_q;
+    rotated_q.w = t->rotation.w * rotation.w - t->rotation.x * rotation.x - t->rotation.y * rotation.y - t->rotation.z * rotation.z;
+    rotated_q.x = t->rotation.w * rotation.x + t->rotation.x * rotation.w + t->rotation.y * rotation.z - t->rotation.z * rotation.y;
+    rotated_q.y = t->rotation.w * rotation.y - t->rotation.x * rotation.z + t->rotation.y * rotation.w + t->rotation.z * rotation.x;
+    rotated_q.z = t->rotation.w * rotation.z + t->rotation.x * rotation.y - t->rotation.y * rotation.x + t->rotation.z * rotation.w;
+
+    t->rotation = rotated_q;
+
     transform_make_matrix(t);
 }
 
 int transform_set_rotation(float x, float y, float z, Transform *t)
 {
-    t->rotation.x = x;
-    t->rotation.y = y;
-    t->rotation.z = z;
+    float cy = cosf(z * 0.5f);
+    float sy = sinf(z * 0.5f);
+    float cr = cosf(x * 0.5f);
+    float sr = sinf(x * 0.5f);
+    float cp = cosf(y * 0.5f);
+    float sp = sinf(y * 0.5f);
+
+    t->rotation.x = sr * cp * cy - cr * sp * sy;
+    t->rotation.y = cr * sp * cy + sr * cp * sy;
+    t->rotation.z = cr * cp * sy - sr * sp * cy;
+    t->rotation.w = cr * cp * cy + sr * sp * sy;
     transform_make_matrix(t);
 }
 
@@ -170,23 +196,27 @@ int transform_make_matrix(Transform *t)
     model_matrix.w.w = 1.0f;
 
     // Rotation matrix
-    float cx = cosf(t->rotation.x);
-    float sx = sinf(t->rotation.x);
-    float cy = cosf(t->rotation.y);
-    float sy = sinf(t->rotation.y);
-    float cz = cosf(t->rotation.z);
-    float sz = sinf(t->rotation.z);
+    float x = t->rotation.x;
+    float y = t->rotation.y;
+    float z = t->rotation.z;
+    float w = t->rotation.w;
 
-    model_matrix.x.x = cy * cz;
-    model_matrix.x.y = -cy * sz;
-    model_matrix.x.z = sy;
-    model_matrix.y.x = cz * sx * sy + cx * sz;
-    model_matrix.y.y = cx * cz - sx * sy * sz;
-    model_matrix.y.z = -cy * sx;
-    model_matrix.z.x = -cx * cz * sy + sx * sz;
-    model_matrix.z.y = cz * sx + cx * sy * sz;
-    model_matrix.z.z = cx * cy;
-    model_matrix.w.w = 1.0f;
+    float xx = x * x;
+    float yy = y * y;
+    float zz = z * z;
+    float ww = w * w;
+
+    model_matrix.x.x = xx - yy - zz + ww;
+    model_matrix.y.x = 2.0f * (x * y + z * w);
+    model_matrix.z.x = 2.0f * (x * z - y * w);
+
+    model_matrix.x.y = 2.0f * (x * y - z * w);
+    model_matrix.y.y = -xx + yy - zz + ww;
+    model_matrix.z.y = 2.0f * (y * z + x * w);
+
+    model_matrix.x.z = 2.0f * (x * z + y * w);
+    model_matrix.y.z = 2.0f * (y * z - x * w);
+    model_matrix.z.z = -xx - yy + zz + ww;
 
     // Scale matrix
     model_matrix.x.x *= t->scale.x;
@@ -204,11 +234,68 @@ int transform_make_matrix(Transform *t)
 
 int transform_set_identity(Transform* t) 
 {
-    t->position = (vec3){0.0f, 0.0f, 0.0f};
-    t->rotation = (vec3){0.0f, 0.0f, 0.0f};
-    t->scale = (vec3){1.0f, 1.0f, 1.0f};
+    t->position = (vec4){0.0f, 0.0f, 0.0f, 0.0f};
+    t->rotation = (vec4){0.0f, 0.0f, 0.0f, 1.0f};
+    t->scale = (vec4){1.0f, 1.0f, 1.0f, 0.0f};
     *t->matrix = IDENTITY_MATRIX;
 }
+
+void transformArray_init(TransformArray *obj, int capacity, int count) 
+{
+    obj->data = malloc(capacity * sizeof(mat4));
+    obj->count = count;
+    obj->capacity = capacity;
+}
+
+void transformArray_free(TransformArray *obj)
+{
+    free(obj->data);
+    obj->data = NULL;
+    obj->capacity = 0;
+    obj->count = 0;
+}
+
+void transformArray_resize(TransformArray *obj, int newCapacity) 
+{
+    mat4* newData = realloc(obj->data, newCapacity * sizeof(mat4));
+
+    if (newData != NULL) 
+    {
+        obj->data = newData;
+        obj->capacity = newCapacity;
+    }
+}
+
+void transformArray_add(TransformArray *obj, mat4 matrix) 
+{
+    if (obj->count == obj->capacity)
+    {
+        transformArray_resize(obj, obj->capacity * 2);
+    }
+
+    obj->data[obj->count] = matrix;
+    obj->count++;
+    
+}
+
+void transformArray_remove(TransformArray *obj, int index) 
+{
+    if (index >= obj->count) return;
+
+    for (int i = index + 1; i < obj->count; i++) 
+    {
+        obj->data[i - 1] = obj->data[i];
+    }
+
+    obj->count--;
+}
+
+void transformArray_clear(TransformArray *obj) 
+{
+    obj->count = 0;
+}
+
+
 
 
 /* Graphics Objects */

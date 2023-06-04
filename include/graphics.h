@@ -8,6 +8,7 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
 
+#include "shapes.h"
 
 extern TTF_Font *font;
 
@@ -96,9 +97,9 @@ Shader* newShaderObject(const char *vertex_source, const char *fragment_source);
 typedef struct
 {
     mat4 *matrix;
-    vec3 position;
-    vec3 rotation;
-    vec3 scale;
+    vec4 position;
+    vec4 rotation;
+    vec4 scale;
 }Transform;
 
 typedef struct
@@ -152,6 +153,8 @@ typedef struct
 int loadTexture(const char *name, int *texture);
 int geo_obj_loadFromFile(const char* filename, GeoObject *obj);
 int geo_mdl_loadFromFile(const char* filename, GeoObject *obj);
+
+GeoObject *geo_obj_createFromParShape(par_shapes_mesh* mesh);
 
 int geo_obj_createObjectData(GeoObject *obj, vec3* vertices, vec2* uvs, vec3* normals, int vertexCount, float floatEqualityThreshold);
 
