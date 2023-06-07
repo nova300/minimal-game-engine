@@ -119,8 +119,8 @@ ENTRYPOINT
         printf("could not load texture\n");
     }
 
-    rq[0]->texture = gobj->texture;
-    rq[1]->texture = gobj->texture;
+    rq[0]->texture = generateColorTexture(0.5f, 0.5f ,0.1f ,1.0f);
+    rq[1]->texture =  generateColorTexture(0.7f, 0.2f ,0.1f ,1.0f);
     rq[2] = gobj;
 
 

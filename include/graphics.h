@@ -151,6 +151,7 @@ typedef struct
 
 
 int loadTexture(const char *name, int *texture);
+int generateColorTexture(float r, float g, float b, float a);
 int geo_obj_loadFromFile(const char* filename, GeoObject *obj);
 int geo_mdl_loadFromFile(const char* filename, GeoObject *obj);
 

@@ -428,10 +428,16 @@ int geo_render_multi(GeoObject **obj, int count)
     glVertexAttribDivisor(model_matrix_location + 3, 1);
 
     int instance_offset = 0;
+    int currentTexture = 0;
     int bufferSize = 0;
     index_offset = 0;
     for (int i = 0; i < count; i++)
     {
+        if (obj[i]->texture != currentTexture)
+        {
+            glBindTexture(GL_TEXTURE_2D, obj[i]->texture);
+            currentTexture = obj[i]->texture;
+        }
         if (bufferSize > obj[i]->transformArray.count * sizeof(mat4))
         {
             glBufferSubData(GL_ARRAY_BUFFER, 0, obj[i]->transformArray.count * sizeof(mat4), obj[i]->transformArray.data);
@@ -488,7 +494,24 @@ int geo_render_translated(GeoObject *obj, Transform *t)
     glDisableVertexAttribArray(2);
 }
 
+int generateColorTexture(float r, float g, float b, float a)
+{
+    int texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
 
+    GLfloat colors[4];
+
+    colors[0] = r;
+    colors[1] = g;
+    colors[2] = b;
+    colors[3] = a;
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_FLOAT, colors);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    return texture;
+}
 
 int loadTexture(const char *name, int *texture)
 {
