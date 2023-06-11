@@ -220,8 +220,11 @@ GeoObject *geo_obj_createFromParShape(par_shapes_mesh* mesh)
     g->data = NULL;
     g->indicies = NULL;
     g->shader = NULL;
-    transformArray_init(&g->transformArray, 2, 1);
-    g->transform.matrix = &(g->transformArray.data)[0];
+    transform_set_identity(&g->baseTransform);
+    g->instanceCount = 1;
+    g->instanceCapacity = 0;
+    g->transform = &(g->baseTransform.matrix);
+    g->texture = &(g->baseTexture);
 
     g->dataCount = mesh->npoints;
     g->data = (vertex*)malloc(g->dataCount * sizeof(vertex));
@@ -240,11 +243,22 @@ GeoObject *geo_obj_createFromParShape(par_shapes_mesh* mesh)
             g->data[i].normal.y = mesh->normals[i * 3 + 1];
             g->data[i].normal.z = mesh->normals[i * 3 + 2];
         }
+        else
+        {
+            g->data[i].normal.x = 0;
+            g->data[i].normal.y = 0;
+            g->data[i].normal.z = 0;
+        }
 
         if (mesh->tcoords != NULL)
         {
             g->data[i].uv.x = mesh->tcoords[i * 2];
             g->data[i].uv.y = mesh->tcoords[i * 2 + 1];
+        }
+        else
+        {
+            g->data[i].uv.x = 0;
+            g->data[i].uv.y = 0;
         }
     }
 

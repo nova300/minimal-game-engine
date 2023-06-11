@@ -96,7 +96,7 @@ Shader* newShaderObject(const char *vertex_source, const char *fragment_source);
 
 typedef struct
 {
-    mat4 *matrix;
+    mat4 matrix;
     vec4 position;
     vec4 rotation;
     vec4 scale;
@@ -120,9 +120,20 @@ extern int vertexBuffer;
 extern int transformBuffer;
 extern int elementBuffer;
 extern int colorBuffer;
+extern int indirectBuffer;
+extern int textureBuffer;
 
 extern mat4 projectionMatrix;
 extern mat4 viewMatrix;
+
+typedef  struct 
+{
+    unsigned int  count;
+    unsigned int  instanceCount;
+    unsigned int  firstIndex;
+    int  baseVertex;
+    unsigned int  baseInstance;
+} drawCommand;
 
 typedef union
 {
@@ -138,13 +149,16 @@ typedef union
 
 typedef struct
 {
-    Transform transform;
-    TransformArray transformArray;
+    Transform baseTransform;
+    int baseTexture;
     vertex *data;
     int dataCount;
     int *indicies;
     int indexCount;
-    int texture;
+    int instanceCount;
+    int instanceCapacity;
+    mat4 *transform;
+    int *texture;
     Shader *shader;
 }GeoObject;
 
@@ -152,6 +166,7 @@ typedef struct
 
 int loadTexture(const char *name, int *texture);
 int generateColorTexture(float r, float g, float b, float a);
+int generateRandomAtlas();
 int geo_obj_loadFromFile(const char* filename, GeoObject *obj);
 int geo_mdl_loadFromFile(const char* filename, GeoObject *obj);
 
@@ -161,16 +176,16 @@ int geo_obj_createObjectData(GeoObject *obj, vec3* vertices, vec2* uvs, vec3* no
 
 int geo_render(GeoObject *obj);
 int geo_render_translated(GeoObject *obj, Transform *t);
-int geo_render_multi(GeoObject **obj, int count);
+int geo_render_multi(GeoObject **obj, int count, int textureAtlas, Shader *shader);
 GeoObject *geo_new_object();
 
 
-void transformArray_init(TransformArray *obj, int capacity, int count);
-void transformArray_free(TransformArray *obj);
-void transformArray_resize(TransformArray *obj, int newCapacity);
-void transformArray_add(TransformArray *obj, mat4 matrix);
-void transformArray_remove(TransformArray *obj, int index);
-void transformArray_clear(TransformArray *obj);
+void geo_instanceop_init(GeoObject *obj, int capacity);
+void geo_instanceop_free(GeoObject *obj);
+void geo_instanceop_resize(GeoObject *obj, int newCapacity);
+void geo_instanceop_add(GeoObject *obj, mat4 matrix, int textureIndex);
+void geo_instanceop_remove(GeoObject *obj, int index);
+void geo_instanceop_clear(GeoObject *obj);
 
 typedef struct 
 {

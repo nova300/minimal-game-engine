@@ -1,13 +1,15 @@
 
 
 const char *vertex_shader_0 = 
-    "#version 330 core\n"
+    "#version 440 core\n"
     "layout(location = 0) in vec3 vertexPosition_modelspace;\n"
     "layout(location = 1) in vec2 vertexUV;\n"
     "layout(location = 2) in vec3 vertexNormal;\n"
-    "layout(location = 3) in mat4 MOD;\n"
-    "noperspective out vec2 uv;\n"
+    "layout(location = 3) in uint texture;\n"
+    "layout(location = 4) in mat4 MOD;\n"
+    "out vec2 uv;\n"
     "out float light;\n"
+    "flat out uint textureIndex;\n"
     "uniform mat4 PRO;\n"
     "uniform mat4 VIE;\n"
     "float lambert(vec3 N, vec3 L)\n"
@@ -31,22 +33,24 @@ const char *vertex_shader_0 =
     "    vec3 vertexNormal_cameraspace = ( VIE * MOD * vec4(vertexNormal,0)).xyz;\n"
     "    vec3 eyeDirection_cameraspace = vec3(0,0,0) - vertexPosition_cameraspace;\n"
     "    light = lambert(vertexNormal_cameraspace, eyeDirection_cameraspace);\n"
+    "    textureIndex = texture;\n"
     "}\n";
 
 const char *fragment_shader_0 =
-"#version 330 core\n"
-"noperspective in vec2 uv;\n"
+"#version 440 core\n"
+"in vec2 uv;\n"
 "in float light;\n"
+"flat in uint textureIndex;\n"
 "out vec3 color;\n"
-"uniform sampler2D texSampler;\n"
+"uniform sampler2DArray texSampler;\n"
 "void main(){\n"
-"   vec3 col = texture( texSampler, uv).rgb;\n"
+"   vec3 col = texture( texSampler, vec3(uv.x, uv.y, textureIndex)).rgb;\n"
 "   col = col * light;\n"
 "   color = col;\n"
 "}\n";
 
 const char *vertex_shader_1 = 
-    "#version 330 core\n"
+    "#version 420 core\n"
     "layout(location = 0) in vec3 vertexPosition_modelspace;\n"
     "layout(location = 1) in vec2 vertexUV;\n"
     "layout(location = 2) in vec3 vertexNormal;\n"
@@ -81,7 +85,7 @@ const char *vertex_shader_1 =
     "}\n";
 
 const char *fragment_shader_1 =
-"#version 330 core\n"
+"#version 420 core\n"
 "in vec3 vertexColor;\n"
 "out vec3 color;\n"
 "uniform sampler2D texSampler;\n"

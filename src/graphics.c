@@ -184,8 +184,6 @@ int transform_set_rotation(float x, float y, float z, Transform *t)
 int transform_make_matrix(Transform *t) 
 {
 
-    if (t->matrix == NULL) return 1;
-
     mat4 model_matrix;
     memset(&model_matrix, 0, sizeof(mat4));
 
@@ -229,7 +227,7 @@ int transform_make_matrix(Transform *t)
     model_matrix.z.y *= t->scale.z;
     model_matrix.z.z *= t->scale.z;
 
-    *t->matrix = model_matrix;
+    t->matrix = model_matrix;
 }
 
 int transform_set_identity(Transform* t) 
@@ -237,62 +235,64 @@ int transform_set_identity(Transform* t)
     t->position = (vec4){0.0f, 0.0f, 0.0f, 0.0f};
     t->rotation = (vec4){0.0f, 0.0f, 0.0f, 1.0f};
     t->scale = (vec4){1.0f, 1.0f, 1.0f, 0.0f};
-    *t->matrix = IDENTITY_MATRIX;
+    t->matrix = IDENTITY_MATRIX;
 }
 
-void transformArray_init(TransformArray *obj, int capacity, int count) 
+void geo_instanceop_init(GeoObject *obj, int capacity) 
 {
-    obj->data = malloc(capacity * sizeof(mat4));
-    obj->count = count;
-    obj->capacity = capacity;
+    obj->transform = malloc(capacity * sizeof(mat4));
+    obj->texture = malloc(capacity * sizeof(int));
+    obj->instanceCount = 0;
+    obj->instanceCapacity = capacity;
 }
 
-void transformArray_free(TransformArray *obj)
+void geo_instanceop_free(GeoObject *obj)
 {
-    free(obj->data);
-    obj->data = NULL;
-    obj->capacity = 0;
-    obj->count = 0;
+    free(obj->transform);
+    obj->transform = NULL;
+    obj->instanceCapacity = 0;
+    obj->instanceCount = 0;
 }
 
-void transformArray_resize(TransformArray *obj, int newCapacity) 
+void geo_instanceop_resize(GeoObject *obj, int newCapacity) 
 {
-    mat4* newData = realloc(obj->data, newCapacity * sizeof(mat4));
+    mat4 *newTransform = realloc(obj->transform, newCapacity * sizeof(mat4));
+    if (newTransform == NULL) return;
+    int *newTexture = realloc(obj->texture, newCapacity * sizeof(int));
+    if (newTexture == NULL) return;
 
-    if (newData != NULL) 
+    obj->transform = newTransform;
+    obj->texture = newTexture;
+    obj->instanceCapacity = newCapacity;
+}
+
+void geo_instanceop_add(GeoObject *obj, mat4 matrix, int textureIndex) 
+{
+    if (obj->instanceCount == obj->instanceCapacity)
     {
-        obj->data = newData;
-        obj->capacity = newCapacity;
-    }
-}
-
-void transformArray_add(TransformArray *obj, mat4 matrix) 
-{
-    if (obj->count == obj->capacity)
-    {
-        transformArray_resize(obj, obj->capacity * 2);
+        geo_instanceop_resize(obj, obj->instanceCapacity * 2);
     }
 
-    obj->data[obj->count] = matrix;
-    obj->count++;
-    
+    obj->transform[obj->instanceCount] = matrix;
+    obj->texture[obj->instanceCount] = textureIndex;
+    obj->instanceCount++; 
 }
 
-void transformArray_remove(TransformArray *obj, int index) 
+void geo_instanceop_remove(GeoObject *obj, int index) 
 {
-    if (index >= obj->count) return;
+    if (index >= obj->instanceCount) return;
 
-    for (int i = index + 1; i < obj->count; i++) 
+    for (int i = index + 1; i < obj->instanceCount; i++) 
     {
         obj->data[i - 1] = obj->data[i];
     }
 
-    obj->count--;
+    obj->instanceCount--;
 }
 
-void transformArray_clear(TransformArray *obj) 
+void geo_instanceop_clear(GeoObject *obj) 
 {
-    obj->count = 0;
+    obj->instanceCount = 0;
 }
 
 
@@ -306,10 +306,13 @@ GeoObject *geo_new_object()
     g->data = NULL;
     g->indicies = NULL;
     g->shader = NULL;
+    g->baseTexture = 1;
 
-    transformArray_init(&g->transformArray, 2, 1);
-
-    g->transform.matrix = &(g->transformArray.data)[0];
+    transform_set_identity(&g->baseTransform);
+    g->instanceCount = 1;
+    g->instanceCapacity = 0;
+    g->transform = &(g->baseTransform.matrix);
+    g->texture = &(g->baseTexture);
 
     return g;
 }
@@ -317,7 +320,7 @@ GeoObject *geo_new_object()
 int geo_render(GeoObject *obj)
 {
     glUseProgram(obj->shader->ShaderID);
-    glBindTexture(GL_TEXTURE_2D, obj->texture);
+    glBindTexture(GL_TEXTURE_2D, obj->baseTexture);
     //glUniformMatrix4fv(obj->shader->ModelID, 1, GL_FALSE, &(obj->transform.matrix.m[0]));
     glUniformMatrix4fv(obj->shader->ViewID, 1, GL_FALSE, &(viewMatrix.m[0]));
     glUniformMatrix4fv(obj->shader->ProjectionID, 1, GL_FALSE, &(projectionMatrix.m[0]));
@@ -327,7 +330,6 @@ int geo_render(GeoObject *obj)
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffer);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, obj->indexCount * sizeof(unsigned int), obj->indicies, GL_STATIC_DRAW);
-
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0); // Position
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float))); // Normal
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float))); // Texture coordinates
@@ -335,10 +337,14 @@ int geo_render(GeoObject *obj)
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
 
-    glBindBuffer(GL_ARRAY_BUFFER, transformBuffer);
-    glBufferData(GL_ARRAY_BUFFER, obj->transformArray.count * sizeof(mat4), obj->transformArray.data, GL_DYNAMIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, textureBuffer);
+    glBufferData(GL_ARRAY_BUFFER, obj->instanceCount * sizeof(unsigned int), obj->texture, GL_DYNAMIC_DRAW);
+    glEnableVertexAttribArray(3);
+    glVertexAttribDivisor(3, 1); 
 
-    int model_matrix_location = 3;
+    glBindBuffer(GL_ARRAY_BUFFER, transformBuffer);
+    glBufferData(GL_ARRAY_BUFFER, obj->instanceCount * sizeof(mat4), obj->transform, GL_DYNAMIC_DRAW);
+    int model_matrix_location = 4;
     glEnableVertexAttribArray(model_matrix_location);
     glEnableVertexAttribArray(model_matrix_location + 1);
     glEnableVertexAttribArray(model_matrix_location + 2);
@@ -353,31 +359,34 @@ int geo_render(GeoObject *obj)
     glVertexAttribDivisor(model_matrix_location + 3, 1);
 
 
-    glDrawElementsInstanced(GL_TRIANGLES, obj->indexCount, GL_UNSIGNED_INT, (void*)0, obj->transformArray.count);
+    glDrawElementsInstanced(GL_TRIANGLES, obj->indexCount, GL_UNSIGNED_INT, (void*)0, obj->instanceCount);
 
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);
     glDisableVertexAttribArray(2);
     glDisableVertexAttribArray(3);
+    glDisableVertexAttribArray(model_matrix_location);
     glDisableVertexAttribArray(model_matrix_location + 1);
     glDisableVertexAttribArray(model_matrix_location + 2);
     glDisableVertexAttribArray(model_matrix_location + 3);
 }
 
-int geo_render_multi(GeoObject **obj, int count)
+int geo_render_multi(GeoObject **obj, int count, int textureAtlas, Shader *shader)
 {
-    glUseProgram(obj[0]->shader->ShaderID);
-    glBindTexture(GL_TEXTURE_2D, obj[0]->texture);
-    glUniformMatrix4fv(obj[0]->shader->ViewID, 1, GL_FALSE, &(viewMatrix.m[0]));
-    glUniformMatrix4fv(obj[0]->shader->ProjectionID, 1, GL_FALSE, &(projectionMatrix.m[0]));
+    glUseProgram(shader->ShaderID);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, textureAtlas);
+    glUniformMatrix4fv(shader->ViewID, 1, GL_FALSE, &(viewMatrix.m[0]));
+    glUniformMatrix4fv(shader->ProjectionID, 1, GL_FALSE, &(projectionMatrix.m[0]));
 
     
     int indexCount = 0;
     int vertexCount = 0;
+    int instanceCount = 0;
     for (int i = 0; i < count; i++)
     {
         indexCount += obj[i]->indexCount;
         vertexCount += obj[i]->dataCount;
+        instanceCount += obj[i]->instanceCount;
     }
 
     int *indicies = malloc(indexCount * sizeof(int));
@@ -388,21 +397,64 @@ int geo_render_multi(GeoObject **obj, int count)
     for (int i = 0; i < count; i++) 
     {
         memcpy(vertices + vertex_offset, obj[i]->data, obj[i]->dataCount * sizeof(vertex));
+        memcpy(indicies + index_offset, obj[i]->indicies, obj[i]->indexCount * sizeof(int));
         
-        for (int j = 0; j < obj[i]->indexCount; j++) 
+        /*for (int j = 0; j < obj[i]->indexCount; j++) 
         {
-            indicies[index_offset + j] = obj[i]->indicies[j] + vertex_offset;
+            indicies[index_offset] = obj[i]->indicies[j];
+            index_offset++;
         }
+        for (int j = 0; j < obj[i]->dataCount; j++) 
+        {
+            vertices[vertex_offset] = obj[i]->data[j];
+            vertex_offset++;
+        }*/
         
         vertex_offset += obj[i]->dataCount;
         index_offset += obj[i]->indexCount;
     }
+
+    int *textures = malloc(sizeof(int) * instanceCount);
+    mat4 *transforms = malloc(sizeof(mat4) * instanceCount);
+    int instance_offset = 0;
+    for (int i = 0; i < count; i++)
+    {
+        memcpy(textures + instance_offset, obj[i]->texture, obj[i]->instanceCount * sizeof(int));
+        memcpy(transforms + instance_offset, obj[i]->transform, obj[i]->instanceCount * sizeof(mat4));
+
+        /*for (int j = 0; j < obj[i]->instanceCount; j++) 
+        {
+            textures[instance_offset] = obj[i]->texture[j];
+            transforms[instance_offset] = obj[i]->transform[j];
+            instance_offset++;
+        }*/
+
+        instance_offset += obj[i]->instanceCount;
+    }
+
+    drawCommand *commands = malloc(sizeof(drawCommand) * count);
+    int baseVert = 0;
+    int fIndex = 0;
+    int baseInst = 0;
+    for (int i = 0; i < count; i++)
+    {
+        commands[i].count = obj[i]->indexCount;
+        commands[i].instanceCount = obj[i]->instanceCount;
+        commands[i].firstIndex = fIndex;
+        commands[i].baseVertex = baseVert;
+        commands[i].baseInstance = baseInst;
+        baseVert += obj[i]->dataCount;
+        fIndex += obj[i]->indexCount;
+        baseInst += obj[i]->instanceCount;
+    }
     
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, vertexCount * sizeof(vertex), vertices, GL_STATIC_DRAW);
+    
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffer);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(unsigned int), indicies, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, vertexCount * sizeof(vertex), vertices, GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0); // Position
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float))); // Normal
@@ -411,9 +463,15 @@ int geo_render_multi(GeoObject **obj, int count)
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
 
+    glBindBuffer(GL_ARRAY_BUFFER, textureBuffer);
+    glBufferData(GL_ARRAY_BUFFER, instanceCount * sizeof(int), textures, GL_STATIC_DRAW);
+    glVertexAttribPointer(3, 1, GL_INT, GL_FALSE, sizeof(int), (void*)0);
+    glEnableVertexAttribArray(3);
+    glVertexAttribDivisor(3, 1);
+
     glBindBuffer(GL_ARRAY_BUFFER, transformBuffer);
-    //glBufferData(GL_ARRAY_BUFFER, obj[0]->transformArray.count * sizeof(mat4), obj[0]->transformArray.data, GL_DYNAMIC_DRAW);
-    int model_matrix_location = 3;
+    glBufferData(GL_ARRAY_BUFFER, instanceCount * sizeof(mat4), transforms, GL_STATIC_DRAW);
+    int model_matrix_location = 4;
     glEnableVertexAttribArray(model_matrix_location);
     glEnableVertexAttribArray(model_matrix_location + 1);
     glEnableVertexAttribArray(model_matrix_location + 2);
@@ -424,10 +482,17 @@ int geo_render_multi(GeoObject **obj, int count)
     glVertexAttribPointer(model_matrix_location + 3, 4, GL_FLOAT, GL_FALSE, sizeof(mat4), (void*)(3*sizeof(vec4)));
     glVertexAttribDivisor(model_matrix_location, 1);
     glVertexAttribDivisor(model_matrix_location + 1, 1);
-    glVertexAttribDivisor(model_matrix_location + 2, 1);
+    glVertexAttribDivisor(model_matrix_location + 2, 1); 
     glVertexAttribDivisor(model_matrix_location + 3, 1);
 
-    int instance_offset = 0;
+
+    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, indirectBuffer);
+    glBufferData(GL_DRAW_INDIRECT_BUFFER, sizeof(drawCommand) * count, commands, GL_DYNAMIC_DRAW);
+
+    glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (void*)0, count, 0);
+
+
+    /*int instance_offset = 0;
     int currentTexture = 0;
     int bufferSize = 0;
     index_offset = 0;
@@ -438,37 +503,41 @@ int geo_render_multi(GeoObject **obj, int count)
             glBindTexture(GL_TEXTURE_2D, obj[i]->texture);
             currentTexture = obj[i]->texture;
         }
-        if (bufferSize > obj[i]->transformArray.count * sizeof(mat4))
+        if (bufferSize > obj[i]->instanceCount * sizeof(mat4))
         {
-            glBufferSubData(GL_ARRAY_BUFFER, 0, obj[i]->transformArray.count * sizeof(mat4), obj[i]->transformArray.data);
+            glBufferSubData(GL_ARRAY_BUFFER, 0, obj[i]->instanceCount * sizeof(mat4), obj[i]->transform);
         }
         else
         {
-            glBufferData(GL_ARRAY_BUFFER, obj[i]->transformArray.count * sizeof(mat4), obj[i]->transformArray.data, GL_DYNAMIC_DRAW);
-            bufferSize = obj[i]->transformArray.count * sizeof(mat4);
+            glBufferData(GL_ARRAY_BUFFER, obj[i]->instanceCount * sizeof(mat4), obj[i]->transform, GL_DYNAMIC_DRAW);
+            bufferSize = obj[i]->instanceCount * sizeof(mat4);
         }
-        glDrawElementsInstanced(GL_TRIANGLES, obj[i]->indexCount, GL_UNSIGNED_INT, (void*)(index_offset * sizeof(unsigned int)), obj[i]->transformArray.count);
-        instance_offset += obj[i]->transformArray.count;
+        glDrawElementsInstanced(GL_TRIANGLES, obj[i]->indexCount, GL_UNSIGNED_INT, (void*)(index_offset * sizeof(unsigned int)), obj[i]->instanceCount);
+        instance_offset += obj[i]->instanceCount;
         index_offset += obj[i]->indexCount;
-    }
+    }*/
     
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);
     glDisableVertexAttribArray(2);
     glDisableVertexAttribArray(3);
+    glDisableVertexAttribArray(model_matrix_location);
     glDisableVertexAttribArray(model_matrix_location + 1);
     glDisableVertexAttribArray(model_matrix_location + 2);
     glDisableVertexAttribArray(model_matrix_location + 3);
     free(indicies);
     free(vertices);
+    free(commands);
+    free(transforms);
+    free(textures);
 }
 
 int geo_render_translated(GeoObject *obj, Transform *t)
 {
     glUseProgram(obj->shader->ShaderID);
-    glBindTexture(GL_TEXTURE_2D, obj->texture);
+    glBindTexture(GL_TEXTURE_2D, obj->baseTexture);
 
-    glUniformMatrix4fv(obj->shader->ModelID, 1, GL_FALSE, &(t->matrix->m[0]));
+    glUniformMatrix4fv(obj->shader->ModelID, 1, GL_FALSE, &(t->matrix.m[0]));
     glUniformMatrix4fv(obj->shader->ViewID, 1, GL_FALSE, &(viewMatrix.m[0]));
     glUniformMatrix4fv(obj->shader->ProjectionID, 1, GL_FALSE, &(projectionMatrix.m[0]));
     
@@ -510,6 +579,34 @@ int generateColorTexture(float r, float g, float b, float a)
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_FLOAT, colors);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    return texture;
+}
+
+//generates array of 100 random color textures
+int generateRandomAtlas()
+{
+    int texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
+
+    glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGBA8, 1, 1, 50);
+
+    for (int i = 0; i < 50; i++)
+    {
+        GLubyte colors[4];
+        colors[0] = ((GLubyte)(rand() % 255));
+        colors[1] = ((GLubyte)(rand() % 255));
+        colors[2] = ((GLubyte)(rand() % 255));
+        colors[3] = 255;
+
+        glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, 1, 1, 1, GL_RGBA8, GL_UNSIGNED_BYTE, colors);
+    }
+
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
     return texture;
 }
 
@@ -561,7 +658,7 @@ int loadTexture(const char *name, int *texture)
 int particle_render(ParticleSystem *ps)
 {
     if (ps == NULL) return 1;
-    transformArray_clear(&ps->geo->transformArray);
+    //transformArray_clear(&ps->geo->transformArray);
     for (int i = 0; i < ps->amount; i++)
     {
         if (ps->particles[i].lifeTime < 0)
@@ -577,7 +674,7 @@ int particle_render(ParticleSystem *ps)
         {
             ps->particles[i].lifeTime = ps->particles[i].lifeTime - (deltaTime);
             transform_move(ps->particles[i].xdir * (deltaTime*0.01), ps->particles[i].ydir * (deltaTime*0.01), ps->particles[i].zdir * (deltaTime*0.01), &ps->particles[i].transform);
-            transformArray_add(&ps->geo->transformArray, *(ps->particles[i].transform.matrix));
+            //transformArray_add(&ps->geo->transformArray, *(ps->particles[i].transform.matrix));
         }
     }
     geo_render(ps->geo);
@@ -586,7 +683,7 @@ int particle_render(ParticleSystem *ps)
 int particle_render_colorful(ParticleSystem *ps)
 {
     if (ps == NULL) return 1;
-    transformArray_clear(&ps->geo->transformArray);
+    //transformArray_clear(&ps->geo->transformArray);
     for (int i = 0; i < ps->amount; i++)
     {
         if (ps->particles[i].lifeTime < 0)
@@ -605,7 +702,7 @@ int particle_render_colorful(ParticleSystem *ps)
         {
             ps->particles[i].lifeTime = ps->particles[i].lifeTime - (deltaTime);
             transform_move(ps->particles[i].xdir * (deltaTime*0.01), ps->particles[i].ydir * (deltaTime*0.01), ps->particles[i].zdir * (deltaTime*0.01), &ps->particles[i].transform);
-            transformArray_add(&ps->geo->transformArray, *(ps->particles[i].transform.matrix));
+            //transformArray_add(&ps->geo->transformArray, *(ps->particles[i].transform.matrix));
         }
     }
     geo_render(ps->geo);
@@ -616,7 +713,7 @@ ParticleSystem* particle_new(GeoObject *g, int amount)
     //g->transform.matrix = NULL;
     //g->transformArray.count = 0;
     ParticleSystem *ps = malloc(sizeof(ParticleSystem));
-    ps->transform = &(g->transform);
+    ps->transform = &(g->baseTransform);
     Particle *p = malloc(sizeof(Particle) * amount);
     ps->geo = g;
     ps->amount = amount;
@@ -629,7 +726,6 @@ ParticleSystem* particle_new(GeoObject *g, int amount)
         p[i].xdir = 0;
         p[i].ydir = 0;
         p[i].zdir = 0;
-        pt->matrix = malloc(sizeof(mat4));
         transform_set_identity(pt);
     }
     

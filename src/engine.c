@@ -21,6 +21,8 @@ int vertexBuffer;
 int transformBuffer;
 int elementBuffer;
 int colorBuffer;
+int indirectBuffer;
+int textureBuffer;
 
 mat4 projectionMatrix;
 mat4 viewMatrix;
@@ -54,8 +56,14 @@ ENTRYPOINT
     glGenBuffers(1, &transformBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, transformBuffer);
 
+    glGenBuffers(1, &textureBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, textureBuffer);
+
     glGenBuffers(1, &elementBuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffer);
+
+    glGenBuffers(1, &indirectBuffer);
+    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, indirectBuffer);
 
 
     //GeoObject *cube = geo_new_object();
@@ -86,8 +94,8 @@ ENTRYPOINT
     par_shapes_merge_and_free(mesh1, cube);
     par_shapes__compute_welded_normals(mesh1);
 
-    par_shapes_compute_normals(tetrahedron);
-    par_shapes_compute_normals(octohedron);
+    par_shapes__compute_welded_normals(tetrahedron);
+    par_shapes__compute_welded_normals(octohedron);
 
     GeoObject *gobj = geo_obj_createFromParShape(mesh1);
     GeoObject *m1 = geo_obj_createFromParShape(tetrahedron);
@@ -95,8 +103,8 @@ ENTRYPOINT
 
     GeoObject *rq[3];
 
-    rq[0] = geo_obj_createFromParShape(tetrahedron);
-    rq[1] = geo_obj_createFromParShape(octohedron);
+    rq[0] = geo_obj_createFromParShape(octohedron);
+    rq[1] = geo_obj_createFromParShape(tetrahedron);
 
     Shader *s = newShaderObject(vertex_shader_0, fragment_shader_0);
     gobj->shader = s;
@@ -110,21 +118,38 @@ ENTRYPOINT
     vec3 up = {{0, 1, 0}};
     viewMatrix = matrix_lookAt(eye, center, up);
 
-    transform_set_identity(&gobj->transform);
-    transform_set_identity(&rq[0]->transform);
-    transform_set_identity(&rq[1]->transform);
+    transform_set_identity(&gobj->baseTransform);
+    transform_set_identity(&rq[0]->baseTransform);
+    transform_set_identity(&rq[1]->baseTransform);
 
-    if (loadTexture("media/textest.jpg", &gobj->texture))
+    /*if (loadTexture("media/textest.jpg", &gobj->texture))
     {
         printf("could not load texture\n");
-    }
+    }*/
 
-    rq[0]->texture = generateColorTexture(0.5f, 0.5f ,0.1f ,1.0f);
-    rq[1]->texture =  generateColorTexture(0.7f, 0.2f ,0.1f ,1.0f);
+    int atlas = generateRandomAtlas();
+
+    gobj->baseTexture = 5;
+    rq[0]->baseTexture = 2;
+    rq[1]->baseTexture = 8;
     rq[2] = gobj;
 
+    geo_instanceop_init(rq[0], 10);
+    Transform ta;
+    Transform tb;
+    Transform tc;
+    transform_set_identity(&ta);
+    transform_set_identity(&tb);
+    transform_set_identity(&tc);
+    transform_move(0, -1, 0, &ta);
+    transform_move(0, 1, 0, &tb);
+    transform_move(1, 0, 0, &tc);
+    geo_instanceop_add(rq[0], ta.matrix, 4);
+    geo_instanceop_add(rq[0], tb.matrix, 16);
+    geo_instanceop_add(rq[0], tc.matrix, 16);
 
-    p1 = particle_new(gobj, 512);
+
+    //p1 = particle_new(gobj, 512);
 
     while (exitLoop == 0)
     {
@@ -133,13 +158,15 @@ ENTRYPOINT
         if (deltaTime > 250) deltaTime = 250;
         time = SDL_GetTicks();
 
-        transform_rotate(0, 0, 0.001 * deltaTime, &rq[0]->transform);
-        transform_rotate(0.001 * deltaTime, 0, 0, &rq[2]->transform);
+        transform_rotate(0, 0, 0.001 * deltaTime, &rq[1]->baseTransform);
+        transform_rotate(0.001 * deltaTime, 0, 0, &rq[2]->baseTransform);
+
+        rq[2]->baseTexture = rand() % 50;
 
         glClearColor(0.0f, 0.0f, 0.2f, 0.0f);
         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
         
-        geo_render_multi(rq, 3);
+        geo_render_multi(rq, 3, atlas, s);
         //particle_render_colorful(p1);
 
 
