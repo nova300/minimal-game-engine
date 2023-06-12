@@ -30,7 +30,7 @@ mat4 viewMatrix;
 ENTRYPOINT
 {
     printf("init: ");
-    terminal_print("init: ");
+    //terminal_print("init: ");
     int err = init();
     if (err != 0)
     {
@@ -38,13 +38,13 @@ ENTRYPOINT
         printf("error %i\n", err);
     }
     printf("ok\n");
-    terminal_print("ok\n");
+    //terminal_print("ok\n");
 
-    font = TTF_OpenFont("media/tosh.ttf", 28);
+    /*font = TTF_OpenFont("media/tosh.ttf", 28);
     if (font == NULL)
     {
         printf("TERM: failed to open font\n");
-    }
+    }*/
 
     GLuint VertexArrayID;
     glGenVertexArrays(1, &VertexArrayID);
