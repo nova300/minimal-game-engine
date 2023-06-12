@@ -1,7 +1,7 @@
 
 
 const char *vertex_shader_0 = 
-    "#version 440 core\n"
+    "#version 430 core\n"
     "layout(location = 0) in vec3 vertexPosition_modelspace;\n"
     "layout(location = 1) in vec2 vertexUV;\n"
     "layout(location = 2) in vec3 vertexNormal;\n"
@@ -37,7 +37,7 @@ const char *vertex_shader_0 =
     "}\n";
 
 const char *fragment_shader_0 =
-"#version 440 core\n"
+"#version 430 core\n"
 "in vec2 uv;\n"
 "in float light;\n"
 "flat in uint textureIndex;\n"
