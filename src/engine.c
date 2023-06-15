@@ -153,6 +153,7 @@ ENTRYPOINT
 
     while (exitLoop == 0)
     {
+        glViewport(0, 0, SDL_GetWindowSurface(window)->w, SDL_GetWindowSurface(window)->h);
         deltaTime = SDL_GetTicks() - time;
         eventhandler();
         if (deltaTime > 250) deltaTime = 250;
