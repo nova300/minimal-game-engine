@@ -268,7 +268,7 @@ void geo_instanceop_resize(GeoObject *obj, int newCapacity)
 
 void geo_instanceop_add(GeoObject *obj, mat4 matrix, int textureIndex) 
 {
-    if (obj->instanceCount == obj->instanceCapacity)
+    if (obj->instanceCount >= obj->instanceCapacity)
     {
         geo_instanceop_resize(obj, obj->instanceCapacity * 2);
     }
@@ -310,10 +310,28 @@ GeoObject *geo_new_object()
 
     transform_set_identity(&g->baseTransform);
     g->instanceCount = 1;
-    g->instanceCapacity = 0;
+    g->instanceCapacity = 1;
     g->transform = &(g->baseTransform.matrix);
     g->texture = &(g->baseTexture);
 
+    return g;
+}
+
+GeoObject geo_new_stack_object()
+{
+    GeoObject g;
+    g.data = NULL;
+    g.indicies = NULL;
+    g.shader = NULL;
+
+    transform_set_identity(&g.baseTransform);
+
+    g.baseTexture = 1;
+    g.instanceCount = 1;
+    g.instanceCapacity = 0;
+    g.transform = &g.baseTransform.matrix;
+    g.texture = &g.baseTexture;
+    
     return g;
 }
 
@@ -681,10 +699,10 @@ int particle_render(ParticleSystem *ps)
     geo_render(ps->geo);
 }
 
-int particle_render_colorful(ParticleSystem *ps)
+void particle_update(ParticleSystem *ps)
 {
-    if (ps == NULL) return 1;
-    //transformArray_clear(&ps->geo->transformArray);
+    if (ps == NULL) return;
+    geo_instanceop_clear(ps->geo);
     for (int i = 0; i < ps->amount; i++)
     {
         if (ps->particles[i].lifeTime < 0)
@@ -695,24 +713,20 @@ int particle_render_colorful(ParticleSystem *ps)
             ps->particles[i].xdir = ((rand() - rand()) % 3) + ((rand() - rand()) % 10) * 0.1f;
             ps->particles[i].ydir = ((rand() - rand()) % 3) + ((rand() - rand()) % 10) * 0.1f;
             ps->particles[i].zdir = ((rand() - rand()) % 3) + ((rand() - rand()) % 10) * 0.1f;
-            ps->particles[i].color.x = ((float)(rand() % 100)/100.0f);
-            ps->particles[i].color.y = ((float)(rand() % 100)/100.0f);
-            ps->particles[i].color.z = ((float)(rand() % 100)/100.0f);
+            ps->particles[i].texture = rand() % 50;
         }
         else
         {
             ps->particles[i].lifeTime = ps->particles[i].lifeTime - (deltaTime);
             transform_move(ps->particles[i].xdir * (deltaTime*0.01), ps->particles[i].ydir * (deltaTime*0.01), ps->particles[i].zdir * (deltaTime*0.01), &ps->particles[i].transform);
-            //transformArray_add(&ps->geo->transformArray, *(ps->particles[i].transform.matrix));
+            geo_instanceop_add(ps->geo, ps->particles[i].transform.matrix, ps->particles[i].texture);
         }
     }
-    geo_render(ps->geo);
 }
 
 ParticleSystem* particle_new(GeoObject *g, int amount)
 {
-    //g->transform.matrix = NULL;
-    //g->transformArray.count = 0;
+    geo_instanceop_init(g, amount);
     ParticleSystem *ps = malloc(sizeof(ParticleSystem));
     ps->transform = &(g->baseTransform);
     Particle *p = malloc(sizeof(Particle) * amount);

@@ -212,7 +212,7 @@ typedef struct
     float ydir;
     float xdir;
     float zdir;
-    vec3 color;
+    int texture;
 }Particle;
 
 typedef struct
@@ -224,8 +224,7 @@ typedef struct
 }ParticleSystem;
 
 ParticleSystem* particle_new(GeoObject *g, int amount);
-int particle_render(ParticleSystem *ps);
-int particle_render_colorful(ParticleSystem *ps);
+void particle_update(ParticleSystem *ps);
 
 
 

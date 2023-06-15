@@ -222,7 +222,7 @@ GeoObject *geo_obj_createFromParShape(par_shapes_mesh* mesh)
     g->shader = NULL;
     transform_set_identity(&g->baseTransform);
     g->instanceCount = 1;
-    g->instanceCapacity = 0;
+    g->instanceCapacity = 1;
     g->transform = &(g->baseTransform.matrix);
     g->texture = &(g->baseTexture);
 

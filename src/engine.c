@@ -113,7 +113,7 @@ ENTRYPOINT
 
     projectionMatrix = matrix_perspective(radians(45.0f), (float)SCREEN_WIDTH/SCREEN_HEIGHT, 0.1f, 100.0f);
 
-    vec3 eye = {{5, 5, 5}};
+    vec3 eye = {{50, 50, 50}};
     vec3 center = {{0, 0, 0}};
     vec3 up = {{0, 1, 0}};
     viewMatrix = matrix_lookAt(eye, center, up);
@@ -149,7 +149,7 @@ ENTRYPOINT
     geo_instanceop_add(rq[0], tc.matrix, 16);
 
 
-    //p1 = particle_new(gobj, 512);
+    p1 = particle_new(gobj, 512);
 
     while (exitLoop == 0)
     {
@@ -159,15 +159,16 @@ ENTRYPOINT
         time = SDL_GetTicks();
 
         transform_rotate(0, 0, 0.001 * deltaTime, &rq[1]->baseTransform);
-        transform_rotate(0.001 * deltaTime, 0, 0, &rq[2]->baseTransform);
+        //transform_rotate(0.001 * deltaTime, 0, 0, &rq[2]->baseTransform);
 
-        rq[2]->baseTexture = rand() % 50;
+        particle_update(p1);
+
+        //rq[2]->baseTexture = rand() % 50;
 
         glClearColor(0.0f, 0.0f, 0.2f, 0.0f);
         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
         
         geo_render_multi(rq, 3, atlas, s);
-        //particle_render_colorful(p1);
 
 
         SDL_GL_SwapWindow( window );
