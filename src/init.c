@@ -5,6 +5,11 @@ void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum se
     fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n", (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""), type, severity, message);
 }
 
+void frameBufferSizeCallback(GLFWwindow* window,int width,int height) 
+{
+    glViewport(0,0,width,height);
+}
+
 int init()
 {
     //SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 4);
@@ -63,6 +68,8 @@ int initGL()
 {
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(MessageCallback, 0);
+
+    glfwSetFramebufferSizeCallback(window, frameBufferSizeCallback);
 
     glfwSwapInterval(1);
 

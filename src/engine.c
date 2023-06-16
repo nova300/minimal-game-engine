@@ -148,7 +148,7 @@ int main(void)
     geo_instanceop_add(rq[0], tc.matrix, 16);
 
 
-    p1 = particle_new(rq[1], 512);
+    p1 = particle_new(rq[1], 10240);
 
     while (exitLoop == 0)
     {
