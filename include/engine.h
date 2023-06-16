@@ -35,7 +35,7 @@ extern int errorCode;
 extern int exitLoop;
 
 extern float degrees;
-extern unsigned long deltaTime;
+extern double deltaTime;
 extern ParticleSystem *p1;
 
 

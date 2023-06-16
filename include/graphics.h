@@ -185,7 +185,7 @@ void geo_instanceop_clear(GeoObject *obj);
 typedef struct
 {
     Transform transform;
-    int lifeTime;
+    float lifeTime;
     float ydir;
     float xdir;
     float zdir;

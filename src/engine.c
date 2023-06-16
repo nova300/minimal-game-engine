@@ -4,8 +4,8 @@
 int SCREEN_WIDTH = 1024;
 int SCREEN_HEIGHT = 768;
 
-unsigned long time = 0;
-unsigned long deltaTime = 0;
+double time = 0;
+double deltaTime = 0;
 
 GLFWwindow *window;
 
@@ -151,12 +151,11 @@ int main(void)
     while (exitLoop == 0)
     {
         //glViewport(0, 0, SDL_GetWindowSurface(window)->w, SDL_GetWindowSurface(window)->h);
-        //deltaTime = SDL_GetTicks() - time;
-        //eventhandler();
-        //if (deltaTime > 250) deltaTime = 250;
-        //time = SDL_GetTicks();
+        deltaTime = glfwGetTime() - time;
+        if (deltaTime > 10) deltaTime = 10;
+        time = glfwGetTime();
 
-        transform_rotate(0, 0, 0.001 * deltaTime, &rq[1]->baseTransform);
+        transform_rotate(0, 0, 0.01 * deltaTime, &rq[1]->baseTransform);
         //transform_rotate(0.001 * deltaTime, 0, 0, &rq[2]->baseTransform);
 
         particle_update(p1);

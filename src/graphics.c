@@ -707,17 +707,17 @@ void particle_update(ParticleSystem *ps)
         if (ps->particles[i].lifeTime < 0)
         {
             
-            ps->particles[i].lifeTime = (rand() % 500) + 250;
+            ps->particles[i].lifeTime = (rand() % 50) + 25;
             ps->particles[i].transform.position = ps->transform->position;
-            ps->particles[i].xdir = ((rand() - rand()) % 3) + ((rand() - rand()) % 10) * 0.1f;
-            ps->particles[i].ydir = ((rand() - rand()) % 3) + ((rand() - rand()) % 10) * 0.1f;
-            ps->particles[i].zdir = ((rand() - rand()) % 3) + ((rand() - rand()) % 10) * 0.1f;
+            ps->particles[i].xdir = ((rand() - rand()) % 3) + ((rand() - rand()) % 10);
+            ps->particles[i].ydir = ((rand() - rand()) % 3) + ((rand() - rand()) % 10);
+            ps->particles[i].zdir = ((rand() - rand()) % 3) + ((rand() - rand()) % 10);
             ps->particles[i].texture = rand() % 50;
         }
         else
         {
-            ps->particles[i].lifeTime = ps->particles[i].lifeTime - (deltaTime);
-            transform_move(ps->particles[i].xdir * (deltaTime*0.01), ps->particles[i].ydir * (deltaTime*0.01), ps->particles[i].zdir * (deltaTime*0.01), &ps->particles[i].transform);
+            ps->particles[i].lifeTime = ps->particles[i].lifeTime - (deltaTime * 100);
+            transform_move(ps->particles[i].xdir * (deltaTime * 10), ps->particles[i].ydir * (deltaTime * 10), ps->particles[i].zdir * (deltaTime * 10), &ps->particles[i].transform);
             geo_instanceop_add(ps->geo, ps->particles[i].transform.matrix, ps->particles[i].texture);
         }
     }
