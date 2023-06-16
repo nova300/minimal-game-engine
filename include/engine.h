@@ -17,12 +17,6 @@
 #include <GL/glu.h>
 #define GLFW_INCLUDE_NONE
 #include "GLFW/glfw3.h"
-//#include <SDL2/SDL.h>
-//#include <SDL2/SDL_image.h>
-//#include <SDL2/SDL_ttf.h>
-//#include <SDL2/SDL_opengl.h>
-
-
 
 #include "graphics.h"
 

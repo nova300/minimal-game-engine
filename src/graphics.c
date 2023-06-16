@@ -313,6 +313,9 @@ GeoObject *geo_new_object()
     g->transform = &(g->baseTransform.matrix);
     g->texture = &(g->baseTexture);
 
+    g->dataDirty = 1;
+    g->instanceDirty = 1;
+
     return g;
 }
 
@@ -330,6 +333,9 @@ GeoObject geo_new_stack_object()
     g.instanceCapacity = 0;
     g.transform = &g.baseTransform.matrix;
     g.texture = &g.baseTexture;
+
+    g.dataDirty = 1;
+    g.instanceDirty = 1;
     
     return g;
 }
@@ -388,90 +394,17 @@ int geo_render(GeoObject *obj)
     glDisableVertexAttribArray(model_matrix_location + 3);
 }
 
-int geo_render_multi(GeoObject **obj, int count, int textureAtlas, Shader *shader)
+int geo_render_multi(RenderQueue *rq)
 {
-    glUseProgram(shader->ShaderID);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, textureAtlas);
-    glUniformMatrix4fv(shader->ViewID, 1, GL_FALSE, &(viewMatrix.m[0]));
-    glUniformMatrix4fv(shader->ProjectionID, 1, GL_FALSE, &(projectionMatrix.m[0]));
-
-    
-    int indexCount = 0;
-    int vertexCount = 0;
-    int instanceCount = 0;
-    for (int i = 0; i < count; i++)
-    {
-        indexCount += obj[i]->indexCount;
-        vertexCount += obj[i]->dataCount;
-        instanceCount += obj[i]->instanceCount;
-    }
-
-    int *indicies = malloc(indexCount * sizeof(int));
-    vertex *vertices = malloc(vertexCount * sizeof(vertex));
-
-    int vertex_offset = 0;
-    int index_offset = 0;
-    for (int i = 0; i < count; i++) 
-    {
-        memcpy(vertices + vertex_offset, obj[i]->data, obj[i]->dataCount * sizeof(vertex));
-        memcpy(indicies + index_offset, obj[i]->indicies, obj[i]->indexCount * sizeof(int));
-        
-        /*for (int j = 0; j < obj[i]->indexCount; j++) 
-        {
-            indicies[index_offset] = obj[i]->indicies[j];
-            index_offset++;
-        }
-        for (int j = 0; j < obj[i]->dataCount; j++) 
-        {
-            vertices[vertex_offset] = obj[i]->data[j];
-            vertex_offset++;
-        }*/
-        
-        vertex_offset += obj[i]->dataCount;
-        index_offset += obj[i]->indexCount;
-    }
-
-    int *textures = malloc(sizeof(int) * instanceCount);
-    mat4 *transforms = malloc(sizeof(mat4) * instanceCount);
-    int instance_offset = 0;
-    for (int i = 0; i < count; i++)
-    {
-        memcpy(textures + instance_offset, obj[i]->texture, obj[i]->instanceCount * sizeof(int));
-        memcpy(transforms + instance_offset, obj[i]->transform, obj[i]->instanceCount * sizeof(mat4));
-
-        /*for (int j = 0; j < obj[i]->instanceCount; j++) 
-        {
-            textures[instance_offset] = obj[i]->texture[j];
-            transforms[instance_offset] = obj[i]->transform[j];
-            instance_offset++;
-        }*/
-
-        instance_offset += obj[i]->instanceCount;
-    }
-
-    drawCommand *commands = malloc(sizeof(drawCommand) * count);
-    int baseVert = 0;
-    int fIndex = 0;
-    int baseInst = 0;
-    for (int i = 0; i < count; i++)
-    {
-        commands[i].count = obj[i]->indexCount;
-        commands[i].instanceCount = obj[i]->instanceCount;
-        commands[i].firstIndex = fIndex;
-        commands[i].baseVertex = baseVert;
-        commands[i].baseInstance = baseInst;
-        baseVert += obj[i]->dataCount;
-        fIndex += obj[i]->indexCount;
-        baseInst += obj[i]->instanceCount;
-    }
-    
+    glUseProgram(rq->shader->ShaderID);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, rq->textureAtlas);
+    glUniformMatrix4fv(rq->shader->ViewID, 1, GL_FALSE, &(viewMatrix.m[0]));
+    glUniformMatrix4fv(rq->shader->ProjectionID, 1, GL_FALSE, &(projectionMatrix.m[0]));
     
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(unsigned int), indicies, GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rq->elementBuffer);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, vertexCount * sizeof(vertex), vertices, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, rq->vertexBuffer);
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
@@ -480,14 +413,12 @@ int geo_render_multi(GeoObject **obj, int count, int textureAtlas, Shader *shade
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float))); // Texture coordinates
 
 
-    glBindBuffer(GL_ARRAY_BUFFER, textureBuffer);
-    glBufferData(GL_ARRAY_BUFFER, instanceCount * sizeof(int), textures, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, rq->textureBuffer);
     glEnableVertexAttribArray(3);
     glVertexAttribIPointer(3, 1, GL_UNSIGNED_INT, 0, (void*)0);
     glVertexAttribDivisor(3, 1);
 
-    glBindBuffer(GL_ARRAY_BUFFER, transformBuffer);
-    glBufferData(GL_ARRAY_BUFFER, instanceCount * sizeof(mat4), transforms, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, rq->transformBuffer);
     int model_matrix_location = 4;
     glEnableVertexAttribArray(model_matrix_location);
     glEnableVertexAttribArray(model_matrix_location + 1);
@@ -503,36 +434,9 @@ int geo_render_multi(GeoObject **obj, int count, int textureAtlas, Shader *shade
     glVertexAttribDivisor(model_matrix_location + 3, 1);
 
 
-    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, indirectBuffer);
-    glBufferData(GL_DRAW_INDIRECT_BUFFER, sizeof(drawCommand) * count, commands, GL_DYNAMIC_DRAW);
+    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, rq->commandBuffer);
 
-    glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (void*)0, count, 0);
-
-
-    /*int instance_offset = 0;
-    int currentTexture = 0;
-    int bufferSize = 0;
-    index_offset = 0;
-    for (int i = 0; i < count; i++)
-    {
-        if (obj[i]->texture != currentTexture)
-        {
-            glBindTexture(GL_TEXTURE_2D, obj[i]->texture);
-            currentTexture = obj[i]->texture;
-        }
-        if (bufferSize > obj[i]->instanceCount * sizeof(mat4))
-        {
-            glBufferSubData(GL_ARRAY_BUFFER, 0, obj[i]->instanceCount * sizeof(mat4), obj[i]->transform);
-        }
-        else
-        {
-            glBufferData(GL_ARRAY_BUFFER, obj[i]->instanceCount * sizeof(mat4), obj[i]->transform, GL_DYNAMIC_DRAW);
-            bufferSize = obj[i]->instanceCount * sizeof(mat4);
-        }
-        glDrawElementsInstanced(GL_TRIANGLES, obj[i]->indexCount, GL_UNSIGNED_INT, (void*)(index_offset * sizeof(unsigned int)), obj[i]->instanceCount);
-        instance_offset += obj[i]->instanceCount;
-        index_offset += obj[i]->indexCount;
-    }*/
+    glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (void*)0, rq->count, 0);
     
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);
@@ -542,11 +446,6 @@ int geo_render_multi(GeoObject **obj, int count, int textureAtlas, Shader *shade
     glDisableVertexAttribArray(model_matrix_location + 1);
     glDisableVertexAttribArray(model_matrix_location + 2);
     glDisableVertexAttribArray(model_matrix_location + 3);
-    free(indicies);
-    free(vertices);
-    free(commands);
-    free(transforms);
-    free(textures);
 }
 
 int geo_render_translated(GeoObject *obj, Transform *t)
@@ -672,80 +571,157 @@ int loadTexture(const char *name, int *texture)
     return 0;
 }
 
-
-int particle_render(ParticleSystem *ps)
+void rq_update_buffers(RenderQueue *rq)
 {
-    if (ps == NULL) return 1;
-    //transformArray_clear(&ps->geo->transformArray);
-    for (int i = 0; i < ps->amount; i++)
+    char dataNeedsUpdate = 0;
+    char instanceNeedUpdate = 0;
+    char commandsNeedUpdate = 0;
+    int count = rq->count;
+    GeoObject **obj = rq->objectBuffer;
+    for (int i = 0; i < count; i++)
     {
-        if (ps->particles[i].lifeTime < 0)
-        {
-            
-            ps->particles[i].lifeTime = (rand() % 500) + 250;
-            ps->particles[i].transform.position = ps->transform->position;
-            ps->particles[i].xdir = ((rand() - rand()) % 3) + ((rand() - rand()) % 10) * 0.1f;
-            ps->particles[i].ydir = ((rand() - rand()) % 3) + ((rand() - rand()) % 10) * 0.1f;
-            ps->particles[i].zdir = ((rand() - rand()) % 3) + ((rand() - rand()) % 10) * 0.1f;
-        }
-        else
-        {
-            ps->particles[i].lifeTime = ps->particles[i].lifeTime - (deltaTime);
-            transform_move(ps->particles[i].xdir * (deltaTime*0.01), ps->particles[i].ydir * (deltaTime*0.01), ps->particles[i].zdir * (deltaTime*0.01), &ps->particles[i].transform);
-            //transformArray_add(&ps->geo->transformArray, *(ps->particles[i].transform.matrix));
-        }
+        dataNeedsUpdate = dataNeedsUpdate | obj[i]->dataDirty;
+        obj[i]->dataDirty = 0;
+        instanceNeedUpdate = instanceNeedUpdate | obj[i]->instanceDirty;
+        obj[i]->instanceDirty = 0;
     }
-    geo_render(ps->geo);
+
+    if (dataNeedsUpdate)
+    {
+        int indexCount = 0;
+        int vertexCount = 0;
+        for (int i = 0; i < count; i++)
+        {
+            indexCount += obj[i]->indexCount;
+            vertexCount += obj[i]->dataCount;
+        }
+
+        int *indicies = malloc(indexCount * sizeof(int));
+        vertex *vertices = malloc(vertexCount * sizeof(vertex));
+        int vertex_offset = 0;
+        int index_offset = 0;
+        for (int i = 0; i < count; i++) 
+        {
+            memcpy(vertices + vertex_offset, obj[i]->data, obj[i]->dataCount * sizeof(vertex));
+            memcpy(indicies + index_offset, obj[i]->indicies, obj[i]->indexCount * sizeof(int));
+            vertex_offset += obj[i]->dataCount;
+            index_offset += obj[i]->indexCount;
+        }
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rq->elementBuffer);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(unsigned int), indicies, GL_STATIC_DRAW);
+
+        glBindBuffer(GL_ARRAY_BUFFER, rq->vertexBuffer);
+        glBufferData(GL_ARRAY_BUFFER, vertexCount * sizeof(vertex), vertices, GL_STATIC_DRAW);
+
+        commandsNeedUpdate = 1;
+
+        free(indicies);
+        free(vertices);
+    }
+
+    if (instanceNeedUpdate)
+    {
+        int instanceCount = 0;
+        for (int i = 0; i < count; i++)
+        {
+            instanceCount += obj[i]->instanceCount;
+        }
+        int *textures = malloc(sizeof(int) * instanceCount);
+        mat4 *transforms = malloc(sizeof(mat4) * instanceCount);
+        int instance_offset = 0;
+        for (int i = 0; i < count; i++)
+        {
+            memcpy(textures + instance_offset, obj[i]->texture, obj[i]->instanceCount * sizeof(int));
+            memcpy(transforms + instance_offset, obj[i]->transform, obj[i]->instanceCount * sizeof(mat4));
+            instance_offset += obj[i]->instanceCount;
+        }
+
+        glBindBuffer(GL_ARRAY_BUFFER, rq->textureBuffer);
+        glBufferData(GL_ARRAY_BUFFER, instanceCount * sizeof(int), textures, GL_STATIC_DRAW);
+
+        glBindBuffer(GL_ARRAY_BUFFER, rq->transformBuffer);
+        glBufferData(GL_ARRAY_BUFFER, instanceCount * sizeof(mat4), transforms, GL_STATIC_DRAW);
+
+        commandsNeedUpdate = 1;
+
+        free(textures);
+        free(transforms);
+    }
+
+    if (commandsNeedUpdate)
+    {
+        drawCommand *commands = malloc(sizeof(drawCommand) * count);
+        int baseVert = 0;
+        int fIndex = 0;
+        int baseInst = 0;
+        for (int i = 0; i < count; i++)
+        {
+            commands[i].count = obj[i]->indexCount;
+            commands[i].instanceCount = obj[i]->instanceCount;
+            commands[i].firstIndex = fIndex;
+            commands[i].baseVertex = baseVert;
+            commands[i].baseInstance = baseInst;
+            baseVert += obj[i]->dataCount;
+            fIndex += obj[i]->indexCount;
+            baseInst += obj[i]->instanceCount;
+        }
+
+        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, rq->commandBuffer);
+        glBufferData(GL_DRAW_INDIRECT_BUFFER, sizeof(drawCommand) * count, commands, GL_DYNAMIC_DRAW);
+
+        free(commands);
+    }
 }
 
-void particle_update(ParticleSystem *ps)
+
+RenderQueue *rq_new_queue(int capacity)
 {
-    if (ps == NULL) return;
-    geo_instanceop_clear(ps->geo);
-    for (int i = 0; i < ps->amount; i++)
-    {
-        if (ps->particles[i].lifeTime < 0)
-        {
-            
-            ps->particles[i].lifeTime = (rand() % 50) + 25;
-            ps->particles[i].transform.position = ps->transform->position;
-            ps->particles[i].xdir = ((rand() - rand()) % 3) + ((rand() - rand()) % 10);
-            ps->particles[i].ydir = ((rand() - rand()) % 3) + ((rand() - rand()) % 10);
-            ps->particles[i].zdir = ((rand() - rand()) % 3) + ((rand() - rand()) % 10);
-            ps->particles[i].texture = rand() % 50;
-        }
-        else
-        {
-            ps->particles[i].lifeTime = ps->particles[i].lifeTime - (deltaTime * 100);
-            transform_move(ps->particles[i].xdir * (deltaTime * 10), ps->particles[i].ydir * (deltaTime * 10), ps->particles[i].zdir * (deltaTime * 10), &ps->particles[i].transform);
-            geo_instanceop_add(ps->geo, ps->particles[i].transform.matrix, ps->particles[i].texture);
-        }
-    }
+    RenderQueue *rq = malloc(sizeof(RenderQueue));
+    rq_init(rq, capacity);
 }
 
-ParticleSystem* particle_new(GeoObject *g, int amount)
+void rq_init(RenderQueue *rq, int capacity)
 {
-    geo_instanceop_init(g, amount);
-    ParticleSystem *ps = malloc(sizeof(ParticleSystem));
-    ps->transform = &(g->baseTransform);
-    Particle *p = malloc(sizeof(Particle) * amount);
-    ps->geo = g;
-    ps->amount = amount;
+    rq->capacity = capacity;
+    GeoObject **buf;
+    buf = malloc(sizeof(*buf) * capacity);
+    rq->objectBuffer = buf;
+    rq->count = 0;
 
-    
-    for (int i = 0; i < amount; i++)
-    {
-        Transform *pt = (Transform*)&p[i];
-        p[i].lifeTime = 0;
-        p[i].xdir = 0;
-        p[i].ydir = 0;
-        p[i].zdir = 0;
-        transform_set_identity(pt);
-    }
-    
-    ps->particles = p;
+    glGenBuffers(1, &rq->vertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, rq->vertexBuffer);
 
-    return ps;
+    glGenBuffers(1, &rq->transformBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, rq->transformBuffer);
+
+    glGenBuffers(1, &rq->textureBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, rq->textureBuffer);
+
+    glGenBuffers(1, &rq->elementBuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rq->elementBuffer);
+
+    glGenBuffers(1, &rq->commandBuffer);
+    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, rq->commandBuffer);
 }
+
+void rq_add_object(RenderQueue *rq, GeoObject *obj)
+{
+    if (rq->capacity <= rq->count)
+    {
+        printf("could not add object to renderqueue, at capacity\n");
+        return;
+    }
+
+    obj->dataDirty = 1;
+    obj->instanceDirty = 1;
+
+    GeoObject **buf = rq->objectBuffer;
+
+    buf[rq->count] = obj;
+    rq->count++;
+}
+
+
 
 

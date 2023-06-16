@@ -155,8 +155,28 @@ typedef struct
     mat4 *transform;
     int *texture;
     Shader *shader;
+    char dataDirty;
+    char instanceDirty;
 }GeoObject;
 
+typedef struct
+{
+    unsigned int count;
+    unsigned int capacity;
+    int textureAtlas;
+    Shader *shader;
+    GeoObject **objectBuffer;
+    int vertexBuffer;
+    int transformBuffer;
+    int textureBuffer;
+    int elementBuffer;
+    int commandBuffer;
+}RenderQueue;
+
+RenderQueue *rq_new_queue(int capacity);
+void rq_update_buffers(RenderQueue *rq);
+void rq_add_object(RenderQueue *rq, GeoObject *obj);
+void rq_init(RenderQueue *rq, int capacity);
 
 
 int loadTexture(const char *name, int *texture);
@@ -171,7 +191,7 @@ int geo_obj_createObjectData(GeoObject *obj, vec3* vertices, vec2* uvs, vec3* no
 
 int geo_render(GeoObject *obj);
 int geo_render_translated(GeoObject *obj, Transform *t);
-int geo_render_multi(GeoObject **obj, int count, int textureAtlas, Shader *shader);
+int geo_render_multi(RenderQueue *rq);
 GeoObject *geo_new_object();
 
 

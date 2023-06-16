@@ -98,22 +98,24 @@ int main(void)
     GeoObject *m1 = geo_obj_createFromParShape(tetrahedron);
     GeoObject *m2 = geo_obj_createFromParShape(octohedron);
 
-    GeoObject *rq[3];
+    RenderQueue renderQueue1;
+    rq_init(&renderQueue1, 10);
 
-    rq[0] = geo_obj_createFromParShape(octohedron);
-    rq[1] = geo_obj_createFromParShape(tetrahedron);
+    rq_add_object(&renderQueue1, geo_obj_createFromParShape(octohedron));
+    rq_add_object(&renderQueue1, geo_obj_createFromParShape(tetrahedron));
 
     Shader *s = newShaderObject(vertex_shader_0, fragment_shader_0);
     gobj->shader = s;
-    rq[0]->shader = s;
-    rq[1]->shader = s;
+    renderQueue1.shader = s;
 
     projectionMatrix = matrix_perspective(radians(45.0f), (float)SCREEN_WIDTH/SCREEN_HEIGHT, 0.1f, 100.0f);
 
-    vec3 eye = {{50, 50, 50}};
+    vec3 eye = {{5, 5, 5}};
     vec3 center = {{0, 0, 0}};
     vec3 up = {{0, 1, 0}};
     viewMatrix = matrix_lookAt(eye, center, up);
+
+    GeoObject **rq = renderQueue1.objectBuffer;
 
     transform_set_identity(&gobj->baseTransform);
     transform_set_identity(&rq[0]->baseTransform);
@@ -124,12 +126,12 @@ int main(void)
         printf("could not load texture\n");
     }*/
 
-    int atlas = generateRandomAtlas();
+    renderQueue1.textureAtlas = generateRandomAtlas();
 
     gobj->baseTexture = 5;
     rq[0]->baseTexture = 2;
     rq[1]->baseTexture = 8;
-    rq[2] = gobj;
+    rq_add_object(&renderQueue1, gobj);
 
     geo_instanceop_init(rq[0], 10);
     Transform ta;
@@ -146,7 +148,7 @@ int main(void)
     geo_instanceop_add(rq[0], tc.matrix, 16);
 
 
-    p1 = particle_new(gobj, 512);
+    //p1 = particle_new(gobj, 512);
 
     while (exitLoop == 0)
     {
@@ -155,17 +157,20 @@ int main(void)
         if (deltaTime > 10) deltaTime = 10;
         time = glfwGetTime();
 
-        transform_rotate(0, 0, 0.01 * deltaTime, &rq[1]->baseTransform);
-        //transform_rotate(0.001 * deltaTime, 0, 0, &rq[2]->baseTransform);
+        transform_rotate(0, 0, 1 * deltaTime, &rq[1]->baseTransform);
+        transform_rotate(1 * deltaTime, 0, 0, &rq[2]->baseTransform);
 
-        particle_update(p1);
+        //particle_update(p1);
 
-        //rq[2]->baseTexture = rand() % 50;
+        rq[2]->baseTexture = rand() % 50;
+        rq[2]->instanceDirty = 1;
 
         glClearColor(0.0f, 0.0f, 0.2f, 0.0f);
         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+        rq_update_buffers(&renderQueue1);
         
-        geo_render_multi(rq, 3, atlas, s);
+        geo_render_multi(&renderQueue1);
 
 
         glfwSwapBuffers(window);

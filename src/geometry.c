@@ -1,4 +1,5 @@
 #include "graphics.h"
+#include <engine.h>
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
@@ -271,4 +272,80 @@ GeoObject *geo_obj_createFromParShape(par_shapes_mesh* mesh)
 
     return g;
 }
+
+int particle_render(ParticleSystem *ps)
+{
+    if (ps == NULL) return 1;
+    //transformArray_clear(&ps->geo->transformArray);
+    for (int i = 0; i < ps->amount; i++)
+    {
+        if (ps->particles[i].lifeTime < 0)
+        {
+            
+            ps->particles[i].lifeTime = (rand() % 500) + 250;
+            ps->particles[i].transform.position = ps->transform->position;
+            ps->particles[i].xdir = ((rand() - rand()) % 3) + ((rand() - rand()) % 10) * 0.1f;
+            ps->particles[i].ydir = ((rand() - rand()) % 3) + ((rand() - rand()) % 10) * 0.1f;
+            ps->particles[i].zdir = ((rand() - rand()) % 3) + ((rand() - rand()) % 10) * 0.1f;
+        }
+        else
+        {
+            ps->particles[i].lifeTime = ps->particles[i].lifeTime - (deltaTime);
+            transform_move(ps->particles[i].xdir * (deltaTime*0.01), ps->particles[i].ydir * (deltaTime*0.01), ps->particles[i].zdir * (deltaTime*0.01), &ps->particles[i].transform);
+            //transformArray_add(&ps->geo->transformArray, *(ps->particles[i].transform.matrix));
+        }
+    }
+    geo_render(ps->geo);
+}
+
+void particle_update(ParticleSystem *ps)
+{
+    if (ps == NULL) return;
+    geo_instanceop_clear(ps->geo);
+    for (int i = 0; i < ps->amount; i++)
+    {
+        if (ps->particles[i].lifeTime < 0)
+        {
+            
+            ps->particles[i].lifeTime = (rand() % 50) + 25;
+            ps->particles[i].transform.position = ps->transform->position;
+            ps->particles[i].xdir = ((rand() - rand()) % 3) + ((rand() - rand()) % 10);
+            ps->particles[i].ydir = ((rand() - rand()) % 3) + ((rand() - rand()) % 10);
+            ps->particles[i].zdir = ((rand() - rand()) % 3) + ((rand() - rand()) % 10);
+            ps->particles[i].texture = rand() % 50;
+        }
+        else
+        {
+            ps->particles[i].lifeTime = ps->particles[i].lifeTime - (deltaTime * 100);
+            transform_move(ps->particles[i].xdir * (deltaTime * 10), ps->particles[i].ydir * (deltaTime * 10), ps->particles[i].zdir * (deltaTime * 10), &ps->particles[i].transform);
+            geo_instanceop_add(ps->geo, ps->particles[i].transform.matrix, ps->particles[i].texture);
+        }
+    }
+}
+
+ParticleSystem* particle_new(GeoObject *g, int amount)
+{
+    geo_instanceop_init(g, amount);
+    ParticleSystem *ps = malloc(sizeof(ParticleSystem));
+    ps->transform = &(g->baseTransform);
+    Particle *p = malloc(sizeof(Particle) * amount);
+    ps->geo = g;
+    ps->amount = amount;
+
+    
+    for (int i = 0; i < amount; i++)
+    {
+        Transform *pt = (Transform*)&p[i];
+        p[i].lifeTime = 0;
+        p[i].xdir = 0;
+        p[i].ydir = 0;
+        p[i].zdir = 0;
+        transform_set_identity(pt);
+    }
+    
+    ps->particles = p;
+
+    return ps;
+}
+
 
