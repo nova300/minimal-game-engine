@@ -251,6 +251,7 @@ void geo_instanceop_free(GeoObject *obj)
     obj->transform = NULL;
     obj->instanceCapacity = 0;
     obj->instanceCount = 0;
+    obj->instanceDirty = 1;
 }
 
 void geo_instanceop_resize(GeoObject *obj, int newCapacity) 
@@ -263,6 +264,7 @@ void geo_instanceop_resize(GeoObject *obj, int newCapacity)
     obj->transform = newTransform;
     obj->texture = newTexture;
     obj->instanceCapacity = newCapacity;
+    obj->instanceDirty = 1;
 }
 
 void geo_instanceop_add(GeoObject *obj, mat4 matrix, int textureIndex) 
@@ -275,6 +277,7 @@ void geo_instanceop_add(GeoObject *obj, mat4 matrix, int textureIndex)
     obj->transform[obj->instanceCount] = matrix;
     obj->texture[obj->instanceCount] = textureIndex;
     obj->instanceCount++; 
+    obj->instanceDirty = 1;
 }
 
 void geo_instanceop_remove(GeoObject *obj, int index) 
@@ -287,11 +290,13 @@ void geo_instanceop_remove(GeoObject *obj, int index)
     }
 
     obj->instanceCount--;
+    obj->instanceDirty = 1;
 }
 
 void geo_instanceop_clear(GeoObject *obj) 
 {
     obj->instanceCount = 0;
+    obj->instanceDirty = 1;
 }
 
 
