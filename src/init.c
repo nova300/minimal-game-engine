@@ -1,5 +1,10 @@
 #include "engine.h"
 
+void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const void *userParam)
+{
+    fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n", (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""), type, severity, message);
+}
+
 int init()
 {
     //SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 4);
@@ -56,6 +61,8 @@ void quit()
 
 int initGL()
 {
+    glEnable(GL_DEBUG_OUTPUT);
+    glDebugMessageCallback(MessageCallback, 0);
 
     glfwSwapInterval(1);
 

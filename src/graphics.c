@@ -667,6 +667,8 @@ void rq_update_buffers(RenderQueue *rq)
             baseInst += obj[i]->instanceCount;
         }
 
+        glDeleteBuffers(1, &rq->commandBuffer);
+        glGenBuffers(1, &rq->commandBuffer);    //hacky workaround for misbehaving intel gpus
         glBindBuffer(GL_DRAW_INDIRECT_BUFFER, rq->commandBuffer);
         glBufferData(GL_DRAW_INDIRECT_BUFFER, sizeof(drawCommand) * count, commands, GL_DYNAMIC_DRAW);
 
