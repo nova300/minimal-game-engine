@@ -1,36 +1,15 @@
 #include "engine.h"
 
-SDL_Event e;
-
-
-int eventhandler()
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    while (SDL_PollEvent(&e))
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
     {
-        if (e.type == SDL_QUIT)
-        {
-            exitLoop = 1;
-        }
-    }
-
-    const Uint8* kstate = SDL_GetKeyboardState( NULL );
-
-    if (kstate[ SDL_SCANCODE_UP])
-    {
-        degrees += 0.05;
-        printf("degrees %f\n", degrees);
-    }
-    else if (kstate[ SDL_SCANCODE_DOWN])
-    {
-        degrees -= 0.05;
-        printf("degrees %f\n", degrees);
-    }
-    if (kstate[SDL_SCANCODE_LEFT])
-    {
-        terminal_print("left input\n");
-    }
-    else if (kstate[SDL_SCANCODE_RIGHT])
-    {
-        terminal_print("right input\n");
+        glfwSetWindowShouldClose(window, GLFW_TRUE);
     }
 }
+
+void error_callback(int error, const char* description)
+{
+    fprintf(stderr, "Error: %s\n", description);
+}
+

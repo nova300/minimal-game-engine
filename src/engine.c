@@ -7,10 +7,7 @@ int SCREEN_HEIGHT = 768;
 unsigned long time = 0;
 unsigned long deltaTime = 0;
 
-SDL_Window *window;
-SDL_GLContext *context;
-
-TTF_Font *font;
+GLFWwindow *window;
 
 ParticleSystem *p1;
 
@@ -27,7 +24,7 @@ int textureBuffer;
 mat4 projectionMatrix;
 mat4 viewMatrix;
 
-ENTRYPOINT
+int main(void)
 {
     printf("init: ");
     //terminal_print("init: ");
@@ -153,11 +150,11 @@ ENTRYPOINT
 
     while (exitLoop == 0)
     {
-        glViewport(0, 0, SDL_GetWindowSurface(window)->w, SDL_GetWindowSurface(window)->h);
-        deltaTime = SDL_GetTicks() - time;
-        eventhandler();
-        if (deltaTime > 250) deltaTime = 250;
-        time = SDL_GetTicks();
+        //glViewport(0, 0, SDL_GetWindowSurface(window)->w, SDL_GetWindowSurface(window)->h);
+        //deltaTime = SDL_GetTicks() - time;
+        //eventhandler();
+        //if (deltaTime > 250) deltaTime = 250;
+        //time = SDL_GetTicks();
 
         transform_rotate(0, 0, 0.001 * deltaTime, &rq[1]->baseTransform);
         //transform_rotate(0.001 * deltaTime, 0, 0, &rq[2]->baseTransform);
@@ -172,7 +169,9 @@ ENTRYPOINT
         geo_render_multi(rq, 3, atlas, s);
 
 
-        SDL_GL_SwapWindow( window );
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+        if (glfwWindowShouldClose(window)) exitLoop = 1;
     }
 
 

@@ -1,6 +1,5 @@
 #include "graphics.h"
 #include "engine.h"
-#include "stdlib.h"
 
 /* 3D math */
 
@@ -631,7 +630,7 @@ int generateRandomAtlas()
 
 int loadTexture(const char *name, int *texture)
 {
-    SDL_Surface *s = IMG_Load(name);
+    /*SDL_Surface *s = IMG_Load(name);
     if (s == NULL)
     {
         printf("could not find image file\n");
@@ -669,7 +668,7 @@ int loadTexture(const char *name, int *texture)
 
     SDL_FreeSurface(s);
 
-    *texture = textureID;
+    *texture = textureID;*/
     return 0;
 }
 

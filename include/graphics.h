@@ -4,13 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
-#include <SDL2/SDL_ttf.h>
 
 #include "shapes.h"
-
-extern TTF_Font *font;
 
 typedef union
 {
@@ -187,24 +182,6 @@ void geo_instanceop_add(GeoObject *obj, mat4 matrix, int textureIndex);
 void geo_instanceop_remove(GeoObject *obj, int index);
 void geo_instanceop_clear(GeoObject *obj);
 
-typedef struct 
-{
-    Transform transform;
-    int w;
-    int h;
-    SDL_Texture *texture;
-    SDL_Renderer *renderer;
-}Sprite;
-
-int sprite_loadFromFile(const char* filename, Sprite *spr);
-int sprite_free(Sprite *spr);
-int sprite_render(Sprite *spr, SDL_Rect *clip, float angle, SDL_Point *center, SDL_RendererFlip flip);
-int sprite_colour(unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, Sprite *spr);
-Sprite* sprite_new(SDL_Renderer *r);
-void sprite_delete(Sprite *spr);
-int sprite_loadFromRenderedText(const char* text, SDL_Color textColor, Sprite *spr);
-
-
 typedef struct
 {
     Transform transform;
@@ -225,10 +202,5 @@ typedef struct
 
 ParticleSystem* particle_new(GeoObject *g, int amount);
 void particle_update(ParticleSystem *ps);
-
-
-
-
-
 
 #endif
