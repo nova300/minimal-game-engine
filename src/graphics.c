@@ -643,10 +643,10 @@ void rq_update_buffers(RenderQueue *rq)
         }
 
         glBindBuffer(GL_ARRAY_BUFFER, rq->textureBuffer);
-        glBufferData(GL_ARRAY_BUFFER, instanceCount * sizeof(int), textures, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, instanceCount * sizeof(int), textures, GL_DYNAMIC_DRAW);
 
         glBindBuffer(GL_ARRAY_BUFFER, rq->transformBuffer);
-        glBufferData(GL_ARRAY_BUFFER, instanceCount * sizeof(mat4), transforms, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, instanceCount * sizeof(mat4), transforms, GL_DYNAMIC_DRAW);
 
         commandsNeedUpdate = 1;
 
