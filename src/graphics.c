@@ -237,7 +237,7 @@ void transform_set_identity(Transform* t)
     t->matrix = IDENTITY_MATRIX;
 }
 
-void geo_render(GeoObject_gpu *gobj)
+/*void geo_render(GeoObject_gpu *gobj)
 {
     GeoObject *obj = (GeoObject*)gobj;
     glUseProgram(gobj->shader->ShaderID);
@@ -288,14 +288,14 @@ void geo_render(GeoObject_gpu *gobj)
     glDisableVertexAttribArray(model_matrix_location + 1);
     glDisableVertexAttribArray(model_matrix_location + 2);
     glDisableVertexAttribArray(model_matrix_location + 3);
-}
+}*/
 
-void geo_render_multi(RenderQueue *rq)
+void geo_render(GeoObject_gpu_handle *rq)
 {
     glUseProgram(rq->shader->ShaderID);
     glUniformMatrix4fv(rq->shader->ViewID, 1, GL_FALSE, &(viewMatrix.m[0]));
     glUniformMatrix4fv(rq->shader->ProjectionID, 1, GL_FALSE, &(projectionMatrix.m[0]));
-    
+
     glBindTexture(GL_TEXTURE_2D_ARRAY, rq->textureAtlas);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rq->elementBuffer);
@@ -328,9 +328,22 @@ void geo_render_multi(RenderQueue *rq)
     glVertexAttribDivisor(model_matrix_location + 2, 1); 
     glVertexAttribDivisor(model_matrix_location + 3, 1);
 
-    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, rq->commandBuffer);
+    switch (rq->type)
+    {
+    case GOBJ_TYPE_MULTI:
+        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, rq->commandBuffer);
+        glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (void*)0, rq->count, 0);
+        break;
 
-    glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (void*)0, rq->count, 0);
+    case GOBJ_TYPE_SINGLE:
+        glDrawElementsInstanced(GL_TRIANGLES, rq->indexCount, GL_UNSIGNED_INT, (void*)0, rq->count);
+        break;
+    
+    default:
+        printf("GRAPHICS: could not determine handle render type, skipping draw call\n");
+        break;
+    }
+
     
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);
@@ -342,7 +355,7 @@ void geo_render_multi(RenderQueue *rq)
     glDisableVertexAttribArray(model_matrix_location + 3);
 }
 
-void geo_render_translated(GeoObject_gpu *gobj, Transform *t)
+/*void geo_render_translated(GeoObject_gpu *gobj, Transform *t)
 {
     GeoObject *obj = (GeoObject*)gobj;
 
@@ -371,7 +384,7 @@ void geo_render_translated(GeoObject_gpu *gobj, Transform *t)
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);
     glDisableVertexAttribArray(2);
-}
+}*/
 
 GLuint generateColorTexture(float r, float g, float b, float a)
 {
@@ -502,10 +515,10 @@ void rq_update_buffers(RenderQueue *rq)
             index_offset += obj[i]->indexCount;
         }
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rq->elementBuffer);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rq->gpuHandle.elementBuffer);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(unsigned int), indicies, GL_STATIC_DRAW);
 
-        glBindBuffer(GL_ARRAY_BUFFER, rq->vertexBuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, rq->gpuHandle.vertexBuffer);
         glBufferData(GL_ARRAY_BUFFER, vertexCount * sizeof(vertex), vertices, GL_STATIC_DRAW);
 
         commandsNeedUpdate = 1;
@@ -531,10 +544,10 @@ void rq_update_buffers(RenderQueue *rq)
             instance_offset += obj[i]->instanceCount;
         }
 
-        glBindBuffer(GL_ARRAY_BUFFER, rq->textureBuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, rq->gpuHandle.textureBuffer);
         glBufferData(GL_ARRAY_BUFFER, instanceCount * sizeof(int), textures, GL_DYNAMIC_DRAW);
 
-        glBindBuffer(GL_ARRAY_BUFFER, rq->transformBuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, rq->gpuHandle.transformBuffer);
         glBufferData(GL_ARRAY_BUFFER, instanceCount * sizeof(mat4), transforms, GL_DYNAMIC_DRAW);
 
         commandsNeedUpdate = 1;
@@ -561,15 +574,40 @@ void rq_update_buffers(RenderQueue *rq)
             baseInst += obj[i]->instanceCount;
         }
 
-        glDeleteBuffers(1, &rq->commandBuffer);
-        glGenBuffers(1, &rq->commandBuffer);    //hacky workaround for misbehaving intel gpus
-        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, rq->commandBuffer);
+        glDeleteBuffers(1, &rq->gpuHandle.commandBuffer);
+        glGenBuffers(1, &rq->gpuHandle.commandBuffer);    //hacky workaround for misbehaving intel gpus
+        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, rq->gpuHandle.commandBuffer);
         glBufferData(GL_DRAW_INDIRECT_BUFFER, sizeof(drawCommand) * count, commands, GL_DYNAMIC_DRAW);
 
         free(commands);
+
+        rq->gpuHandle.count = count;
     }
 }
 
+void geo_obj_gpu_update_buffers(GeoObject_gpu *gobj)
+{
+
+    if (gobj->geoObject.dataDirty)
+    {
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gobj->gpuHandle.elementBuffer);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, gobj->geoObject.indexCount * sizeof(unsigned int), gobj->geoObject.indicies, GL_STATIC_DRAW);
+
+        glBindBuffer(GL_ARRAY_BUFFER, gobj->gpuHandle.vertexBuffer);
+        glBufferData(GL_ARRAY_BUFFER, gobj->geoObject.dataCount * sizeof(vertex), gobj->geoObject.data, GL_STATIC_DRAW);
+
+    }
+
+    if (gobj->geoObject.instanceDirty)
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, gobj->gpuHandle.textureBuffer);
+        glBufferData(GL_ARRAY_BUFFER, gobj->geoObject.instanceCount * sizeof(int), gobj->geoObject.texture, GL_STATIC_DRAW);
+
+        glBindBuffer(GL_ARRAY_BUFFER, gobj->gpuHandle.transformBuffer);
+        glBufferData(GL_ARRAY_BUFFER, gobj->geoObject.instanceCount * sizeof(mat4), gobj->geoObject.transform, GL_STATIC_DRAW);
+    }
+
+}
 
 RenderQueue *rq_new_queue(int capacity)
 {
@@ -585,20 +623,35 @@ void rq_init(RenderQueue *rq, int capacity)
     rq->objectBuffer = buf;
     rq->count = 0;
 
-    glGenBuffers(1, &rq->vertexBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, rq->vertexBuffer);
+    geo_obj_gpu_handle_genBuffers(&rq->gpuHandle, GOBJ_TYPE_MULTI);
+}
 
-    glGenBuffers(1, &rq->transformBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, rq->transformBuffer);
+void geo_obj_gpu_handle_genBuffers(GeoObject_gpu_handle *gpuHandle, unsigned int type)
+{
+    glGenBuffers(1, &gpuHandle->vertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, gpuHandle->vertexBuffer);
 
-    glGenBuffers(1, &rq->textureBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, rq->textureBuffer);
+    glGenBuffers(1, &gpuHandle->transformBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, gpuHandle->transformBuffer);
 
-    glGenBuffers(1, &rq->elementBuffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rq->elementBuffer);
+    glGenBuffers(1, &gpuHandle->textureBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, gpuHandle->textureBuffer);
 
-    glGenBuffers(1, &rq->commandBuffer);
-    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, rq->commandBuffer);
+    glGenBuffers(1, &gpuHandle->elementBuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gpuHandle->elementBuffer);
+
+    switch (type)
+    {
+    case GOBJ_TYPE_MULTI:
+        glGenBuffers(1, &gpuHandle->commandBuffer);
+        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, gpuHandle->commandBuffer);
+        gpuHandle->type = type;
+        break;
+    
+    default:
+        gpuHandle->type = type;
+        break;
+    }
 }
 
 void rq_add_object(RenderQueue *rq, GeoObject *obj)

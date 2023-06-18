@@ -7,6 +7,10 @@
 
 #include "shapes.h"
 
+
+#define GOBJ_TYPE_SINGLE 1
+#define GOBJ_TYPE_MULTI 2
+
 typedef union
 {
 	float m[4];
@@ -128,6 +132,20 @@ typedef union
 
 typedef struct
 {
+    unsigned char type;
+    unsigned int count;
+    unsigned int indexCount;
+    Shader *shader;
+    GLuint textureAtlas;
+    GLuint vertexBuffer;
+    GLuint transformBuffer;
+    GLuint textureBuffer;
+    GLuint elementBuffer;
+    GLuint commandBuffer;
+}GeoObject_gpu_handle;
+
+typedef struct
+{
     Transform baseTransform;
     int baseTexture;
     vertex *data;
@@ -144,28 +162,16 @@ typedef struct
 
 typedef struct
 {
+    GeoObject_gpu_handle gpuHandle;
     GeoObject geoObject;
-    Shader *shader;
-    GLuint textureAtlas;
-    GLuint vertexBuffer;
-    GLuint transformBuffer;
-    GLuint textureBuffer;
-    GLuint elementBuffer;
-    GLuint commandBuffer;
 }GeoObject_gpu;
 
 typedef struct
 {
+    GeoObject_gpu_handle gpuHandle;
     unsigned int count;
     unsigned int capacity;
-    GLuint textureAtlas;
-    Shader *shader;
     GeoObject **objectBuffer;
-    GLuint vertexBuffer;
-    GLuint transformBuffer;
-    GLuint textureBuffer;
-    GLuint elementBuffer;
-    GLuint commandBuffer;
 }RenderQueue;
 
 RenderQueue *rq_new_queue(int capacity);
@@ -173,7 +179,9 @@ void rq_update_buffers(RenderQueue *rq);
 void rq_add_object(RenderQueue *rq, GeoObject *obj);
 void rq_init(RenderQueue *rq, int capacity);
 
-GeoObject_gpu *geo_obj_bindToGpu(GeoObject *obj);
+void geo_obj_gpu_handle_genBuffers(GeoObject_gpu_handle *gpuHandle, unsigned int type);
+GeoObject_gpu *geo_obj_bindToGpu(GeoObject obj);
+GeoObject_gpu *geo_obj_bindToGpu_and_free(GeoObject *obj);
 void geo_obj_gpu_updateBuffers(GeoObject_gpu *obj);
 
 GLuint loadTexture(const char *name);
@@ -186,7 +194,7 @@ GeoObject *geo_obj_createFromParShape(par_shapes_mesh* mesh);
 
 int geo_obj_createObjectData(GeoObject *obj, vec3* vertices, vec2* uvs, vec3* normals, int vertexCount, float floatEqualityThreshold);
 
-void geo_render(GeoObject_gpu *obj);
+void geo_render(GeoObject_gpu_handle *obj);
 void geo_render_translated(GeoObject_gpu *obj, Transform *t);
 void geo_render_multi(RenderQueue *rq);
 GeoObject *geo_new_object(void);

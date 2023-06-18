@@ -424,26 +424,21 @@ ParticleSystem* particle_new(GeoObject *g, int amount)
 }
 
 
-GeoObject_gpu *geo_obj_bindToGpu(GeoObject *obj)
+GeoObject_gpu *geo_obj_bindToGpu(GeoObject obj)
 {
-    GeoObject_gpu *gobj = realloc(obj, sizeof(GeoObject_gpu));
-    obj = (GeoObject*)gobj;
+    GeoObject_gpu *gobj = malloc(sizeof(GeoObject_gpu));
 
-    glGenBuffers(1, &gobj->vertexBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, gobj->vertexBuffer);
+    gobj->geoObject = obj;
 
-    glGenBuffers(1, &gobj->transformBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, gobj->transformBuffer);
+    geo_obj_gpu_handle_genBuffers(&gobj->gpuHandle, GOBJ_TYPE_SINGLE);
 
-    glGenBuffers(1, &gobj->textureBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, gobj->textureBuffer);
+    return gobj;
+}
 
-    glGenBuffers(1, &gobj->elementBuffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gobj->elementBuffer);
-
-    glGenBuffers(1, &gobj->commandBuffer);
-    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, gobj->commandBuffer);
-
+GeoObject_gpu *geo_obj_bindToGpu_and_free(GeoObject *obj)
+{
+    GeoObject_gpu *gobj = geo_obj_bindToGpu(*obj);
+    free(obj);
     return gobj;
 }
 

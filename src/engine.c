@@ -70,7 +70,7 @@ int main(void)
 
     Shader *s = newShaderObject(vertex_shader_0, fragment_shader_0);
     //gobj->shader = s;
-    renderQueue1.shader = s;
+    renderQueue1.gpuHandle.shader = s;
 
     projectionMatrix = matrix_perspective(radians(45.0f), (float)SCREEN_WIDTH/SCREEN_HEIGHT, 0.1f, 100.0f);
 
@@ -85,7 +85,7 @@ int main(void)
     transform_set_identity(&rq[0]->baseTransform);
     transform_set_identity(&rq[1]->baseTransform);
 
-    renderQueue1.textureAtlas = generateRandomAtlas();
+    renderQueue1.gpuHandle.textureAtlas = generateRandomAtlas();
 
     gobj->baseTexture = 5;
     rq[0]->baseTexture = 2;
@@ -128,7 +128,7 @@ int main(void)
 
         rq_update_buffers(&renderQueue1);
         
-        geo_render_multi(&renderQueue1);
+        geo_render(&renderQueue1.gpuHandle);
 
 
         glfwSwapBuffers(window);
