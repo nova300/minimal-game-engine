@@ -227,4 +227,10 @@ typedef struct
 ParticleSystem* particle_new(GeoObject *g, int amount);
 void particle_update(ParticleSystem *ps);
 
+void fb_init();
+void fb_update();
+void fb_render();
+void fb_clear();
+void fb_drawSineWave(int amplitude, float frequency, float of);
+
 #endif

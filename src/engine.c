@@ -106,6 +106,9 @@ int main(void)
     geo_instanceop_add(rq[0], tb.matrix, 16);
     geo_instanceop_add(rq[0], tc.matrix, 16);
 
+    fb_init();
+    glBindVertexArray(VertexArrayID);
+
 
     //p1 = particle_new(rq[1], 1024);
 
@@ -130,8 +133,13 @@ int main(void)
         
         geo_render(&renderQueue1.gpuHandle);
 
+        fb_render();
+        
+        glBindVertexArray(VertexArrayID);
 
         glfwSwapBuffers(window);
+        fb_clear();
+        fb_drawSineWave(10, 3.1f, time);
         glfwPollEvents();
         if (glfwWindowShouldClose(window)) exitLoop = 1;
     }

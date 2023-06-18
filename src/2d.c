@@ -1,115 +1,115 @@
 #include "graphics.h"
 #include "engine.h"
 #include "stdlib.h"
+#include "shaders.h"
 
-int sprite_free(Sprite *spr)
+#define FBWIDTH 320
+#define FBHEIGHT 200
+
+GLuint program;
+GLuint vao;
+GLuint vbo;
+GLuint texture;
+
+vec4 colors[FBWIDTH * FBHEIGHT];
+
+void fb_init()
 {
-    if (spr->texture != NULL)
+    program = loadShaders(vertex_shader_2, fragment_shader_2);
+
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
+    glGenBuffers(1, &vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+    GLfloat vertices[] = 
     {
-        SDL_DestroyTexture(spr->texture);
-        spr->texture = NULL;
-        spr->h = 0;
-        spr->w = 0;
+        -1.0f, -1.0f,
+         1.0f, -1.0f,
+        -1.0f,  1.0f,
+         1.0f,  1.0f
+    };
+
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, FBWIDTH, FBHEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+}
+
+void fb_update()
+{
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, FBWIDTH, FBHEIGHT, GL_RGBA, GL_FLOAT, colors);
+}
+
+void fb_render()
+{
+    fb_update();
+    glUseProgram(program);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glUniform1i(glGetUniformLocation(program, "colorTexture"), 0);
+    glBindVertexArray(vao);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+}
+
+void fb_clear()
+{
+    for (int i = 0; i < FBWIDTH * FBHEIGHT; i++)
+    {
+        colors[i].x = 0.0f;
+        colors[i].y = 0.0f;
+        colors[i].z = 0.0f;
+        colors[i].w = 0.0f;
     }
 }
 
-int sprite_render(Sprite *spr, SDL_Rect *clip, float angle, SDL_Point *center, SDL_RendererFlip flip)
+void fb_drawSineWave(int amplitude, float frequency, float of)
 {
-    if (spr->renderer == NULL) return 1;
-    if (spr->texture == NULL) return 2;
-    Transform *t = (Transform*)spr;
-    /*SDL_Rect r = {t->x, t->y, spr->w, spr->h};
-    if (clip != NULL)
-    {
-        r.w = clip->w;
-        r.h = clip->h;
+    float increment = 2.0f * 3.14f / FBWIDTH;
+    int midPoint = FBHEIGHT / 2;
+    int x, y;
+
+    for (x = 0; x < FBWIDTH; x++) {
+        y = (int)round(amplitude * sin(frequency * x * increment + of));
+        y += midPoint;
+
+        if (y >= 0 && y < FBHEIGHT) {
+            int pixelIndex = (y * FBWIDTH + x);
+            colors[pixelIndex].x = 1.0f;
+            colors[pixelIndex].y = 0.0f;
+            colors[pixelIndex].z = 0.0f;
+            colors[pixelIndex].w = 1.0f;
+        }
     }
-    SDL_RenderCopyEx( spr->renderer, spr->texture, clip, &r , angle, center, flip);*/
-}
+    for (x = 0; x < FBWIDTH; x++) {
+        y = (int)round(amplitude * sin(frequency * x * increment + of + 0.5f));
+        y += midPoint;
 
-int sprite_colour(unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, Sprite *spr)
-{
-    SDL_SetTextureColorMod(spr->texture, red, green, blue);
-    SDL_SetTextureAlphaMod(spr->texture, alpha);
-}
-
-int sprite_loadFromFile(const char* filename, Sprite *spr)
-{
-    
-    sprite_free(spr);
-    
-    SDL_Texture *t = NULL;
-    SDL_Surface *s = IMG_Load(filename);
-    if (s == NULL)
-    {
-        printf("error loading image\n");
-        return 1;
+        if (y >= 0 && y < FBHEIGHT) {
+            int pixelIndex = (y * FBWIDTH + x);
+            colors[pixelIndex].x = 0.0f;
+            colors[pixelIndex].y = 1.0f;
+            colors[pixelIndex].z = 0.0f;
+            colors[pixelIndex].w = 1.0f;
+        }
     }
+    for (x = 0; x < FBWIDTH; x++) {
+        y = (int)round(amplitude * sin(frequency * x * increment + of + 1.0f));
+        y += midPoint;
 
-    SDL_SetColorKey(s, SDL_TRUE, SDL_MapRGB(s->format, 0, 0xff, 0xff));
-
-    t = SDL_CreateTextureFromSurface(spr->renderer, s);
-    if (t == NULL)
-    {
-        printf("error making texture\n");
-        return 2;
+        if (y >= 0 && y < FBHEIGHT) {
+            int pixelIndex = (y * FBWIDTH + x);
+            colors[pixelIndex].x = 0.0f;
+            colors[pixelIndex].y = 0.0f;
+            colors[pixelIndex].z = 1.0f;
+            colors[pixelIndex].w = 1.0f;
+        }
     }
-
-    spr->h = s->h;
-    spr->w = s->w;
-
-    SDL_FreeSurface(s);
-
-    spr->texture = t;
-
-    return 0;
 }
-
-Sprite* sprite_new(SDL_Renderer *r)
-{
-    Sprite *s = malloc(sizeof(Sprite));
-    Transform *t = (Transform*)s;
-    t->position.x = 0;
-    t->position.y = 0;
-    t->position.z = 0;
-    s->w = 0;
-    s->h = 0;
-    s->renderer = r;
-    s->texture = NULL;
-    return s;
-}
-
-void sprite_delete(Sprite *spr)
-{
-    sprite_free(spr);
-    free(spr);
-}
-
-#if defined(SDL_TTF_MAJOR_VERSION)
-int sprite_loadFromRenderedText(const char* text, SDL_Color textColor, Sprite *spr)
-{
-    sprite_free(spr);
-    SDL_Surface *s = TTF_RenderText_Solid( font, text, textColor);
-    if( s == NULL )
-    {
-        printf("could not create text\n");
-        return 1;
-    }
-    
-    spr->texture = SDL_CreateTextureFromSurface(spr->renderer, s);
-
-    if (spr->texture == NULL)
-    {
-        printf("could not create texture from text surface\n");
-        return 2;
-    }
-
-    spr->w = s->w;
-    spr->h = s->h;
-
-    SDL_FreeSurface(s);
-
-    return 0;
-}
-#endif
-

@@ -8,12 +8,12 @@ SET(CMAKE_UNITY_BUILD_BATCH_SIZE 16)
 add_subdirectory(lib/GLFW)
 include_directories(lib/GLFW/include)
 
-add_executable(engine lib/glew.c src/engine.c src/graphics.c src/shaders.c src/geometry.c src/ray.c src/event.c src/shapes.c src/init.c)
+add_executable(engine lib/glew.c src/engine.c src/graphics.c src/shaders.c src/geometry.c src/ray.c src/event.c src/shapes.c src/2d.c src/init.c)
 set(LIB m GL)
 target_link_libraries(engine ${LIB} glfw )
 
 
-add_executable(engine-win lib/glew.c src/engine.c src/graphics.c src/shaders.c src/geometry.c src/ray.c src/event.c src/shapes.c src/init.c)
+add_executable(engine-win lib/glew.c src/engine.c src/graphics.c src/shaders.c src/geometry.c src/ray.c src/event.c src/shapes.c src/2d.c src/init.c)
 set(winlib m opengl32)
 target_link_libraries(engine-win ${winlib} glfw)
 

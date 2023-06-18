@@ -1,4 +1,5 @@
-
+#ifndef SHADERS_H
+#define SHADERS_H
 
 const char *vertex_shader_0 = 
     "#version 430 core\n"
@@ -41,12 +42,12 @@ const char *fragment_shader_0 =
 "in vec2 uv;\n"
 "in float light;\n"
 "flat in uint textureIndex;\n"
-"out vec3 color;\n"
+"out vec4 color;\n"
 "uniform sampler2DArray texSampler;\n"
 "void main(){\n"
 "   vec3 col = texture( texSampler, vec3(uv.x, uv.y, textureIndex)).rgb;\n"
 "   col = col * light;\n"
-"   color = col;\n"
+"   color = vec4(col , 1);\n"
 "}\n";
 
 const char *vertex_shader_1 = 
@@ -92,3 +93,25 @@ const char *fragment_shader_1 =
 "void main(){\n"
 "   color = vertexColor;\n"
 "}\n";
+
+const char *vertex_shader_2 =
+    "#version 430 core\n"
+    "layout(location = 0) in vec2 position;\n"
+    "out vec2 texCoord;\n"
+    "void main()\n"
+    "{\n"
+    "    gl_Position = vec4(position * 2.0 - 1.0, 0.0, 1.0);\n"
+    "    texCoord = position;\n"
+    "}\n";
+
+const char *fragment_shader_2 =
+"#version 430 core\n"
+"uniform sampler2D colorTexture;\n"
+"in vec2 texCoord;\n"
+"out vec4 fragColor;\n"
+"void main()\n"
+"{\n"
+"    fragColor = texture(colorTexture, texCoord);\n"
+"}\n";
+
+#endif
