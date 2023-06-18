@@ -80,10 +80,10 @@ int FloatEquals(float a, float b, float floatEqualityThreshold);
 typedef struct
 {
     int ShaderID;
-    int ProjectionID;
-    int ModelID;
-    int ViewID;
-    int ColorID;
+    //int ProjectionID;
+    //int ModelID;
+    //int ViewID;
+    //int ColorID;
 }Shader;
 
 int loadShaders(const char *vertex_source, const char *fragment_source);
@@ -153,6 +153,8 @@ typedef struct
     int instanceCount;
     int instanceCapacity;
     mat4 *transform;
+    mat4 *view;
+    mat4 *pro;
     int *texture;
     Shader *shader;
     char dataDirty;

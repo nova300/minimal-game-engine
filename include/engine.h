@@ -32,6 +32,9 @@ extern float degrees;
 extern double deltaTime;
 extern ParticleSystem *p1;
 
+extern mat4 viewMatrix;
+extern mat4 projectionMatrix;
+
 
 
 int init();

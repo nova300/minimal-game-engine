@@ -321,6 +321,9 @@ GeoObject *geo_new_object()
     g->dataDirty = 1;
     g->instanceDirty = 1;
 
+    g->view = &viewMatrix;
+    g->pro = &projectionMatrix;
+
     return g;
 }
 
@@ -350,8 +353,8 @@ int geo_render(GeoObject *obj)
     glUseProgram(obj->shader->ShaderID);
     glBindTexture(GL_TEXTURE_2D, obj->baseTexture);
     //glUniformMatrix4fv(obj->shader->ModelID, 1, GL_FALSE, &(obj->transform.matrix.m[0]));
-    glUniformMatrix4fv(obj->shader->ViewID, 1, GL_FALSE, &(viewMatrix.m[0]));
-    glUniformMatrix4fv(obj->shader->ProjectionID, 1, GL_FALSE, &(projectionMatrix.m[0]));
+    //glUniformMatrix4fv(obj->shader->ViewID, 1, GL_FALSE, &(viewMatrix.m[0]));
+    //glUniformMatrix4fv(obj->shader->ProjectionID, 1, GL_FALSE, &(projectionMatrix.m[0]));
     
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
     glBufferData(GL_ARRAY_BUFFER, obj->dataCount * sizeof(vertex), obj->data, GL_STATIC_DRAW);
@@ -403,8 +406,8 @@ int geo_render_multi(RenderQueue *rq)
 {
     glUseProgram(rq->shader->ShaderID);
     glBindTexture(GL_TEXTURE_2D_ARRAY, rq->textureAtlas);
-    glUniformMatrix4fv(rq->shader->ViewID, 1, GL_FALSE, &(viewMatrix.m[0]));
-    glUniformMatrix4fv(rq->shader->ProjectionID, 1, GL_FALSE, &(projectionMatrix.m[0]));
+    //glUniformMatrix4fv(rq->shader->ViewID, 1, GL_FALSE, &(viewMatrix.m[0]));
+    //glUniformMatrix4fv(rq->shader->ProjectionID, 1, GL_FALSE, &(projectionMatrix.m[0]));
     
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rq->elementBuffer);
@@ -458,9 +461,9 @@ int geo_render_translated(GeoObject *obj, Transform *t)
     glUseProgram(obj->shader->ShaderID);
     glBindTexture(GL_TEXTURE_2D, obj->baseTexture);
 
-    glUniformMatrix4fv(obj->shader->ModelID, 1, GL_FALSE, &(t->matrix.m[0]));
-    glUniformMatrix4fv(obj->shader->ViewID, 1, GL_FALSE, &(viewMatrix.m[0]));
-    glUniformMatrix4fv(obj->shader->ProjectionID, 1, GL_FALSE, &(projectionMatrix.m[0]));
+    //glUniformMatrix4fv(obj->shader->ModelID, 1, GL_FALSE, &(t->matrix.m[0]));
+    //glUniformMatrix4fv(obj->shader->ViewID, 1, GL_FALSE, &(viewMatrix.m[0]));
+    //glUniformMatrix4fv(obj->shader->ProjectionID, 1, GL_FALSE, &(projectionMatrix.m[0]));
     
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
     glBufferData(GL_ARRAY_BUFFER, obj->dataCount * sizeof(vertex), obj->data, GL_STATIC_DRAW);
@@ -639,6 +642,11 @@ void rq_update_buffers(RenderQueue *rq)
         {
             memcpy(textures + instance_offset, obj[i]->texture, obj[i]->instanceCount * sizeof(int));
             memcpy(transforms + instance_offset, obj[i]->transform, obj[i]->instanceCount * sizeof(mat4));
+            for (int j = 0; j < obj[i]->instanceCount; j++)
+            {
+                mat4 mv = matrix_multiply(&transforms[instance_offset + j], obj[i]->view);
+                transforms[instance_offset + j] = matrix_multiply(&mv, obj[i]->pro);
+            }
             instance_offset += obj[i]->instanceCount;
         }
 

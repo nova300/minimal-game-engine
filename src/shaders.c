@@ -6,10 +6,10 @@ Shader* newShaderObject(const char *vertex_source, const char *fragment_source)
 {
     Shader *s = malloc(sizeof(Shader));
     s->ShaderID = loadShaders(vertex_source, fragment_source);
-    s->ViewID = glGetUniformLocation(s->ShaderID, "VIE");
-    s->ModelID = glGetUniformLocation(s->ShaderID, "MOD");
-    s->ProjectionID = glGetUniformLocation(s->ShaderID, "PRO");
-    s->ColorID = glGetUniformLocation(s->ShaderID, "COL");
+    //s->ViewID = glGetUniformLocation(s->ShaderID, "VIE");
+    //s->ModelID = glGetUniformLocation(s->ShaderID, "MOD");
+    //s->ProjectionID = glGetUniformLocation(s->ShaderID, "PRO");
+    //s->ColorID = glGetUniformLocation(s->ShaderID, "COL");
     
     return s;
 }

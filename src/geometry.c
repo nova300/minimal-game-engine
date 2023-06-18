@@ -227,6 +227,9 @@ GeoObject *geo_obj_createFromParShape(par_shapes_mesh* mesh)
     g->transform = &(g->baseTransform.matrix);
     g->texture = &(g->baseTexture);
 
+    g->view = &viewMatrix;
+    g->pro = &projectionMatrix;
+
     g->dataCount = mesh->npoints;
     g->data = (vertex*)malloc(g->dataCount * sizeof(vertex));
     g->indexCount = mesh->ntriangles * 3;
