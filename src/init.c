@@ -8,14 +8,11 @@ void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum se
 void frameBufferSizeCallback(GLFWwindow* window,int width,int height) 
 {
     glViewport(0,0,width,height);
+    projectionMatrix = matrix_perspective(radians(45.0f), (float)width/height, 0.1f, 100.0f);
 }
 
 int init()
 {
-    //SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-    //SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 3);
-    //SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE );
-
     glfwSetErrorCallback(error_callback);
 
     if (!glfwInit())
@@ -28,19 +25,12 @@ int init()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, TITLE, NULL, NULL);
 
-    //window = SDL_CreateWindow(TITLE, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
     if (window == NULL)
     {
         return 2;
     }
 
     glfwMakeContextCurrent(window);
-
-    /*context = SDL_GL_CreateContext( window );
-    if (context == NULL)
-    {
-        return 3;
-    }*/
 
     glewExperimental = GL_TRUE;
     if ( glewInit() != GLEW_OK )

@@ -14,20 +14,12 @@ ParticleSystem *p1;
 int exitLoop = 0;
 float degrees = 0;
 
-int vertexBuffer;
-int transformBuffer;
-int elementBuffer;
-int colorBuffer;
-int indirectBuffer;
-int textureBuffer;
-
 mat4 projectionMatrix;
 mat4 viewMatrix;
 
 int main(void)
 {
     printf("init: ");
-    //terminal_print("init: ");
     int err = init();
     if (err != 0)
     {
@@ -35,38 +27,10 @@ int main(void)
         printf("error %i\n", err);
     }
     printf("ok\n");
-    //terminal_print("ok\n");
-
-    /*font = TTF_OpenFont("media/tosh.ttf", 28);
-    if (font == NULL)
-    {
-        printf("TERM: failed to open font\n");
-    }*/
 
     GLuint VertexArrayID;
     glGenVertexArrays(1, &VertexArrayID);
     glBindVertexArray(VertexArrayID);
-
-    glGenBuffers(1, &vertexBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-
-    glGenBuffers(1, &transformBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, transformBuffer);
-
-    glGenBuffers(1, &textureBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, textureBuffer);
-
-    glGenBuffers(1, &elementBuffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffer);
-
-    glGenBuffers(1, &indirectBuffer);
-    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, indirectBuffer);
-
-
-    //GeoObject *cube = geo_new_object();
-
-    //geo_obj_loadFromFile("media/scene.obj", cube);
-
 
     par_shapes_mesh *dodecahedron = par_shapes_create_dodecahedron();
     par_shapes_translate(dodecahedron, 0, 0.934, 0);
@@ -105,7 +69,7 @@ int main(void)
     rq_add_object(&renderQueue1, geo_obj_createFromParShape(tetrahedron));
 
     Shader *s = newShaderObject(vertex_shader_0, fragment_shader_0);
-    gobj->shader = s;
+    //gobj->shader = s;
     renderQueue1.shader = s;
 
     projectionMatrix = matrix_perspective(radians(45.0f), (float)SCREEN_WIDTH/SCREEN_HEIGHT, 0.1f, 100.0f);
@@ -120,11 +84,6 @@ int main(void)
     transform_set_identity(&gobj->baseTransform);
     transform_set_identity(&rq[0]->baseTransform);
     transform_set_identity(&rq[1]->baseTransform);
-
-    /*if (loadTexture("media/textest.jpg", &gobj->texture))
-    {
-        printf("could not load texture\n");
-    }*/
 
     renderQueue1.textureAtlas = generateRandomAtlas();
 
@@ -152,7 +111,6 @@ int main(void)
 
     while (exitLoop == 0)
     {
-        //glViewport(0, 0, SDL_GetWindowSurface(window)->w, SDL_GetWindowSurface(window)->h);
         deltaTime = glfwGetTime() - time;
         if (deltaTime > 10) deltaTime = 10;
         time = glfwGetTime();

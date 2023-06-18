@@ -79,14 +79,12 @@ int FloatEquals(float a, float b, float floatEqualityThreshold);
 
 typedef struct
 {
-    int ShaderID;
-    //int ProjectionID;
-    //int ModelID;
-    //int ViewID;
-    //int ColorID;
+    GLuint ShaderID;
+    int ProjectionID;
+    int ViewID;
 }Shader;
 
-int loadShaders(const char *vertex_source, const char *fragment_source);
+GLuint loadShaders(const char *vertex_source, const char *fragment_source);
 Shader* newShaderObject(const char *vertex_source, const char *fragment_source);
 
 typedef struct
@@ -97,26 +95,12 @@ typedef struct
     vec4 scale;
 }Transform;
 
-typedef struct
-{
-    mat4 *data;
-    int capacity;
-    int count;
-}TransformArray;
-
-int transform_position(float x, float y, float z, Transform *t);
-int transform_move(float x, float y, float z, Transform *t);
-int transform_set_identity(Transform *t);
-int transform_set_rotation(float x, float y, float z, Transform *t);
-int transform_rotate(float x, float y, float z, Transform *t);
-int transform_make_matrix(Transform *t); /* updates matrix in transform struct to reflect its other properties */
-
-extern int vertexBuffer;
-extern int transformBuffer;
-extern int elementBuffer;
-extern int colorBuffer;
-extern int indirectBuffer;
-extern int textureBuffer;
+void transform_position(float x, float y, float z, Transform *t);
+void transform_move(float x, float y, float z, Transform *t);
+void transform_set_identity(Transform *t);
+void transform_set_rotation(float x, float y, float z, Transform *t);
+void transform_rotate(float x, float y, float z, Transform *t);
+void transform_make_matrix(Transform *t); /* updates matrix in transform struct to reflect its other properties */
 
 extern mat4 projectionMatrix;
 extern mat4 viewMatrix;
@@ -153,26 +137,35 @@ typedef struct
     int instanceCount;
     int instanceCapacity;
     mat4 *transform;
-    mat4 *view;
-    mat4 *pro;
     int *texture;
-    Shader *shader;
     char dataDirty;
     char instanceDirty;
 }GeoObject;
 
 typedef struct
 {
+    GeoObject geoObject;
+    Shader *shader;
+    GLuint textureAtlas;
+    GLuint vertexBuffer;
+    GLuint transformBuffer;
+    GLuint textureBuffer;
+    GLuint elementBuffer;
+    GLuint commandBuffer;
+}GeoObject_gpu;
+
+typedef struct
+{
     unsigned int count;
     unsigned int capacity;
-    int textureAtlas;
+    GLuint textureAtlas;
     Shader *shader;
     GeoObject **objectBuffer;
-    int vertexBuffer;
-    int transformBuffer;
-    int textureBuffer;
-    int elementBuffer;
-    int commandBuffer;
+    GLuint vertexBuffer;
+    GLuint transformBuffer;
+    GLuint textureBuffer;
+    GLuint elementBuffer;
+    GLuint commandBuffer;
 }RenderQueue;
 
 RenderQueue *rq_new_queue(int capacity);
@@ -180,10 +173,12 @@ void rq_update_buffers(RenderQueue *rq);
 void rq_add_object(RenderQueue *rq, GeoObject *obj);
 void rq_init(RenderQueue *rq, int capacity);
 
+GeoObject_gpu *geo_obj_bindToGpu(GeoObject *obj);
+void geo_obj_gpu_updateBuffers(GeoObject_gpu *obj);
 
-int loadTexture(const char *name, int *texture);
-int generateColorTexture(float r, float g, float b, float a);
-int generateRandomAtlas();
+GLuint loadTexture(const char *name);
+GLuint generateColorTexture(float r, float g, float b, float a);
+GLuint generateRandomAtlas(void);
 int geo_obj_loadFromFile(const char* filename, GeoObject *obj);
 int geo_mdl_loadFromFile(const char* filename, GeoObject *obj);
 
@@ -191,11 +186,10 @@ GeoObject *geo_obj_createFromParShape(par_shapes_mesh* mesh);
 
 int geo_obj_createObjectData(GeoObject *obj, vec3* vertices, vec2* uvs, vec3* normals, int vertexCount, float floatEqualityThreshold);
 
-int geo_render(GeoObject *obj);
-int geo_render_translated(GeoObject *obj, Transform *t);
-int geo_render_multi(RenderQueue *rq);
-GeoObject *geo_new_object();
-
+void geo_render(GeoObject_gpu *obj);
+void geo_render_translated(GeoObject_gpu *obj, Transform *t);
+void geo_render_multi(RenderQueue *rq);
+GeoObject *geo_new_object(void);
 
 void geo_instanceop_init(GeoObject *obj, int capacity);
 void geo_instanceop_free(GeoObject *obj);

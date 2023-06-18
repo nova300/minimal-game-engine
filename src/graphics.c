@@ -109,19 +109,19 @@ mat4 matrix_multiply(mat4* m1, mat4* m2)
 	unsigned int row, column, row_offset;
 
 	for (row = 0, row_offset = row * 4; row < 4; ++row, row_offset = row * 4)
-		for (column = 0; column < 4; ++column)
-			out.m[row_offset + column] =
-				(m1->m[row_offset + 0] * m2->m[column + 0]) +
-				(m1->m[row_offset + 1] * m2->m[column + 4]) +
-				(m1->m[row_offset + 2] * m2->m[column + 8]) +
-				(m1->m[row_offset + 3] * m2->m[column + 12]);
+    {
+      	for (column = 0; column < 4; ++column)
+        {
+            out.m[row_offset + column] = (m1->m[row_offset + 0] * m2->m[column + 0]) + (m1->m[row_offset + 1] * m2->m[column + 4]) + (m1->m[row_offset + 2] * m2->m[column + 8]) + (m1->m[row_offset + 3] * m2->m[column + 12]);  
+        }
+    }
 
 	return out;
 }
 
 /* Object Transforms */
 
-int transform_position(float x, float y, float z, Transform *t)
+void transform_position(float x, float y, float z, Transform *t)
 {
     t->position.x = x;
     t->position.y = y;
@@ -129,7 +129,7 @@ int transform_position(float x, float y, float z, Transform *t)
     transform_make_matrix(t);
 }
 
-int transform_move(float x, float y, float z, Transform *t)
+void transform_move(float x, float y, float z, Transform *t)
 {
     t->position.x += x;
     t->position.y += y;
@@ -137,7 +137,7 @@ int transform_move(float x, float y, float z, Transform *t)
     transform_make_matrix(t);
 }
 
-int transform_rotate(float x, float y, float z, Transform *t)
+void transform_rotate(float x, float y, float z, Transform *t)
 {
     // Convert Euler angles to quaternion
     float cy = cosf(z * 0.5f);
@@ -164,7 +164,7 @@ int transform_rotate(float x, float y, float z, Transform *t)
     transform_make_matrix(t);
 }
 
-int transform_set_rotation(float x, float y, float z, Transform *t)
+void transform_set_rotation(float x, float y, float z, Transform *t)
 {
     float cy = cosf(z * 0.5f);
     float sy = sinf(z * 0.5f);
@@ -180,7 +180,7 @@ int transform_set_rotation(float x, float y, float z, Transform *t)
     transform_make_matrix(t);
 }
 
-int transform_make_matrix(Transform *t) 
+void transform_make_matrix(Transform *t) 
 {
 
     mat4 model_matrix;
@@ -229,7 +229,7 @@ int transform_make_matrix(Transform *t)
     t->matrix = model_matrix;
 }
 
-int transform_set_identity(Transform* t) 
+void transform_set_identity(Transform* t) 
 {
     t->position = (vec4){0.0f, 0.0f, 0.0f, 0.0f};
     t->rotation = (vec4){0.0f, 0.0f, 0.0f, 1.0f};
@@ -237,129 +237,18 @@ int transform_set_identity(Transform* t)
     t->matrix = IDENTITY_MATRIX;
 }
 
-void geo_instanceop_init(GeoObject *obj, int capacity) 
+void geo_render(GeoObject_gpu *gobj)
 {
-    obj->transform = malloc(capacity * sizeof(mat4));
-    obj->texture = malloc(capacity * sizeof(int));
-    obj->instanceCount = 0;
-    obj->instanceCapacity = capacity;
-}
-
-void geo_instanceop_free(GeoObject *obj)
-{
-    free(obj->transform);
-    obj->transform = NULL;
-    obj->instanceCapacity = 0;
-    obj->instanceCount = 0;
-    obj->instanceDirty = 1;
-}
-
-void geo_instanceop_resize(GeoObject *obj, int newCapacity) 
-{
-    mat4 *newTransform = realloc(obj->transform, newCapacity * sizeof(mat4));
-    if (newTransform == NULL) return;
-    int *newTexture = realloc(obj->texture, newCapacity * sizeof(int));
-    if (newTexture == NULL) return;
-
-    obj->transform = newTransform;
-    obj->texture = newTexture;
-    obj->instanceCapacity = newCapacity;
-    obj->instanceDirty = 1;
-}
-
-void geo_instanceop_add(GeoObject *obj, mat4 matrix, int textureIndex) 
-{
-    if (obj->instanceCount >= obj->instanceCapacity)
-    {
-        geo_instanceop_resize(obj, obj->instanceCapacity * 2);
-    }
-
-    obj->transform[obj->instanceCount] = matrix;
-    obj->texture[obj->instanceCount] = textureIndex;
-    obj->instanceCount++; 
-    obj->instanceDirty = 1;
-}
-
-void geo_instanceop_remove(GeoObject *obj, int index) 
-{
-    if (index >= obj->instanceCount) return;
-
-    for (int i = index + 1; i < obj->instanceCount; i++) 
-    {
-        obj->data[i - 1] = obj->data[i];
-    }
-
-    obj->instanceCount--;
-    obj->instanceDirty = 1;
-}
-
-void geo_instanceop_clear(GeoObject *obj) 
-{
-    obj->instanceCount = 0;
-    obj->instanceDirty = 1;
-}
-
-
-
-
-/* Graphics Objects */
-
-GeoObject *geo_new_object()
-{
-    GeoObject *g = malloc(sizeof(GeoObject));
-    g->data = NULL;
-    g->indicies = NULL;
-    g->shader = NULL;
-    g->baseTexture = 1;
-
-    transform_set_identity(&g->baseTransform);
-    g->instanceCount = 1;
-    g->instanceCapacity = 1;
-    g->transform = &(g->baseTransform.matrix);
-    g->texture = &(g->baseTexture);
-
-    g->dataDirty = 1;
-    g->instanceDirty = 1;
-
-    g->view = &viewMatrix;
-    g->pro = &projectionMatrix;
-
-    return g;
-}
-
-GeoObject geo_new_stack_object()
-{
-    GeoObject g;
-    g.data = NULL;
-    g.indicies = NULL;
-    g.shader = NULL;
-
-    transform_set_identity(&g.baseTransform);
-
-    g.baseTexture = 1;
-    g.instanceCount = 1;
-    g.instanceCapacity = 0;
-    g.transform = &g.baseTransform.matrix;
-    g.texture = &g.baseTexture;
-
-    g.dataDirty = 1;
-    g.instanceDirty = 1;
-    
-    return g;
-}
-
-int geo_render(GeoObject *obj)
-{
-    glUseProgram(obj->shader->ShaderID);
+    GeoObject *obj = (GeoObject*)gobj;
+    glUseProgram(gobj->shader->ShaderID);
+    glUniformMatrix4fv(gobj->shader->ViewID, 1, GL_FALSE, &(viewMatrix.m[0]));
+    glUniformMatrix4fv(gobj->shader->ProjectionID, 1, GL_FALSE, &(projectionMatrix.m[0]));
     glBindTexture(GL_TEXTURE_2D, obj->baseTexture);
-    //glUniformMatrix4fv(obj->shader->ModelID, 1, GL_FALSE, &(obj->transform.matrix.m[0]));
-    //glUniformMatrix4fv(obj->shader->ViewID, 1, GL_FALSE, &(viewMatrix.m[0]));
-    //glUniformMatrix4fv(obj->shader->ProjectionID, 1, GL_FALSE, &(projectionMatrix.m[0]));
     
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, gobj->vertexBuffer);
     glBufferData(GL_ARRAY_BUFFER, obj->dataCount * sizeof(vertex), obj->data, GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gobj->elementBuffer);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, obj->indexCount * sizeof(unsigned int), obj->indicies, GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0); // Position
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float))); // Normal
@@ -368,12 +257,12 @@ int geo_render(GeoObject *obj)
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
 
-    glBindBuffer(GL_ARRAY_BUFFER, textureBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, gobj->textureBuffer);
     glBufferData(GL_ARRAY_BUFFER, obj->instanceCount * sizeof(unsigned int), obj->texture, GL_DYNAMIC_DRAW);
     glEnableVertexAttribArray(3);
     glVertexAttribDivisor(3, 1); 
 
-    glBindBuffer(GL_ARRAY_BUFFER, transformBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, gobj->transformBuffer);
     glBufferData(GL_ARRAY_BUFFER, obj->instanceCount * sizeof(mat4), obj->transform, GL_DYNAMIC_DRAW);
     int model_matrix_location = 4;
     glEnableVertexAttribArray(model_matrix_location);
@@ -389,7 +278,6 @@ int geo_render(GeoObject *obj)
     glVertexAttribDivisor(model_matrix_location + 2, 1);
     glVertexAttribDivisor(model_matrix_location + 3, 1);
 
-
     glDrawElementsInstanced(GL_TRIANGLES, obj->indexCount, GL_UNSIGNED_INT, (void*)0, obj->instanceCount);
 
     glDisableVertexAttribArray(0);
@@ -402,13 +290,13 @@ int geo_render(GeoObject *obj)
     glDisableVertexAttribArray(model_matrix_location + 3);
 }
 
-int geo_render_multi(RenderQueue *rq)
+void geo_render_multi(RenderQueue *rq)
 {
     glUseProgram(rq->shader->ShaderID);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, rq->textureAtlas);
-    //glUniformMatrix4fv(rq->shader->ViewID, 1, GL_FALSE, &(viewMatrix.m[0]));
-    //glUniformMatrix4fv(rq->shader->ProjectionID, 1, GL_FALSE, &(projectionMatrix.m[0]));
+    glUniformMatrix4fv(rq->shader->ViewID, 1, GL_FALSE, &(viewMatrix.m[0]));
+    glUniformMatrix4fv(rq->shader->ProjectionID, 1, GL_FALSE, &(projectionMatrix.m[0]));
     
+    glBindTexture(GL_TEXTURE_2D_ARRAY, rq->textureAtlas);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rq->elementBuffer);
 
@@ -419,7 +307,6 @@ int geo_render_multi(RenderQueue *rq)
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0); // Position
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float))); // Normal
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float))); // Texture coordinates
-
 
     glBindBuffer(GL_ARRAY_BUFFER, rq->textureBuffer);
     glEnableVertexAttribArray(3);
@@ -441,7 +328,6 @@ int geo_render_multi(RenderQueue *rq)
     glVertexAttribDivisor(model_matrix_location + 2, 1); 
     glVertexAttribDivisor(model_matrix_location + 3, 1);
 
-
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, rq->commandBuffer);
 
     glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (void*)0, rq->count, 0);
@@ -456,25 +342,25 @@ int geo_render_multi(RenderQueue *rq)
     glDisableVertexAttribArray(model_matrix_location + 3);
 }
 
-int geo_render_translated(GeoObject *obj, Transform *t)
+void geo_render_translated(GeoObject_gpu *gobj, Transform *t)
 {
-    glUseProgram(obj->shader->ShaderID);
-    glBindTexture(GL_TEXTURE_2D, obj->baseTexture);
+    GeoObject *obj = (GeoObject*)gobj;
 
-    //glUniformMatrix4fv(obj->shader->ModelID, 1, GL_FALSE, &(t->matrix.m[0]));
-    //glUniformMatrix4fv(obj->shader->ViewID, 1, GL_FALSE, &(viewMatrix.m[0]));
-    //glUniformMatrix4fv(obj->shader->ProjectionID, 1, GL_FALSE, &(projectionMatrix.m[0]));
+    glUseProgram(gobj->shader->ShaderID);
+    glUniformMatrix4fv(gobj->shader->ViewID, 1, GL_FALSE, &(viewMatrix.m[0]));
+    glUniformMatrix4fv(gobj->shader->ProjectionID, 1, GL_FALSE, &(projectionMatrix.m[0]));
+
+    glBindTexture(GL_TEXTURE_2D, obj->baseTexture);
     
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, gobj->vertexBuffer);
     glBufferData(GL_ARRAY_BUFFER, obj->dataCount * sizeof(vertex), obj->data, GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gobj->elementBuffer);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, obj->indexCount * sizeof(unsigned int), obj->indicies, GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0); // Position
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float))); // Normal
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float))); // Texture coordinates
-
 
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
@@ -487,9 +373,9 @@ int geo_render_translated(GeoObject *obj, Transform *t)
     glDisableVertexAttribArray(2);
 }
 
-int generateColorTexture(float r, float g, float b, float a)
+GLuint generateColorTexture(float r, float g, float b, float a)
 {
-    int texture;
+    GLuint texture;
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
 
@@ -507,9 +393,9 @@ int generateColorTexture(float r, float g, float b, float a)
 }
 
 //generates array of 100 random color textures
-int generateRandomAtlas()
+GLuint generateRandomAtlas(void)
 {
-    int texture;
+    GLuint texture;
     glGenTextures(1, &texture);
     //glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
@@ -535,7 +421,7 @@ int generateRandomAtlas()
     return texture;
 }
 
-int loadTexture(const char *name, int *texture)
+GLuint loadTexture(const char *name)
 {
     /*SDL_Surface *s = IMG_Load(name);
     if (s == NULL)
@@ -642,11 +528,6 @@ void rq_update_buffers(RenderQueue *rq)
         {
             memcpy(textures + instance_offset, obj[i]->texture, obj[i]->instanceCount * sizeof(int));
             memcpy(transforms + instance_offset, obj[i]->transform, obj[i]->instanceCount * sizeof(mat4));
-            for (int j = 0; j < obj[i]->instanceCount; j++)
-            {
-                mat4 mv = matrix_multiply(&transforms[instance_offset + j], obj[i]->view);
-                transforms[instance_offset + j] = matrix_multiply(&mv, obj[i]->pro);
-            }
             instance_offset += obj[i]->instanceCount;
         }
 

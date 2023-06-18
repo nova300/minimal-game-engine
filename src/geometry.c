@@ -220,15 +220,11 @@ GeoObject *geo_obj_createFromParShape(par_shapes_mesh* mesh)
     GeoObject *g = malloc(sizeof(GeoObject));
     g->data = NULL;
     g->indicies = NULL;
-    g->shader = NULL;
     transform_set_identity(&g->baseTransform);
     g->instanceCount = 1;
     g->instanceCapacity = 1;
     g->transform = &(g->baseTransform.matrix);
     g->texture = &(g->baseTexture);
-
-    g->view = &viewMatrix;
-    g->pro = &projectionMatrix;
 
     g->dataCount = mesh->npoints;
     g->data = (vertex*)malloc(g->dataCount * sizeof(vertex));
@@ -276,29 +272,105 @@ GeoObject *geo_obj_createFromParShape(par_shapes_mesh* mesh)
     return g;
 }
 
-int particle_render(ParticleSystem *ps)
+void geo_instanceop_init(GeoObject *obj, int capacity) 
 {
-    if (ps == NULL) return 1;
-    //transformArray_clear(&ps->geo->transformArray);
-    for (int i = 0; i < ps->amount; i++)
+    obj->transform = malloc(capacity * sizeof(mat4));
+    obj->texture = malloc(capacity * sizeof(int));
+    obj->instanceCount = 0;
+    obj->instanceCapacity = capacity;
+}
+
+void geo_instanceop_free(GeoObject *obj)
+{
+    free(obj->transform);
+    obj->transform = NULL;
+    obj->instanceCapacity = 0;
+    obj->instanceCount = 0;
+    obj->instanceDirty = 1;
+}
+
+void geo_instanceop_resize(GeoObject *obj, int newCapacity) 
+{
+    mat4 *newTransform = realloc(obj->transform, newCapacity * sizeof(mat4));
+    if (newTransform == NULL) return;
+    int *newTexture = realloc(obj->texture, newCapacity * sizeof(int));
+    if (newTexture == NULL) return;
+
+    obj->transform = newTransform;
+    obj->texture = newTexture;
+    obj->instanceCapacity = newCapacity;
+    obj->instanceDirty = 1;
+}
+
+void geo_instanceop_add(GeoObject *obj, mat4 matrix, int textureIndex) 
+{
+    if (obj->instanceCount >= obj->instanceCapacity)
     {
-        if (ps->particles[i].lifeTime < 0)
-        {
-            
-            ps->particles[i].lifeTime = (rand() % 500) + 250;
-            ps->particles[i].transform.position = ps->transform->position;
-            ps->particles[i].xdir = ((rand() - rand()) % 3) + ((rand() - rand()) % 10) * 0.1f;
-            ps->particles[i].ydir = ((rand() - rand()) % 3) + ((rand() - rand()) % 10) * 0.1f;
-            ps->particles[i].zdir = ((rand() - rand()) % 3) + ((rand() - rand()) % 10) * 0.1f;
-        }
-        else
-        {
-            ps->particles[i].lifeTime = ps->particles[i].lifeTime - (deltaTime);
-            transform_move(ps->particles[i].xdir * (deltaTime*0.01), ps->particles[i].ydir * (deltaTime*0.01), ps->particles[i].zdir * (deltaTime*0.01), &ps->particles[i].transform);
-            //transformArray_add(&ps->geo->transformArray, *(ps->particles[i].transform.matrix));
-        }
+        geo_instanceop_resize(obj, obj->instanceCapacity * 2);
     }
-    geo_render(ps->geo);
+
+    obj->transform[obj->instanceCount] = matrix;
+    obj->texture[obj->instanceCount] = textureIndex;
+    obj->instanceCount++; 
+    obj->instanceDirty = 1;
+}
+
+void geo_instanceop_remove(GeoObject *obj, int index) 
+{
+    if (index >= obj->instanceCount) return;
+
+    for (int i = index + 1; i < obj->instanceCount; i++) 
+    {
+        obj->data[i - 1] = obj->data[i];
+    }
+
+    obj->instanceCount--;
+    obj->instanceDirty = 1;
+}
+
+void geo_instanceop_clear(GeoObject *obj) 
+{
+    obj->instanceCount = 0;
+    obj->instanceDirty = 1;
+}
+
+GeoObject *geo_new_object(void)
+{
+    GeoObject *g = malloc(sizeof(GeoObject));
+    g->data = NULL;
+    g->indicies = NULL;
+    g->baseTexture = 1;
+
+    transform_set_identity(&g->baseTransform);
+    g->instanceCount = 1;
+    g->instanceCapacity = 1;
+    g->transform = &(g->baseTransform.matrix);
+    g->texture = &(g->baseTexture);
+
+    g->dataDirty = 1;
+    g->instanceDirty = 1;
+
+    return g;
+}
+
+GeoObject geo_new_stack_object(void)
+{
+    GeoObject g;
+    g.data = NULL;
+    g.indicies = NULL;
+
+    transform_set_identity(&g.baseTransform);
+
+    g.baseTexture = 1;
+    g.instanceCount = 1;
+    g.instanceCapacity = 0;
+    g.transform = &g.baseTransform.matrix;
+    g.texture = &g.baseTexture;
+
+    g.dataDirty = 1;
+    g.instanceDirty = 1;
+    
+    return g;
 }
 
 void particle_update(ParticleSystem *ps)
@@ -349,6 +421,35 @@ ParticleSystem* particle_new(GeoObject *g, int amount)
     ps->particles = p;
 
     return ps;
+}
+
+
+GeoObject_gpu *geo_obj_bindToGpu(GeoObject *obj)
+{
+    GeoObject_gpu *gobj = realloc(obj, sizeof(GeoObject_gpu));
+    obj = (GeoObject*)gobj;
+
+    glGenBuffers(1, &gobj->vertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, gobj->vertexBuffer);
+
+    glGenBuffers(1, &gobj->transformBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, gobj->transformBuffer);
+
+    glGenBuffers(1, &gobj->textureBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, gobj->textureBuffer);
+
+    glGenBuffers(1, &gobj->elementBuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gobj->elementBuffer);
+
+    glGenBuffers(1, &gobj->commandBuffer);
+    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, gobj->commandBuffer);
+
+    return gobj;
+}
+
+void geo_obj_gpu_updateBuffers(GeoObject_gpu *obj)
+{
+
 }
 
 
