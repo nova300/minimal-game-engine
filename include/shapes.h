@@ -1,27 +1,24 @@
-// SHAPES :: https://github.com/prideout/par
-// Simple C library for creation and manipulation of triangle meshes.
+// par_shapes is distributed under the MIT license:
 //
-// The API is divided into three sections:
+// Copyright (c) 2019 Philip Rideout
 //
-//   - Generators.  Create parametric surfaces, platonic solids, etc.
-//   - Queries.     Ask a mesh for its axis-aligned bounding box, etc.
-//   - Transforms.  Rotate a mesh, merge it with another, add normals, etc.
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
-// In addition to the comment block above each function declaration, the API
-// has informal documentation here:
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
-//     https://prideout.net/shapes
-//
-// For our purposes, a "mesh" is a list of points and a list of triangles; the
-// former is a flattened list of three-tuples (32-bit floats) and the latter is
-// also a flattened list of three-tuples (16-bit uints).  Triangles are always
-// oriented such that their front face winds counter-clockwise.
-//
-// Optionally, meshes can contain 3D normals (one per vertex), and 2D texture
-// coordinates (one per vertex).  That's it!  If you need something fancier,
-// look elsewhere.
-//
-// Distributed under the MIT License, see bottom of file.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 
 #ifndef PAR_SHAPES_H
 #define PAR_SHAPES_H
@@ -35,7 +32,8 @@
 #define PAR_SHAPES_T uint16_t
 #endif
 
-typedef struct par_shapes_mesh_s {
+typedef struct par_shapes_mesh_s 
+{
     float* points;           // Flat list of 3-tuples (X Y Z X Y Z...)
     int npoints;             // Number of points
     PAR_SHAPES_T* triangles; // Flat list of 3-tuples (I J K I J K...)
@@ -76,16 +74,14 @@ par_shapes_mesh* par_shapes_create_subdivided_sphere(int nsubdivisions);
 
 // More parametric surfaces.
 par_shapes_mesh* par_shapes_create_klein_bottle(int slices, int stacks);
-par_shapes_mesh* par_shapes_create_trefoil_knot(int slices, int stacks,
-    float radius);
+par_shapes_mesh* par_shapes_create_trefoil_knot(int slices, int stacks, float radius);
 par_shapes_mesh* par_shapes_create_hemisphere(int slices, int stacks);
 par_shapes_mesh* par_shapes_create_plane(int slices, int stacks);
 
 // Create a parametric surface from a callback function that consumes a 2D
 // point in [0,1] and produces a 3D point.
 typedef void (*par_shapes_fn)(float const*, float*, void*);
-par_shapes_mesh* par_shapes_create_parametric(par_shapes_fn, int slices,
-    int stacks, void* userdata);
+par_shapes_mesh* par_shapes_create_parametric(par_shapes_fn, int slices, int stacks, void* userdata);
 
 // Generate points for a 20-sided polyhedron that fits in the unit sphere.
 // Texture coordinates and normals are not generated.
@@ -102,8 +98,7 @@ par_shapes_mesh* par_shapes_create_cube();
 
 // Generate an orientable disk shape in 3-space.  Does not include normals or
 // texture coordinates.
-par_shapes_mesh* par_shapes_create_disk(float radius, int slices,
-    float const* center, float const* normal);
+par_shapes_mesh* par_shapes_create_disk(float radius, int slices, float const* center, float const* normal);
 
 // Create an empty shape.  Useful for building scenes with merge_and_free.
 par_shapes_mesh* par_shapes_create_empty();
@@ -116,8 +111,7 @@ par_shapes_mesh* par_shapes_create_rock(int seed, int nsubdivisions);
 // Create trees or vegetation by executing a recursive turtle graphics program.
 // The program is a list of command-argument pairs.  See the unit test for
 // an example.  Texture coordinates and normals are not generated.
-par_shapes_mesh* par_shapes_create_lsystem(char const* program, int slices,
-    int maxdepth);
+par_shapes_mesh* par_shapes_create_lsystem(char const* program, int slices, int maxdepth);
 
 // Queries ---------------------------------------------------------------------
 
@@ -129,8 +123,7 @@ void par_shapes_compute_aabb(par_shapes_mesh const* mesh, float* aabb);
 
 // Make a deep copy of a mesh.  To make a brand new copy, pass null to "target".
 // To avoid memory churn, pass an existing mesh to "target".
-par_shapes_mesh* par_shapes_clone(par_shapes_mesh const* mesh,
-    par_shapes_mesh* target);
+par_shapes_mesh* par_shapes_clone(par_shapes_mesh const* mesh, par_shapes_mesh* target);
 
 // Transformations -------------------------------------------------------------
 
@@ -157,8 +150,7 @@ void par_shapes_unweld(par_shapes_mesh* mesh, bool create_indices);
 // welding vertices. The mapping argument can be null, or a pointer to
 // npoints integers, which gets filled with the mapping from old vertex
 // indices to new indices.
-par_shapes_mesh* par_shapes_weld(par_shapes_mesh const*, float epsilon,
-    PAR_SHAPES_T* mapping);
+par_shapes_mesh* par_shapes_weld(par_shapes_mesh const*, float epsilon, PAR_SHAPES_T* mapping);
 
 // Compute smooth normals by averaging adjacent facet normals.
 void par_shapes_compute_normals(par_shapes_mesh* m);
@@ -171,8 +163,7 @@ void par_shapes_set_epsilon_degenerate_sphere(float epsilon);
 // Advanced --------------------------------------------------------------------
 
 void par_shapes__compute_welded_normals(par_shapes_mesh* m);
-void par_shapes__connect(par_shapes_mesh* scene, par_shapes_mesh* cylinder,
-    int slices);
+void par_shapes__connect(par_shapes_mesh* scene, par_shapes_mesh* cylinder, int slices);
 
 #ifndef PAR_PI
 #define PAR_PI (3.14159265359)
