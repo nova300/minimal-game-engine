@@ -1,8 +1,7 @@
 #include "engine.h"
 #include "shaders.h"
 
-int SCREEN_WIDTH = 1024;
-int SCREEN_HEIGHT = 768;
+
 
 double time = 0;
 double deltaTime = 0;
@@ -72,7 +71,7 @@ int main(void)
     //gobj->shader = s;
     renderQueue1.gpuHandle.shader = s;
 
-    projectionMatrix = matrix_perspective(radians(45.0f), (float)SCREEN_WIDTH/SCREEN_HEIGHT, 0.1f, 100.0f);
+    projectionMatrix = matrix_perspective(radians(fov), (float)SCREEN_WIDTH/SCREEN_HEIGHT, 0.1f, 100.0f);
 
     vec3 eye = {{5, 5, 5}};
     vec3 center = {{0, 0, 0}};
@@ -114,6 +113,9 @@ int main(void)
 
     while (exitLoop == 0)
     {
+        key_input_poll();
+        viewMatrix = matrix_lookAt(c_pos, vector_add(c_pos, c_front), c_up);
+        projectionMatrix = matrix_perspective(radians(fov), (float)s_width/s_height, 0.1f, 100.0f);
         deltaTime = glfwGetTime() - time;
         if (deltaTime > 10) deltaTime = 10;
         time = glfwGetTime();

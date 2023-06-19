@@ -18,8 +18,8 @@
 
 #define TITLE "minimal game engine"
 
-extern int SCREEN_WIDTH;
-extern int SCREEN_HEIGHT;
+#define SCREEN_WIDTH 1024
+#define SCREEN_HEIGHT 768
 
 extern int errorCode;
 extern int exitLoop;
@@ -31,6 +31,14 @@ extern ParticleSystem *p1;
 extern mat4 viewMatrix;
 extern mat4 projectionMatrix;
 
+vec3 c_pos = {{0, 0, 3}};
+vec3 c_front = {{0, 0, -1}};
+vec3 c_up = {{0, 1, 0}};
+
+float fov = 60.0f;
+int s_width = SCREEN_WIDTH;
+int s_height = SCREEN_HEIGHT;
+
 
 
 int init();
@@ -39,6 +47,9 @@ void quit();
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void error_callback(int error, const char* description);
+void key_input_poll(void);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 extern GLFWwindow *window;
 

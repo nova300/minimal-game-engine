@@ -43,12 +43,31 @@ vec3 vector_subtract(vec3 v1, vec3 v2)
     return out;
 }
 
+vec3 vector_scale(vec3 v1, float s)
+{
+    vec3 out = {{0}};
+    out.x = v1.x * s;
+    out.y = v1.y * s;
+    out.z = v1.z * s;
+    return out;
+}
+
+vec3 vector_add(vec3 v1, vec3 v2)
+{
+    vec3 out = {{0}};
+    out.x = v1.x + v2.x;
+    out.y = v1.y + v2.y;
+    out.z = v1.z + v2.z;
+    return out;
+}
+
 mat4 matrix_perspective(float fovy, float aspect_ratio, float near_plane, float far_plane) 
 {
 	mat4 out = { { 0 } };
 
-	float y_scale = (float)(1/cos(fovy * 3.14 / 360));
-	float x_scale = y_scale / aspect_ratio;
+    float tan_half_angle = tan(fovy / 2);
+	float x_scale = 1 / (aspect_ratio * tan_half_angle);
+	float y_scale = 1 / (tan_half_angle);
 	float frustum_length = far_plane - near_plane;
 
 	out.x.x = x_scale;

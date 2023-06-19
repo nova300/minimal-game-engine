@@ -72,6 +72,8 @@ float vector_dot(vec3 v1, vec3 v2);
 vec3 vector_cross(vec3 v1, vec3 v2);
 void vector_normalize(vec3* v);
 vec3 vector_subtract(vec3 v1, vec3 v2);
+vec3 vector_add(vec3 v1, vec3 v2);
+vec3 vector_scale(vec3 v1, float s);
 
 void matrix_rotateY(mat4* m, float angle);
 mat4 matrix_multiply(mat4* m1, mat4* m2);

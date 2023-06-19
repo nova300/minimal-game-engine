@@ -8,7 +8,9 @@ void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum se
 void frameBufferSizeCallback(GLFWwindow* window,int width,int height) 
 {
     glViewport(0,0,width,height);
-    projectionMatrix = matrix_perspective(radians(45.0f), (float)width/height, 0.1f, 100.0f);
+    //projectionMatrix = matrix_perspective(radians(45.0f), (float)width/height, 0.1f, 100.0f);
+    s_width = width;
+    s_height = height;
 }
 
 int init()
@@ -62,6 +64,12 @@ int initGL()
     glfwSetFramebufferSizeCallback(window, frameBufferSizeCallback);
 
     glfwSwapInterval(1);
+
+    glfwSetKeyCallback(window, key_callback);
+
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);  
+    glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetScrollCallback(window, scroll_callback); 
 
     // Enable depth test
     glEnable(GL_DEPTH_TEST);
