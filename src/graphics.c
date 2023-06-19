@@ -333,6 +333,7 @@ void geo_render(GeoObject_gpu_handle *rq)
     case GOBJ_TYPE_MULTI:
         glBindBuffer(GL_DRAW_INDIRECT_BUFFER, rq->commandBuffer);
         glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (void*)0, rq->count, 0);
+        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
         break;
 
     case GOBJ_TYPE_SINGLE:
@@ -344,7 +345,7 @@ void geo_render(GeoObject_gpu_handle *rq)
         break;
     }
 
-    
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);
     glDisableVertexAttribArray(2);
@@ -517,6 +518,7 @@ void rq_update_buffers(RenderQueue *rq)
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rq->gpuHandle.elementBuffer);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(unsigned int), indicies, GL_DYNAMIC_DRAW);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
         glBindBuffer(GL_ARRAY_BUFFER, rq->gpuHandle.vertexBuffer);
         glBufferData(GL_ARRAY_BUFFER, vertexCount * sizeof(vertex), vertices, GL_STATIC_DRAW);
@@ -589,6 +591,7 @@ void rq_update_buffers(RenderQueue *rq)
         {
             glBufferData(GL_DRAW_INDIRECT_BUFFER, sizeof(drawCommand) * count, commands, GL_DYNAMIC_DRAW);
         }
+        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
         
 
         free(commands);
@@ -651,12 +654,14 @@ void geo_obj_gpu_handle_genBuffers(GeoObject_gpu_handle *gpuHandle, unsigned int
 
     glGenBuffers(1, &gpuHandle->elementBuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gpuHandle->elementBuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
     switch (type)
     {
     case GOBJ_TYPE_MULTI:
         glGenBuffers(1, &gpuHandle->commandBuffer);
         glBindBuffer(GL_DRAW_INDIRECT_BUFFER, gpuHandle->commandBuffer);
+        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
         gpuHandle->type = type;
         break;
     
