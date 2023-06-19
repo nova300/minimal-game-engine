@@ -3,11 +3,7 @@
 
 #define GLEW_STATIC
 
-#ifdef _WIN32
-#define ENTRYPOINT int WINAPI WinMain (int argc, char **argv)
-#else
-#define ENTRYPOINT int main(int argc, char **argv)
-#endif
+#define DO_INTEL_WORKAROUND false
 
 #include <stdio.h>
 #include <stdlib.h>

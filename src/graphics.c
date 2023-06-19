@@ -516,7 +516,7 @@ void rq_update_buffers(RenderQueue *rq)
         }
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rq->gpuHandle.elementBuffer);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(unsigned int), indicies, GL_STATIC_DRAW);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(unsigned int), indicies, GL_DYNAMIC_DRAW);
 
         glBindBuffer(GL_ARRAY_BUFFER, rq->gpuHandle.vertexBuffer);
         glBufferData(GL_ARRAY_BUFFER, vertexCount * sizeof(vertex), vertices, GL_STATIC_DRAW);
@@ -574,10 +574,22 @@ void rq_update_buffers(RenderQueue *rq)
             baseInst += obj[i]->instanceCount;
         }
 
-        glDeleteBuffers(1, &rq->gpuHandle.commandBuffer);
-        glGenBuffers(1, &rq->gpuHandle.commandBuffer);    //hacky workaround for misbehaving intel gpus
+        if (DO_INTEL_WORKAROUND)
+        {
+            glDeleteBuffers(1, &rq->gpuHandle.commandBuffer);
+            glGenBuffers(1, &rq->gpuHandle.commandBuffer);    //hacky workaround for misbehaving intel gpus
+        }
+
         glBindBuffer(GL_DRAW_INDIRECT_BUFFER, rq->gpuHandle.commandBuffer);
-        glBufferData(GL_DRAW_INDIRECT_BUFFER, sizeof(drawCommand) * count, commands, GL_DYNAMIC_DRAW);
+        if (rq->gpuHandle.count == count && !DO_INTEL_WORKAROUND)
+        {
+            glBufferSubData(GL_DRAW_INDIRECT_BUFFER, (void*)0, sizeof(drawCommand) * count, commands);
+        }
+        else
+        {
+            glBufferData(GL_DRAW_INDIRECT_BUFFER, sizeof(drawCommand) * count, commands, GL_DYNAMIC_DRAW);
+        }
+        
 
         free(commands);
 
