@@ -585,7 +585,7 @@ void rq_update_buffers(RenderQueue *rq)
         glBindBuffer(GL_DRAW_INDIRECT_BUFFER, rq->gpuHandle.commandBuffer);
         if (rq->gpuHandle.count == count && !DO_INTEL_WORKAROUND)
         {
-            glBufferSubData(GL_DRAW_INDIRECT_BUFFER, (void*)0, sizeof(drawCommand) * count, commands);
+            glBufferSubData(GL_DRAW_INDIRECT_BUFFER, 0, sizeof(drawCommand) * count, commands);
         }
         else
         {
