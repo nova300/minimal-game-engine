@@ -105,12 +105,17 @@ int main(void)
     geo_instanceop_add(rq[0], tb.matrix, 16);
     geo_instanceop_add(rq[0], tc.matrix, 16);
 
-    fb_init();
-    glBindVertexArray(VertexArrayID);
+
+    par_shapes_mesh *shape = par_shapes_create_plane(3, 3);
+    par_shapes_translate(shape, -0.5, 0, 1);
+    par_shapes_scale(shape, 4, 1.5, 1);
+
+    rq_add_object(&renderQueue1, geo_obj_createFromParShape(shape));
 
 
     //p1 = particle_new(rq[1], 1024);
-
+    fb_init();
+    glBindVertexArray(VertexArrayID);
     while (exitLoop == 0)
     {
         key_input_poll();
@@ -141,7 +146,6 @@ int main(void)
 
         glfwSwapBuffers(window);
         fb_clear();
-        fb_drawSineWave(10, 3.1f, time);
         glfwPollEvents();
         if (glfwWindowShouldClose(window)) exitLoop = 1;
     }
@@ -150,4 +154,10 @@ int main(void)
     quit();
     printf("Goodbye.\n");
     return 0;
+}
+
+void helloworld()
+{
+    printf("hello world");
+    return;
 }

@@ -29,6 +29,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         captureMouse = 1;
     }
 
+
 }
 
 void key_input_poll(void)
@@ -58,6 +59,19 @@ void key_input_poll(void)
         vec3 m = vector_cross(c_front, c_up);
         vector_normalize(&m);
         c_pos = vector_add(c_pos, vector_scale(m, c_speed));
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_F2) == GLFW_PRESS)
+    {
+        fb_test_pattern();
+    }
+    if (glfwGetKey(window, GLFW_KEY_F3) == GLFW_PRESS)
+    {
+        fb_test_dot();
+    }
+    if (glfwGetKey(window, GLFW_KEY_F4) == GLFW_PRESS)
+    {
+        fb_drawSineWave(10, 3.1f, time);
     }
 }
 

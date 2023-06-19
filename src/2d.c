@@ -113,3 +113,28 @@ void fb_drawSineWave(int amplitude, float frequency, float of)
         }
     }
 }
+
+void fb_test_dot(void)
+{
+    int index = rand() % ((FBWIDTH * FBHEIGHT) - 1);
+
+    colors[index].x = (rand() % 100) / 100.0f;
+    colors[index].y = (rand() % 100) / 100.0f;
+    colors[index].z = (rand() % 100) / 100.0f;
+    colors[index].w = 1.0f;
+}
+
+void fb_test_pattern(void)
+{
+    for (int y = 0; y < FBHEIGHT; y++) 
+    {
+        for (int x = 0; x < FBWIDTH; x++) 
+        {
+            int pixelIndex = (y * FBWIDTH + x);
+            colors[pixelIndex].x = (float)x / FBWIDTH;
+            colors[pixelIndex].y = (float)y / FBHEIGHT;
+            colors[pixelIndex].z = 1.0 - (float)x / FBWIDTH;
+            colors[pixelIndex].w = 1.0;
+        }
+    }
+}

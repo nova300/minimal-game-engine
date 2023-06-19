@@ -26,6 +26,7 @@ extern int exitLoop;
 
 extern float degrees;
 extern double deltaTime;
+extern double time;
 extern ParticleSystem *p1;
 
 extern mat4 viewMatrix;
