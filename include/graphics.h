@@ -4,9 +4,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
+#include <GL/glew.h>
 
 #include "shapes.h"
 
+#define DO_INTEL_WORKAROUND false
 
 #define GOBJ_TYPE_SINGLE 1
 #define GOBJ_TYPE_MULTI 2

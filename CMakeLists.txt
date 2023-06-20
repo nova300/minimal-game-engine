@@ -27,4 +27,4 @@ add_custom_command(TARGET engine-win POST_BUILD
                     COMMAND ${CMAKE_COMMAND} -E copy_directory
                         ${CMAKE_SOURCE_DIR}/media $<TARGET_FILE_DIR:engine-win>/media)
 
-include(./Harden.cmake)
+#include(./Harden.cmake)

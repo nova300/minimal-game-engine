@@ -3,7 +3,6 @@
 
 #define GLEW_STATIC
 
-#define DO_INTEL_WORKAROUND false
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,13 +31,13 @@ extern ParticleSystem *p1;
 extern mat4 viewMatrix;
 extern mat4 projectionMatrix;
 
-vec3 c_pos = {{0, 0, 3}};
-vec3 c_front = {{0, 0, -1}};
-vec3 c_up = {{0, 1, 0}};
+extern vec3 c_pos;
+extern vec3 c_front;
+extern vec3 c_up;
 
-float fov = 60.0f;
-int s_width = SCREEN_WIDTH;
-int s_height = SCREEN_HEIGHT;
+extern float fov;
+extern int s_width;
+extern int s_height;
 
 
 

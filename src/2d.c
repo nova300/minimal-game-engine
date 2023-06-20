@@ -1,7 +1,6 @@
 #include "graphics.h"
 #include "engine.h"
 #include "stdlib.h"
-#include "shaders.h"
 
 #define FBWIDTH 320
 #define FBHEIGHT 200
@@ -12,6 +11,27 @@ GLuint vbo;
 GLuint texture;
 
 vec4 colors[FBWIDTH * FBHEIGHT];
+
+const char *vertex_shader_2 =
+    "#version 430 core\n"
+    "layout(location = 0) in vec2 position;\n"
+    "out vec2 texCoord;\n"
+    "void main()\n"
+    "{\n"
+    "    gl_Position = vec4(position * 2.0 - 1.0, 0.0, 1.0);\n"
+    "    texCoord = position;\n"
+    "}\n";
+
+const char *fragment_shader_2 =
+"#version 430 core\n"
+"uniform sampler2D colorTexture;\n"
+"in vec2 texCoord;\n"
+"out vec4 fragColor;\n"
+"void main()\n"
+"{\n"
+"    fragColor = texture(colorTexture, texCoord);\n"
+"}\n";
+
 
 void fb_init()
 {

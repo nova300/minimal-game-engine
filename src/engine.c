@@ -16,6 +16,14 @@ float degrees = 0;
 mat4 projectionMatrix;
 mat4 viewMatrix;
 
+vec3 c_pos = {{0, 0, 3}};
+vec3 c_front = {{0, 0, -1}};
+vec3 c_up = {{0, 1, 0}};
+
+float fov = 60.0f;
+int s_width = SCREEN_WIDTH;
+int s_height = SCREEN_HEIGHT;
+
 int main(void)
 {
     printf("init: ");
