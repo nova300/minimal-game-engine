@@ -5,6 +5,7 @@ project(engine VERSION 0.1.0 LANGUAGES C)
 #SET(CMAKE_UNITY_BUILD TRUE)
 #SET(CMAKE_UNITY_BUILD_BATCH_SIZE 16)
 
+set(OpenGL_GL_PREFERENCE GLVND)
 find_package( OpenGL REQUIRED )
 
 add_subdirectory(lib/GLFW)

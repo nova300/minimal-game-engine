@@ -9,7 +9,7 @@ float lastY = SCREEN_HEIGHT / 2;
 float yaw = -90.0f;
 float pitch = 0.0f;
 
-char captureMouse = 1;
+char captureMouse = 0;
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
