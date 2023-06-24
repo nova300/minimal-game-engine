@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#define GLEW_STATIC
 #include <GL/glew.h>
 
 #include "shapes.h"
