@@ -12,8 +12,13 @@ add_subdirectory(lib/GLFW)
 include_directories(lib/GLFW/include)
 
 add_executable(engine lib/glew.c src/engine.c src/graphics.c src/shaders.c src/geometry.c src/ray.c src/event.c src/shapes.c src/2d.c src/init.c)
-set(LIB m)
-target_link_libraries(engine ${LIB} OpenGL::GL glfw )
+
+find_library(MATH_LIBRARY m)
+if(MATH_LIBRARY)
+    target_link_libraries(engine PUBLIC ${MATH_LIBRARY})
+endif()
+
+target_link_libraries(engine OpenGL::GL glfw )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
