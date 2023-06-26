@@ -15,7 +15,7 @@ add_executable(engine lib/glew.c src/engine.c src/graphics.c src/shaders.c src/g
 
 find_library(MATH_LIBRARY m)
 if(MATH_LIBRARY)
-    target_link_libraries(engine PUBLIC ${MATH_LIBRARY})
+    target_link_libraries(engine ${MATH_LIBRARY})
 endif()
 
 target_link_libraries(engine OpenGL::GL glfw )
