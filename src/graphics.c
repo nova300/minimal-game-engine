@@ -9,7 +9,7 @@ float radians(float dgr)
     return rad;
 }
 
-void vector_normalize(vec3* v) 
+void vector_normalize(vec4* v) 
 {
 	float sqr = v->x * v->x + v->y * v->y + v->z * v->z;
 	if(sqr == 1 || sqr == 0)
@@ -20,41 +20,76 @@ void vector_normalize(vec3* v)
 	v->z *= invrt;
 }
 
-float vector_dot(vec3 v1, vec3 v2) 
+float vector_dot(vec4 *v1, vec4 *v2) 
 {
-	return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+	//return v1->x * v2->x + v1->y * v2->y + v1->z * v2->z;
+
+    const float *p1 = (float*)v1;
+    const float *p2 = (float*)v2;
+
+    const float* const p1End = p1 + 4;
+
+    __m128 acc;
+
+    {
+        const __m128 a = _mm_loadu_ps(p1);
+        const __m128 b = _mm_loadu_ps(p2);
+        acc = _mm_mul_ps(a , b);
+        p1 += 4;
+		p2 += 4;
+    }
+
+    for (; p1 < p1End; v1 += 4, p2 += 4)
+    {
+        const __m128 a = _mm_loadu_ps(p1);
+        const __m128 b = _mm_loadu_ps(p2);
+        acc = _mm_add_ps( _mm_mul_ps( a, b ), acc );
+    }
+
+    //const __m128 r2 = _mm_add_ps( dot0, _mm_movehl_ps( dot0, dot0 ) );
+    //const __m128 r1 = _mm_add_ss( r2, _mm_shuffle_ps(r2, r2, 0x55) );
+
+    //r = _mm_shuffle_ps(dot0, dot0, 0x55);
+
+    __m128 shuf = _mm_shuffle_ps(acc, acc, _MM_SHUFFLE(2, 3, 0, 1));
+    __m128 sums = _mm_add_ps(acc, shuf);
+    shuf = _mm_movehl_ps(shuf, sums);
+    sums = _mm_add_ss(sums, shuf);
+    //float result = _mm_cvtss_f32(sums);
+
+    return _mm_cvtss_f32(sums);
 }
 
-vec3 vector_cross(vec3 v1, vec3 v2) 
+vec4 vector_cross(vec4 v1, vec4 v2) 
 {
-	vec3 out = {{0}};
+	vec4 out = {{0}};
 	out.x = v1.y*v2.z - v1.z*v2.y;
 	out.y = v1.z*v2.x - v1.x*v2.z;
 	out.z = v1.x*v2.y - v1.y*v2.x;
 	return out;
 }
 
-vec3 vector_subtract(vec3 v1, vec3 v2)
+vec4 vector_subtract(vec4 v1, vec4 v2)
 {
-    vec3 out = {{0}};
+    vec4 out = {{0}};
     out.x = v1.x - v2.x;
     out.y = v1.y - v2.y;
     out.z = v1.z - v2.z;
     return out;
 }
 
-vec3 vector_scale(vec3 v1, float s)
+vec4 vector_scale(vec4 v1, float s)
 {
-    vec3 out = {{0}};
+    vec4 out = {{0}};
     out.x = v1.x * s;
     out.y = v1.y * s;
     out.z = v1.z * s;
     return out;
 }
 
-vec3 vector_add(vec3 v1, vec3 v2)
+vec4 vector_add(vec4 v1, vec4 v2)
 {
-    vec3 out = {{0}};
+    vec4 out = {{0}};
     out.x = v1.x + v2.x;
     out.y = v1.y + v2.y;
     out.z = v1.z + v2.z;
@@ -79,13 +114,13 @@ mat4 matrix_perspective(float fovy, float aspect_ratio, float near_plane, float 
 	return out;
 }
 
-mat4 matrix_lookAt(vec3 eye, vec3 center, vec3 up) 
+mat4 matrix_lookAt(vec4 eye, vec4 center, vec4 up) 
 {
-    vec3 f = vector_subtract(center, eye);
+    vec4 f = vector_subtract(center, eye);
 	vector_normalize(&f);
-	vec3 u = up;
+	vec4 u = up;
     vector_normalize(&u);
-	vec3 s = vector_cross(f, u);
+	vec4 s = vector_cross(f, u);
 	vector_normalize(&s);
 	u = vector_cross(s, f);
 
@@ -102,9 +137,9 @@ mat4 matrix_lookAt(vec3 eye, vec3 center, vec3 up)
 	out.y.z = -f.y;
 	out.z.z = -f.z;
 
-	out.w.x = -vector_dot(s, eye);
-	out.w.y = -vector_dot(u, eye);
-	out.w.z =  vector_dot(f, eye);
+	out.w.x = -vector_dot(&s, &eye);
+	out.w.y = -vector_dot(&u, &eye);
+	out.w.z =  vector_dot(&f, &eye);
 	return out;
 }
 

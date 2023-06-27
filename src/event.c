@@ -50,13 +50,13 @@ void key_input_poll(void)
     }
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
     {   
-        vec3 m = vector_cross(c_front, c_up);
+        vec4 m = vector_cross(c_front, c_up);
         vector_normalize(&m);
         c_pos = vector_subtract(c_pos, vector_scale(m, c_speed));
     }
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
     {
-        vec3 m = vector_cross(c_front, c_up);
+        vec4 m = vector_cross(c_front, c_up);
         vector_normalize(&m);
         c_pos = vector_add(c_pos, vector_scale(m, c_speed));
     }
@@ -98,10 +98,11 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
     if(pitch > 89.0f) pitch = 89.0f;
     if(pitch < -89.0f) pitch = -89.0f;
 
-    vec3 direction;
+    vec4 direction;
     direction.x = cos(radians(yaw)) * cos(radians(pitch));
     direction.y = sin(radians(pitch));
     direction.z = sin(radians(yaw)) * cos(radians(pitch));
+    direction.w = 0;
     vector_normalize(&direction);
     c_front = direction;
 }

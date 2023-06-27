@@ -31,9 +31,9 @@ extern ParticleSystem *p1;
 extern mat4 viewMatrix;
 extern mat4 projectionMatrix;
 
-extern vec3 c_pos;
-extern vec3 c_front;
-extern vec3 c_up;
+extern vec4 c_pos;
+extern vec4 c_front;
+extern vec4 c_up;
 
 extern float fov;
 extern int s_width;

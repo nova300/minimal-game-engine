@@ -16,9 +16,9 @@ float degrees = 0;
 mat4 projectionMatrix;
 mat4 viewMatrix;
 
-vec3 c_pos = {{0, 0, 3}};
-vec3 c_front = {{0, 0, -1}};
-vec3 c_up = {{0, 1, 0}};
+vec4 c_pos = {{0, 0, 3, 0}};
+vec4 c_front = {{0, 0, -1, 0}};
+vec4 c_up = {{0, 1, 0, 0}};
 
 float fov = 60.0f;
 int s_width = SCREEN_WIDTH;
@@ -81,9 +81,9 @@ int main(void)
 
     projectionMatrix = matrix_perspective(radians(fov), (float)SCREEN_WIDTH/SCREEN_HEIGHT, 0.1f, 100.0f);
 
-    vec3 eye = {{5, 5, 5}};
-    vec3 center = {{0, 0, 0}};
-    vec3 up = {{0, 1, 0}};
+    vec4 eye = {{5, 5, 5, 0}};
+    vec4 center = {{0, 0, 0, 0}};
+    vec4 up = {{0, 1, 0, 0}};
     viewMatrix = matrix_lookAt(eye, center, up);
 
     GeoObject **rq = renderQueue1.objectBuffer;

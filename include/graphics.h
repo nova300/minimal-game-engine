@@ -8,6 +8,8 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
 
+#include <xmmintrin.h>
+
 #include "shapes.h"
 
 #define DO_INTEL_WORKAROUND false
@@ -72,16 +74,16 @@ static const mat4 IDENTITY_MATRIX =
 }};
 
 
-float vector_dot(vec3 v1, vec3 v2);
-vec3 vector_cross(vec3 v1, vec3 v2);
-void vector_normalize(vec3* v);
-vec3 vector_subtract(vec3 v1, vec3 v2);
-vec3 vector_add(vec3 v1, vec3 v2);
-vec3 vector_scale(vec3 v1, float s);
+float vector_dot(vec4 *v1, vec4 *v2);
+vec4 vector_cross(vec4 v1, vec4 v2);
+void vector_normalize(vec4* v);
+vec4 vector_subtract(vec4 v1, vec4 v2);
+vec4 vector_add(vec4 v1, vec4 v2);
+vec4 vector_scale(vec4 v1, float s);
 
 void matrix_rotateY(mat4* m, float angle);
 mat4 matrix_multiply(mat4* m1, mat4* m2);
-mat4 matrix_lookAt(vec3 eye, vec3 center, vec3 up);
+mat4 matrix_lookAt(vec4 eye, vec4 center, vec4 up);
 mat4 matrix_perspective(float fovy, float aspect_ratio, float near_plane, float far_plane);
 
 float radians(float dgr);
