@@ -17,7 +17,7 @@ const char *vertex_shader_0 =
     "{\n"
     "   vec3 nrmN = normalize(N);\n"
     "   vec3 nrmL = normalize(L);\n"
-    "   float result = dot(nrmN, nrmL) / 1 * (1 - 0.4) + 0.4;\n"
+    "   float result = dot(nrmN, nrmL) / 1 * (1 - 0.6) + 0.6;\n"
     "   return max(result, 0.0);\n"
     "}\n"
     "void main()\n"

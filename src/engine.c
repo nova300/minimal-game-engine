@@ -62,8 +62,8 @@ int main(void)
     par_shapes_merge_and_free(mesh1, cube);
     par_shapes__compute_welded_normals(mesh1);
 
-    par_shapes__compute_welded_normals(tetrahedron);
-    par_shapes__compute_welded_normals(octohedron);
+    par_shapes_compute_normals(tetrahedron);
+    par_shapes_compute_normals(octohedron);
 
     GeoObject *gobj = geo_obj_createFromParShape(mesh1);
     GeoObject *m1 = geo_obj_createFromParShape(tetrahedron);
@@ -119,6 +119,11 @@ int main(void)
     par_shapes_scale(shape, 4, 1.5, 1);
 
     rq_add_object(&renderQueue1, geo_obj_createFromParShape(shape));
+
+    GeoObject *cube1 = geo_new_object();
+    geo_obj_loadFromFile("media/cube.obj", cube1);
+
+    rq_add_object(&renderQueue1, cube1);
 
 
     //p1 = particle_new(rq[1], 1024);
