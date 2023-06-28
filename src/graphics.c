@@ -18,13 +18,37 @@ void vector_normalize(vec4* v)
 	v->x *= invrt;
 	v->y *= invrt;
 	v->z *= invrt;
+
+    return;
+
+    /*const float *p = (float*)v;
+
+    __m128 acc;
+    __m128 result;
+
+    const __m128 a = _mm_loadu_ps(p);
+    acc = _mm_mul_ps(a , a);
+
+    __m128 shuf = _mm_shuffle_ps(acc, acc, _MM_SHUFFLE(2, 3, 0, 1));
+    __m128 sums = _mm_add_ps(acc, shuf);
+    shuf = _mm_movehl_ps(shuf, sums);
+    result = _mm_add_ss(sums, shuf);
+
+    result = _mm_rsqrt_ss(result);
+
+    acc = _mm_loadu_ps(p);
+    result = _mm_mul_ss(acc, result);
+
+    _mm_store_ps((float*)v, result);
+
+    v->w = 0;*/
 }
 
 float vector_dot(vec4 *v1, vec4 *v2) 
 {
-	//return v1->x * v2->x + v1->y * v2->y + v1->z * v2->z;
+	return v1->x * v2->x + v1->y * v2->y + v1->z * v2->z;
 
-    const float *p1 = (float*)v1;
+    /*const float *p1 = (float*)v1;
     const float *p2 = (float*)v2;
 
     const float* const p1End = p1 + 4;
@@ -57,9 +81,10 @@ float vector_dot(vec4 *v1, vec4 *v2)
     sums = _mm_add_ss(sums, shuf);
     //float result = _mm_cvtss_f32(sums);
 
-    return _mm_cvtss_f32(sums);
+    return _mm_cvtss_f32(sums); */
 }
 
+/*
 float *vector_dot_multi(vec4 *v1, vec4 *v2, unsigned int count) 
 {
 
@@ -137,26 +162,27 @@ float *vector_dot_multi(vec4 *v1, vec4 *v2, unsigned int count)
 
     return results;
 
-    /*for (; p1 < p1End; v1 += 4, p2 += 4)
+    for (; p1 < p1End; v1 += 4, p2 += 4)
     {
         const __m128 a = _mm_loadu_ps(p1);
         const __m128 b = _mm_loadu_ps(p2);
         acc = _mm_add_ps( _mm_mul_ps( a, b ), acc );
-    }*/
+    }
 
     //const __m128 r2 = _mm_add_ps( dot0, _mm_movehl_ps( dot0, dot0 ) );
     //const __m128 r1 = _mm_add_ss( r2, _mm_shuffle_ps(r2, r2, 0x55) );
 
     //r = _mm_shuffle_ps(dot0, dot0, 0x55);
 
-    /*__m128 shuf = _mm_shuffle_ps(acc, acc, _MM_SHUFFLE(2, 3, 0, 1));
+    __m128 shuf = _mm_shuffle_ps(acc, acc, _MM_SHUFFLE(2, 3, 0, 1));
     __m128 sums = _mm_add_ps(acc, shuf);
     shuf = _mm_movehl_ps(shuf, sums);
-    sums = _mm_add_ss(sums, shuf);*/
+    sums = _mm_add_ss(sums, shuf);
     //float result = _mm_cvtss_f32(sums);
 
     //return _mm_cvtss_f32(sums);
 }
+*/
 
 vec4 vector_cross(vec4 v1, vec4 v2) 
 {
