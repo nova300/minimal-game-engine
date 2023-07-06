@@ -77,6 +77,10 @@ void key_input_poll(void)
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
+    if (!captureMouse)
+    {
+        return;
+    }
     if (firstMouse)
     {
         lastX = xpos;
