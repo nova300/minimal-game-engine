@@ -91,6 +91,7 @@ int FloatEquals(float a, float b, float floatEqualityThreshold);
 
 typedef struct
 {
+    char shaderType;
     GLuint ShaderID;
     int ProjectionID;
     int ViewID;
@@ -135,8 +136,24 @@ typedef union
         vec3 normal;
         vec2 uv;
     };
-    
 }vertex;
+
+typedef union
+{
+    float v[8];
+    struct
+    {
+        vec3 vertex;
+        vec3 normal;
+        short uvx;
+        short uvy;
+        char r;
+        char g;
+        char b;
+        char a;
+    };
+}vertex_c;
+
 
 typedef struct
 {
