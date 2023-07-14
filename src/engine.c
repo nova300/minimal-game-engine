@@ -72,12 +72,20 @@ int main(void)
     RenderQueue renderQueue1;
     rq_init(&renderQueue1, 10);
 
+    RenderQueue renderQueue2;
+    rq_init(&renderQueue2, 10);
+
+    rq_add_object(&renderQueue2, geo_obj_createFromParShape(tetrahedron));
+
     rq_add_object(&renderQueue1, geo_obj_createFromParShape(octohedron));
     rq_add_object(&renderQueue1, geo_obj_createFromParShape(tetrahedron));
 
     Shader *s = newShaderObject(vertex_shader_0, fragment_shader_0);
     //gobj->shader = s;
     renderQueue1.gpuHandle.shader = s;
+
+    s = newShaderObject(vertex_shader_2, fragment_shader_2);
+    renderQueue2.gpuHandle.shader = s;
 
     projectionMatrix = matrix_perspective(radians(fov), (float)SCREEN_WIDTH/SCREEN_HEIGHT, 0.1f, 100.0f);
 
@@ -93,6 +101,7 @@ int main(void)
     transform_set_identity(&rq[1]->baseTransform);
 
     renderQueue1.gpuHandle.textureAtlas = generateRandomAtlas();
+    renderQueue2.gpuHandle.textureAtlas = generateRandomAtlas();
 
     gobj->baseTexture = 5;
     rq[0]->baseTexture = 2;
@@ -150,8 +159,10 @@ int main(void)
         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
         rq_update_buffers(&renderQueue1);
+        rq_update_buffers(&renderQueue2);
         
         geo_render(&renderQueue1.gpuHandle);
+        geo_render(&renderQueue2.gpuHandle);
 
         fb_render();
         

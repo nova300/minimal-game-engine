@@ -12,7 +12,7 @@ GLuint texture;
 
 vec4 colors[FBWIDTH * FBHEIGHT];
 
-const char *vertex_shader_2 =
+const char *vertex_shader_2d =
     "#version 430 core\n"
     "layout(location = 0) in vec2 position;\n"
     "out vec2 texCoord;\n"
@@ -22,7 +22,7 @@ const char *vertex_shader_2 =
     "    texCoord = position;\n"
     "}\n";
 
-const char *fragment_shader_2 =
+const char *fragment_shader_2d =
 "#version 430 core\n"
 "uniform sampler2D colorTexture;\n"
 "in vec2 texCoord;\n"
@@ -35,7 +35,7 @@ const char *fragment_shader_2 =
 
 void fb_init()
 {
-    program = loadShaders(vertex_shader_2, fragment_shader_2);
+    program = loadShaders(vertex_shader_2d, fragment_shader_2d);
 
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
