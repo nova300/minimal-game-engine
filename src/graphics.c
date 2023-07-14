@@ -11,6 +11,7 @@ float radians(float dgr)
 
 void vector_normalize(vec4* v) 
 {
+    #ifndef DO_MMX
 	float sqr = v->x * v->x + v->y * v->y + v->z * v->z;
 	if(sqr == 1 || sqr == 0)
 		return;
@@ -20,8 +21,10 @@ void vector_normalize(vec4* v)
 	v->z *= invrt;
 
     return;
+    #endif
 
-    /*const float *p = (float*)v;
+    #ifdef DO_MMX
+    const float *p = (float*)v;
 
     __m128 acc;
     __m128 result;
@@ -41,14 +44,19 @@ void vector_normalize(vec4* v)
 
     _mm_store_ps((float*)v, result);
 
-    v->w = 0;*/
+    v->w = 0;
+    #endif
 }
 
 float vector_dot(vec4 *v1, vec4 *v2) 
 {
+    #ifndef DO_MMX
 	return v1->x * v2->x + v1->y * v2->y + v1->z * v2->z;
-
-    /*const float *p1 = (float*)v1;
+    #endif
+    
+    
+    #ifdef DO_MMX
+    const float *p1 = (float*)v1;
     const float *p2 = (float*)v2;
 
     const float* const p1End = p1 + 4;
@@ -81,17 +89,21 @@ float vector_dot(vec4 *v1, vec4 *v2)
     sums = _mm_add_ss(sums, shuf);
     //float result = _mm_cvtss_f32(sums);
 
-    return _mm_cvtss_f32(sums); */
+    return _mm_cvtss_f32(sums);
+    #endif
 }
 
-/*
+
 float *vector_dot_multi(vec4 *v1, vec4 *v2, unsigned int count) 
 {
 
     //scalar failsafe
-    //float ret = v1->x * v2->x + v1->y * v2->y + v1->z * v2->z;
-	//return &ret;
+    #ifndef DO_MMX
+    float ret = v1->x * v2->x + v1->y * v2->y + v1->z * v2->z;
+	return &ret;
+    #endif
 
+    #ifdef DO_MMX
     float *results = malloc(sizeof(float) * count);
 
     const float *p1 = (float*)v1;
@@ -181,8 +193,10 @@ float *vector_dot_multi(vec4 *v1, vec4 *v2, unsigned int count)
     //float result = _mm_cvtss_f32(sums);
 
     //return _mm_cvtss_f32(sums);
+
+    #endif
 }
-*/
+
 
 vec4 vector_cross(vec4 v1, vec4 v2) 
 {

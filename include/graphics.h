@@ -8,7 +8,9 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
 
-//#include <xmmintrin.h>
+#ifdef DO_MMX
+#include <xmmintrin.h>
+#endif
 
 #include "shapes.h"
 
