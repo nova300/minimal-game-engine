@@ -24,6 +24,10 @@ float fov = 60.0f;
 int s_width = SCREEN_WIDTH;
 int s_height = SCREEN_HEIGHT;
 
+Program **programStack;
+int programCapacity;
+int programTop;
+
 int main(void)
 {
     printf("init: ");
@@ -184,4 +188,42 @@ void helloworld()
 {
     printf("hello world");
     return;
+}
+
+int program_init()
+{
+    programCapacity = 3;
+    programStack = malloc(programCapacity * sizeof(Program *));
+    programTop = -1;
+    return 0;
+}
+
+int program_push(Program *program)
+{
+    if (programTop + 1 == programCapacity)
+    {
+        programCapacity *= 2;
+        programStack = realloc(programStack, programCapacity * sizeof(Program *));
+    }
+    programTop++;
+    programStack[programTop] = program;
+    if (program->init != NULL) program->init();
+    return programTop;
+}
+
+int program_pop()
+{
+    if (programTop == -1) return 0;
+    Program *top = programStack[programTop];
+    if (top->destroy != NULL) top->destroy();
+    programStack[programTop] = NULL;
+    programTop--;
+    return programTop;
+}
+
+int program_update(float deltatime)
+{
+    Program *top = programStack[programTop];
+    if (top->update != NULL) return top->update(deltatime);
+    return 1;
 }

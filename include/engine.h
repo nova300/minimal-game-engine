@@ -20,6 +20,20 @@
 #define SCREEN_WIDTH 1024
 #define SCREEN_HEIGHT 768
 
+typedef unsigned int (*functionPointer)();
+typedef unsigned int (*functionPointerFloat)(float);
+
+typedef struct
+{
+    functionPointer init;
+    functionPointerFloat update;
+    functionPointer destroy;
+}Program;
+
+extern Program **programStack;
+extern int programCapacity;
+extern int programTop;
+
 extern int errorCode;
 extern int exitLoop;
 
@@ -44,6 +58,13 @@ extern int s_height;
 int init();
 int initGL();
 void quit();
+
+int program_init(void);
+int program_free(void);
+int program_push(Program *program);
+int program_pop(void);
+int program_update(float deltaTime);
+Program *program_top(void);
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void error_callback(int error, const char* description);
