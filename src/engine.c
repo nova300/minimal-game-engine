@@ -52,7 +52,6 @@ int main(void)
     glBindVertexArray(VertexArrayID);
     while (exitLoop == 0)
     {
-        key_input_poll();
         viewMatrix = matrix_lookAt(c_pos, vector_add(c_pos, c_front), c_up);
         deltaTime = glfwGetTime() - time;
         if (deltaTime > 10) deltaTime = 10;
@@ -121,4 +120,10 @@ int program_update(float deltatime)
     Program *top = programStack[programTop];
     if (top->update != NULL) return top->update(deltatime);
     return 1;
+}
+
+Program *program_get()
+{
+    Program *top = programStack[programTop];
+    return top;
 }

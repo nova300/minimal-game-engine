@@ -6,6 +6,19 @@ RenderQueue renderQueue1;
 RenderQueue renderQueue2;
 Program *this;
 
+
+float sensitivity = 0.1f;
+float speed = 2.0f;
+char firstMouse;
+float lastX = SCREEN_WIDTH / 2;
+float lastY = SCREEN_HEIGHT / 2;
+float yaw = -90.0f;
+float pitch = 0.0f;
+char captureMouse = 0;
+
+void testprogram_key_input_poll(void);
+
+
 int testprogram_init()
 {
     par_shapes_mesh *dodecahedron = par_shapes_create_dodecahedron();
@@ -97,6 +110,7 @@ int testprogram_init()
 
 int testprogram_update(float deltaTime)
 {
+    testprogram_key_input_poll();
     transform_rotate(0, 0, 1 * deltaTime, &rq[1]->baseTransform);
     transform_rotate(1 * deltaTime, 0, 0, &rq[2]->baseTransform);
 
@@ -117,6 +131,109 @@ int testprogram_destroy()
     free(this);
 }
 
+int testprogram_keyCallback(int key, int action)
+{
+    if (key == GLFW_KEY_F1 && action == GLFW_PRESS)
+    {
+        if (captureMouse)
+        {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+            captureMouse = 0;
+            return 0;
+        }
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        captureMouse = 1;
+    }
+}
+
+int testprogram_mouseCallback(double xpos, double ypos)
+{
+    if (!captureMouse)
+    {
+        return 0;
+    }
+    if (firstMouse)
+    {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
+  
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos; 
+    lastX = xpos;
+    lastY = ypos;
+
+    xoffset *= sensitivity;
+    yoffset *= sensitivity;
+
+    yaw += xoffset;
+    pitch += yoffset;
+
+    if(pitch > 89.0f) pitch = 89.0f;
+    if(pitch < -89.0f) pitch = -89.0f;
+
+    vec4 direction;
+    direction.x = cos(radians(yaw)) * cos(radians(pitch));
+    direction.y = sin(radians(pitch));
+    direction.z = sin(radians(yaw)) * cos(radians(pitch));
+    direction.w = 0;
+    vector_normalize(&direction);
+    c_front = direction;
+}
+
+int testprogram_scrollCallback(double xoffset, double yoffset)
+{
+    fov = fov - (yoffset * 10);
+    if (fov < 1.0f) fov = 1.0f;
+    if (fov > 120.0f) fov = 120.0f; 
+    projectionMatrix = matrix_perspective(radians(fov), (float)s_width/s_height, 0.1f, 100.0f);
+}
+
+void testprogram_key_input_poll(void)
+{
+    float c_speed = speed * deltaTime;
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+    {
+        c_speed = c_speed * 2;
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+    {
+        c_pos = vector_add(c_pos, vector_scale(c_front, c_speed));
+    }
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+    {
+        c_pos = vector_subtract(c_pos, vector_scale(c_front, c_speed));
+    }
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+    {   
+        vec4 m = vector_cross(c_front, c_up);
+        vector_normalize(&m);
+        c_pos = vector_subtract(c_pos, vector_scale(m, c_speed));
+    }
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+    {
+        vec4 m = vector_cross(c_front, c_up);
+        vector_normalize(&m);
+        c_pos = vector_add(c_pos, vector_scale(m, c_speed));
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_F2) == GLFW_PRESS)
+    {
+        fb_test_pattern();
+    }
+    if (glfwGetKey(window, GLFW_KEY_F3) == GLFW_PRESS)
+    {
+        fb_test_dot();
+    }
+    if (glfwGetKey(window, GLFW_KEY_F4) == GLFW_PRESS)
+    {
+        fb_drawSineWave(10, 3.1f, time);
+    }
+}
+
+
 Program *program_get_testmode()
 {
     this = malloc(sizeof(Program));
@@ -124,4 +241,8 @@ Program *program_get_testmode()
     this->init = testprogram_init;
     this->update = testprogram_update;
     this->destroy = testprogram_destroy;
+
+    this->keyCallback = testprogram_keyCallback;
+    this->mouseCallback = testprogram_mouseCallback;
+    this->scrollCallback = testprogram_scrollCallback;
 }
