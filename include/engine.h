@@ -20,8 +20,8 @@
 #define SCREEN_WIDTH 1024
 #define SCREEN_HEIGHT 768
 
-typedef unsigned int (*functionPointer)();
-typedef unsigned int (*functionPointerFloat)(float);
+typedef int (*functionPointer)();
+typedef int (*functionPointerFloat)(float);
 
 typedef struct
 {
@@ -75,6 +75,10 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 extern GLFWwindow *window;
 
 
+
+/* program prototypes */
+
+Program *program_get_testmode();
 
 
 #endif
