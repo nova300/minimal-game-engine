@@ -2,15 +2,23 @@
 #include "engine.h"
 #include "stdlib.h"
 
+#include "stb_image.h"
+#include "stb_image_resize.h"
+
 #define FBWIDTH 320
 #define FBHEIGHT 200
 
 GLuint program;
+GLuint program_bg;
 GLuint vao;
 GLuint vbo;
 GLuint texture;
+GLuint texture_bg;
+
+char bg_dirty;
 
 vec4 colors[FBWIDTH * FBHEIGHT];
+vec4 colors_bg[FBWIDTH * FBHEIGHT];
 
 const char *vertex_shader_2d =
     "#version 430 core\n"
@@ -18,13 +26,15 @@ const char *vertex_shader_2d =
     "out vec2 texCoord;\n"
     "void main()\n"
     "{\n"
-    "    gl_Position = vec4(position * 2.0 - 1.0, 0.0, 1.0);\n"
-    "    texCoord = position;\n"
+    "    gl_Position = vec4(position * 2.0 - 1.0, -1.0, 1.0);\n"
+    "    texCoord.x = position.x;\n"
+    "    texCoord.y = 1.0 - position.y;\n"
     "}\n";
 
 const char *fragment_shader_2d =
 "#version 430 core\n"
 "uniform sampler2D colorTexture;\n"
+"uniform float time;\n"
 "in vec2 texCoord;\n"
 "out vec4 fragColor;\n"
 "void main()\n"
@@ -32,10 +42,35 @@ const char *fragment_shader_2d =
 "    fragColor = texture(colorTexture, texCoord);\n"
 "}\n";
 
+const char *fragment_shader_2d_water =
+"#version 430 core\n"
+"uniform sampler2D colorTexture;\n"
+"uniform float time;\n"
+"in vec2 texCoord;\n"
+"out vec4 fragColor;\n"
+"void main()\n"
+"{\n"
+"    vec2 offset;\n"
+"    offset.x = cos((time * 0.5) + texCoord.x + texCoord.y * 20.0 * 2.0) * 2.0 * 0.01;\n"
+"    fragColor = texture(colorTexture, texCoord + offset);\n"
+"}\n";
+
 
 void fb_init()
 {
     program = loadShaders(vertex_shader_2d, fragment_shader_2d);
+    program_bg = loadShaders(vertex_shader_2d, fragment_shader_2d_water);
+
+    int w;
+    int h;
+    int comp;
+    float *image = stbi_loadf("media/underwater2.png", &w, &h, &comp, STBI_rgb_alpha);
+
+    //stbir_resize_float(image, w, h, 0, (float*)colors_bg, 320, 200, 0, STBI_rgb_alpha);
+
+    memcpy(colors_bg, image, sizeof(colors_bg));
+
+    bg_dirty = true;
 
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
@@ -61,6 +96,13 @@ void fb_init()
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, FBWIDTH, FBHEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    glGenTextures(1, &texture_bg);
+    glBindTexture(GL_TEXTURE_2D, texture_bg);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, FBWIDTH, FBHEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 }
 
 void fb_update()
@@ -69,14 +111,44 @@ void fb_update()
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, FBWIDTH, FBHEIGHT, GL_RGBA, GL_FLOAT, colors);
 }
 
+void fb_update_bg()
+{
+    glBindTexture(GL_TEXTURE_2D, texture_bg);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, FBWIDTH, FBHEIGHT, GL_RGBA, GL_FLOAT, colors_bg);
+    bg_dirty = false;
+}
+
 void fb_render()
 {
     fb_update();
     glUseProgram(program);
     glBindTexture(GL_TEXTURE_2D, texture);
     glUniform1i(glGetUniformLocation(program, "colorTexture"), 0);
+    glUniform1f(glGetUniformLocation(program, "time"), (float)time);
     glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+}
+
+void fb_copy_to_bg()
+{
+    memcpy(colors_bg, colors, sizeof(colors_bg));
+    bg_dirty = true;
+}
+
+void fb_render_bg()
+{
+    if (bg_dirty)
+    {
+        fb_update_bg();
+    }
+    glUseProgram(program_bg);
+    glBindTexture(GL_TEXTURE_2D, texture_bg);
+    glUniform1i(glGetUniformLocation(program_bg, "colorTexture"), 0);
+    glUniform1f(glGetUniformLocation(program_bg, "time"), (float)time);
+    glBindVertexArray(vao);
+    glDepthMask(GL_FALSE);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glDepthMask(GL_TRUE);
 }
 
 void fb_clear()

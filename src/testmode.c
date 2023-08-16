@@ -231,6 +231,10 @@ void testprogram_key_input_poll(void)
     {
         fb_drawSineWave(10, 3.1f, time);
     }
+    if (glfwGetKey(window, GLFW_KEY_F5) == GLFW_PRESS)
+    {
+        fb_copy_to_bg();
+    }
 }
 
 

@@ -1,6 +1,12 @@
 #include "graphics.h"
 //#include "engine.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
+#define STB_IMAGE_RESIZE_IMPLEMENTATION
+#include "stb_image_resize.h"
+
 /* 3D math */
 
 float radians(float dgr)
@@ -629,46 +635,9 @@ GLuint generateRandomAtlas(void)
 
 GLuint loadTexture(const char *name)
 {
-    /*SDL_Surface *s = IMG_Load(name);
-    if (s == NULL)
-    {
-        printf("could not find image file\n");
-        return 1;
-    }
+    GLuint texture;
 
-    GLuint Mode = 0;
-    if(s->format->BytesPerPixel == 3) Mode = GL_RGB;
-    if(s->format->BytesPerPixel == 4) Mode = GL_RGBA;
-
-    if (Mode == 0)
-    {
-        printf("TEXTURE: %s : unsupported pixel format: %dbbp. trying to convert... ", name , s->format->BytesPerPixel);
-        SDL_Surface *ptr = SDL_ConvertSurfaceFormat(s, SDL_PIXELFORMAT_RGBA32, 0);
-        if (ptr == NULL) 
-        {
-            printf("FAIL\n");
-            return 2;
-        }
-        SDL_FreeSurface(s);
-        s = ptr;
-        Mode = GL_RGBA;
-        printf("OK\n");
-    }
-
-    GLuint textureID;
-    glGenTextures(1, &textureID);
-    glBindTexture(GL_TEXTURE_2D, textureID);
-    glTexImage2D(GL_TEXTURE_2D, 0, Mode, s->w, s->h, 0, Mode, GL_UNSIGNED_BYTE, s->pixels);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-    SDL_FreeSurface(s);
-
-    *texture = textureID;*/
-    return 0;
+    return texture;
 }
 
 void rq_update_buffers(RenderQueue *rq)

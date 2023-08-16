@@ -261,5 +261,8 @@ void fb_clear();
 void fb_drawSineWave(int amplitude, float frequency, float of);
 void fb_test_dot(void);
 void fb_test_pattern(void);
+void fb_copy_to_bg(void);
+void fb_render_bg(void);
+void fb_test_pattern_bg(void);
 
 #endif

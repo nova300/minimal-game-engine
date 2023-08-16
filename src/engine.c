@@ -60,11 +60,13 @@ int main(void)
         glClearColor(0.0f, 0.0f, 0.2f, 0.0f);
         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
+        fb_render_bg();
+
         glBindVertexArray(VertexArrayID);
 
         program_update(deltaTime);
 
-        fb_render();
+        fb_render();        
 
         glfwSwapBuffers(window);
         fb_clear();
