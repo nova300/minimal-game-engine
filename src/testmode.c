@@ -21,6 +21,9 @@ void testprogram_key_input_poll(void);
 
 int testprogram_init()
 {
+
+    glfwSetWindowTitle(window, "TEST PROGRAM 1");
+
     par_shapes_mesh *dodecahedron = par_shapes_create_dodecahedron();
     par_shapes_translate(dodecahedron, 0, 0.934, 0);
 

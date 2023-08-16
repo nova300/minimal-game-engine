@@ -47,6 +47,9 @@ static GeoObject *gobj;
 
 int boidprogram_init()
 {
+
+    glfwSetWindowTitle(window, "BOID PROGRAM");
+
     par_shapes_mesh *mesh1 = par_shapes_create_tetrahedron();
 
     par_shapes_compute_normals(mesh1);
