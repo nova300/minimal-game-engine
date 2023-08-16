@@ -240,6 +240,15 @@ vec4 vector_add(vec4 v1, vec4 v2)
     return out;
 }
 
+float vector_distance(vec4 v1, vec4 v2)
+{
+    float dx = v2.x - v1.x;
+    float dy = v2.y - v1.y;
+    float dz = v2.z - v1.z;
+    
+    return sqrt(dx * dx + dy * dy + dz * dz);
+}
+
 mat4 matrix_perspective(float fovy, float aspect_ratio, float near_plane, float far_plane) 
 {
 	mat4 out = { { 0 } };

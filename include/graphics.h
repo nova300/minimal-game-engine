@@ -82,6 +82,7 @@ void vector_normalize(vec4* v);
 vec4 vector_subtract(vec4 v1, vec4 v2);
 vec4 vector_add(vec4 v1, vec4 v2);
 vec4 vector_scale(vec4 v1, float s);
+float vector_distance(vec4 v1, vec4 v2);
 
 void matrix_rotateY(mat4* m, float angle);
 mat4 matrix_multiply(mat4* m1, mat4* m2);

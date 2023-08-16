@@ -1,20 +1,20 @@
 #include "engine.h"
 #include "shaders.h"
 
-GeoObject **rq;
-RenderQueue renderQueue1;
-RenderQueue renderQueue2;
-Program *this;
+static GeoObject **rq;
+static RenderQueue renderQueue1;
+static RenderQueue renderQueue2;
+static Program *this;
 
 
-float sensitivity = 0.1f;
-float speed = 2.0f;
-char firstMouse;
-float lastX = SCREEN_WIDTH / 2;
-float lastY = SCREEN_HEIGHT / 2;
-float yaw = -90.0f;
-float pitch = 0.0f;
-char captureMouse = 0;
+static float sensitivity = 0.1f;
+static float speed = 2.0f;
+static char firstMouse;
+static float lastX = SCREEN_WIDTH / 2;
+static float lastY = SCREEN_HEIGHT / 2;
+static float yaw = -90.0f;
+static float pitch = 0.0f;
+static char captureMouse = 0;
 
 void testprogram_key_input_poll(void);
 
@@ -249,4 +249,6 @@ Program *program_get_testmode()
     this->keyCallback = testprogram_keyCallback;
     this->mouseCallback = testprogram_mouseCallback;
     this->scrollCallback = testprogram_scrollCallback;
+    
+    return this;
 }

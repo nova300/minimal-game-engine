@@ -1,5 +1,8 @@
 #include "engine.h"
 
+#define SHADERS_H_IMPLEMENTATION
+#include "shaders.h"
+
 double time = 0;
 double deltaTime = 0;
 
@@ -10,7 +13,7 @@ float degrees = 0;
 mat4 projectionMatrix;
 mat4 viewMatrix;
 
-vec4 c_pos = {{0, 0, 3, 0}};
+vec4 c_pos = {{0, 0, 50, 0}};
 vec4 c_front = {{0, 0, -1, 0}};
 vec4 c_up = {{0, 1, 0, 0}};
 
@@ -46,7 +49,7 @@ int main(void)
 
     program_init();
 
-    program_push(program_get_testmode());
+    program_push(program_get_boidmode());
 
     fb_init();
     glBindVertexArray(VertexArrayID);

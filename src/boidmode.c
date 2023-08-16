@@ -1,0 +1,372 @@
+#include "engine.h"
+#include "shaders.h"
+
+static GeoObject **rq;
+static RenderQueue renderQueue1;
+static Program *this;
+
+
+static float sensitivity = 0.1f;
+static float mspeed = 2.0f;
+static char firstMouse;
+static float lastX = SCREEN_WIDTH / 2;
+static float lastY = SCREEN_HEIGHT / 2;
+static float yaw = -90.0f;
+static float pitch = 0.0f;
+static char captureMouse = 0;
+
+static ParticleSystem *p1;
+
+void boidprogram_key_input_poll(void);
+
+typedef struct Boid
+{
+    struct Boid **localBoidList;
+    int localBoidListAmount;
+    Transform transform;
+    vec4 direction;
+    float radius;
+    float steerSpeed;
+    float speed;
+    int texture;
+    int id;
+}boid;
+
+static boid *boids;
+static Transform *transform;
+static int amount;
+
+static float speed;
+static float steerSpeed;
+static float radius;
+
+static vec4 zero;
+
+static GeoObject *gobj;
+
+
+int boidprogram_init()
+{
+    par_shapes_mesh *mesh1 = par_shapes_create_tetrahedron();
+
+    par_shapes_compute_normals(mesh1);
+
+    gobj = geo_obj_createFromParShape(mesh1);
+
+    rq_init(&renderQueue1, 10);
+
+
+    Shader *s = newShaderObject(vertex_shader_0, fragment_shader_0);
+    renderQueue1.gpuHandle.shader = s;
+
+    rq = renderQueue1.objectBuffer;
+
+    transform_set_identity(&gobj->baseTransform);
+
+    renderQueue1.gpuHandle.textureAtlas = generateRandomAtlas();
+
+    gobj->baseTexture = 5;
+
+    rq_add_object(&renderQueue1, gobj);
+
+    //p1 = particle_new(gobj, 100);
+
+    amount = 500;
+
+    radius = 5.0f;
+    steerSpeed = 0.01f;
+    speed = 10.0f;
+
+    geo_instanceop_init(gobj, amount);
+
+    transform = &(gobj->baseTransform);
+    boid *b = malloc(sizeof(boid) * amount);
+
+    zero.x = 0;
+    zero.y = 0;
+    zero.z = 0;
+    zero.w = 0;
+
+    for (int i = 0; i < amount; i++)
+    {
+        b[i].radius = radius;
+        b[i].speed = speed;
+        b[i].steerSpeed = steerSpeed;
+        b[i].direction.x = ((rand() - rand()) % 3) + ((rand() - rand()) % 10);
+        b[i].direction.y = ((rand() - rand()) % 3) + ((rand() - rand()) % 10);
+        b[i].direction.z = ((rand() - rand()) % 3) + ((rand() - rand()) % 10);
+        b[i].texture = rand() % 50;
+        transform_set_identity(&b[i].transform);
+
+        transform_position(((rand() - rand()) % 30) + ((rand() - rand()) % 100), ((rand() - rand()) % 30) + ((rand() - rand()) % 100), ((rand() - rand()) % 30) + ((rand() - rand()) % 100), &b[i].transform);
+        
+        b[i].localBoidList = malloc(sizeof(boid*) * 50);
+        b[i].localBoidListAmount = 0;
+
+        b[i].id = i;
+
+    }
+    
+    boids = b;
+
+}
+
+void updateLocalBoidList(boid *b)
+{
+    b->localBoidListAmount = 0;
+
+    for (int i = 0; i < amount; i++)
+    {
+        if (b->localBoidListAmount == 49) break;
+        if (boids[i].id == b->id) continue;
+
+        if (vector_distance(b->transform.position, boids[i].transform.position) < radius)
+        {
+            b->localBoidList[b->localBoidListAmount] = &boids[i];
+            b->localBoidListAmount++;
+        }
+    }
+}
+
+void doCohesion(boid *b)
+{
+    vec4 avg = zero;
+    if (b->localBoidListAmount == 0) return;
+
+    for (int i = 0; i < b->localBoidListAmount; i++)
+    {
+        avg = vector_add(avg, b->localBoidList[i]->transform.position);
+    }
+
+    avg.x = avg.x / b->localBoidListAmount;
+    avg.y = avg.y / b->localBoidListAmount;
+    avg.z = avg.z / b->localBoidListAmount;
+
+    vec4 dir = vector_subtract(avg, b->transform.position);
+
+    b->direction.x += dir.x * steerSpeed;
+    b->direction.y += dir.y * steerSpeed;
+    b->direction.z += dir.z * steerSpeed;
+}
+
+void doAlignment(boid *b)
+{
+    vec4 avg = zero;
+    if (b->localBoidListAmount == 0) return;
+
+    for (int i = 0; i < b->localBoidListAmount; i++)
+    {
+        avg = vector_add(avg, b->localBoidList[i]->direction);
+    }
+
+    avg.x = avg.x / b->localBoidListAmount;
+    avg.y = avg.y / b->localBoidListAmount;
+    avg.z = avg.z / b->localBoidListAmount;
+
+    b->direction.x += avg.x * steerSpeed;
+    b->direction.y += avg.y * steerSpeed;
+    b->direction.z += avg.z * steerSpeed;
+}
+
+void doSeperation(boid *b)
+{
+    float sepRad = radius * 0.1f;
+    boid *closeBoids[100];
+    int closeBoidsAmount = 0;
+    
+    for (int i = 0; i < b->localBoidListAmount; i++)
+    {
+        if (closeBoidsAmount == 99) break;
+        float dist = vector_distance(b->transform.position, b->localBoidList[i]->transform.position);
+        if (dist < sepRad)
+        {
+            closeBoids[closeBoidsAmount] = &boids[i];
+            closeBoidsAmount++;
+            sepRad = dist;
+        }
+    }
+    vec4 avg = zero;
+    if (closeBoidsAmount == 0)
+    {
+        return;
+    }
+    for (int i = 0; i < closeBoidsAmount; i++)
+    {
+        avg = vector_add(avg, closeBoids[i]->transform.position);
+    }
+
+    avg.x = avg.x / closeBoidsAmount;
+    avg.y = avg.y / closeBoidsAmount;
+    avg.z = avg.z / closeBoidsAmount;
+
+    vec4 dir = vector_subtract(avg, b->transform.position);
+
+    b->direction.x -= dir.x * steerSpeed * 1.5f;
+    b->direction.y -= dir.y * steerSpeed * 1.5f;
+    b->direction.z -= dir.z * steerSpeed * 1.5f;
+}
+
+void doRetention(boid *b)
+{
+    if (vector_distance(transform->position, b->transform.position) > 50.0f)
+    {
+        vec4 dir = vector_subtract(transform->position, b->transform.position);
+
+        b->direction.x += dir.x * steerSpeed;
+        b->direction.y += dir.y * steerSpeed;
+        b->direction.z += dir.z * steerSpeed;
+    }
+}
+
+int boidprogram_update(float deltaTime)
+{
+    boidprogram_key_input_poll();
+
+    //particle_update(p1);
+
+
+    geo_instanceop_clear(gobj);
+    for (int i = 0; i < amount; i++)
+    {
+        updateLocalBoidList(&boids[i]);
+        doAlignment(&boids[i]);
+        doCohesion(&boids[i]);
+        doSeperation(&boids[i]);
+        doRetention(&boids[i]);
+        vector_normalize(&boids[i].direction);
+        transform_move(boids[i].direction.x * (deltaTime * speed), boids[i].direction.y * (deltaTime * speed), boids[i].direction.z * (deltaTime * speed), &boids[i].transform);
+        transform_set_rotation(boids[i].direction.x, boids[i].direction.y, boids[i].direction.z, &boids[i].transform);
+        geo_instanceop_add(gobj, boids[i].transform.matrix, boids[i].texture);
+    }
+
+    rq_update_buffers(&renderQueue1);
+
+    geo_render(&renderQueue1.gpuHandle);
+}
+
+int boidprogram_destroy()
+{
+    free(this);
+}
+
+int boidprogram_keyCallback(int key, int action)
+{
+    if (key == GLFW_KEY_F1 && action == GLFW_PRESS)
+    {
+       for (int i = 0; i < amount; i++)
+    {
+        transform_position(((rand() - rand()) % 30) + ((rand() - rand()) % 100), ((rand() - rand()) % 30) + ((rand() - rand()) % 100), ((rand() - rand()) % 30) + ((rand() - rand()) % 100), &boids[i].transform);
+    } 
+    }
+}
+
+int boidprogram_mouseCallback(double xpos, double ypos)
+{
+    if (!captureMouse)
+    {
+        return 0;
+    }
+    if (firstMouse)
+    {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
+  
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos; 
+    lastX = xpos;
+    lastY = ypos;
+
+    xoffset *= sensitivity;
+    yoffset *= sensitivity;
+
+    yaw += xoffset;
+    pitch += yoffset;
+
+    if(pitch > 89.0f) pitch = 89.0f;
+    if(pitch < -89.0f) pitch = -89.0f;
+
+    vec4 direction;
+    direction.x = cos(radians(yaw)) * cos(radians(pitch));
+    direction.y = sin(radians(pitch));
+    direction.z = sin(radians(yaw)) * cos(radians(pitch));
+    direction.w = 0;
+    vector_normalize(&direction);
+    c_front = direction;
+}
+
+int boidprogram_scrollCallback(double xoffset, double yoffset)
+{
+    fov = fov - (yoffset * 10);
+    if (fov < 1.0f) fov = 1.0f;
+    if (fov > 120.0f) fov = 120.0f; 
+    projectionMatrix = matrix_perspective(radians(fov), (float)s_width/s_height, 0.1f, 100.0f);
+}
+
+void boidprogram_key_input_poll(void)
+{
+    float c_speed = mspeed * deltaTime;
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+    {
+        c_speed = c_speed * 2;
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+    {
+        c_pos = vector_add(c_pos, vector_scale(c_front, c_speed));
+    }
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+    {
+        c_pos = vector_subtract(c_pos, vector_scale(c_front, c_speed));
+    }
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+    {   
+        vec4 m = vector_cross(c_front, c_up);
+        vector_normalize(&m);
+        c_pos = vector_subtract(c_pos, vector_scale(m, c_speed));
+    }
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+    {
+        vec4 m = vector_cross(c_front, c_up);
+        vector_normalize(&m);
+        c_pos = vector_add(c_pos, vector_scale(m, c_speed));
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_F2) == GLFW_PRESS)
+    {
+        radius = radius - 0.1f;
+        printf("radius: %f\n", radius);
+    }
+    if (glfwGetKey(window, GLFW_KEY_F3) == GLFW_PRESS)
+    {
+        radius = radius + 0.1f;
+        printf("radius: %f\n", radius);
+    }
+    if (glfwGetKey(window, GLFW_KEY_F4) == GLFW_PRESS)
+    {
+        steerSpeed = steerSpeed - 0.1f;
+        printf("steerspeed: %f\n", steerSpeed);
+    }
+    if (glfwGetKey(window, GLFW_KEY_F5) == GLFW_PRESS)
+    {
+        steerSpeed = steerSpeed + 0.1f;
+        printf("steerspeed: %f\n", radius);
+    }
+}
+
+
+Program *program_get_boidmode()
+{
+    this = malloc(sizeof(Program));
+
+    this->init = boidprogram_init;
+    this->update = boidprogram_update;
+    this->destroy = boidprogram_destroy;
+
+    this->keyCallback = boidprogram_keyCallback;
+    this->mouseCallback = boidprogram_mouseCallback;
+    this->scrollCallback = boidprogram_scrollCallback;
+
+    return this;
+}

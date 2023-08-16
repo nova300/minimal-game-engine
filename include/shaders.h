@@ -1,6 +1,16 @@
 #ifndef SHADERS_H
 #define SHADERS_H
 
+extern const char *vertex_shader_0;
+extern const char *fragment_shader_0;
+extern const char *vertex_shader_1;
+extern const char *fragment_shader_1;
+extern const char *vertex_shader_2;
+extern const char *fragment_shader_2;
+
+
+#ifdef SHADERS_H_IMPLEMENTATION
+
 const char *vertex_shader_0 = 
     "#version 430 core\n"
     "layout(location = 0) in vec3 vertexPosition_modelspace;\n"
@@ -145,5 +155,6 @@ const char *fragment_shader_2 =
 "   color = vec4(col , 1);\n"
 "}\n";
 
+#endif
 
 #endif

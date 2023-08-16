@@ -15,6 +15,7 @@
 
 #include "graphics.h"
 
+
 #define TITLE "minimal game engine"
 
 #define SCREEN_WIDTH 1024
@@ -45,7 +46,6 @@ extern int exitLoop;
 extern float degrees;
 extern double deltaTime;
 extern double time;
-extern ParticleSystem *p1;
 
 extern mat4 viewMatrix;
 extern mat4 projectionMatrix;
@@ -82,6 +82,7 @@ extern GLFWwindow *window;
 /* program prototypes */
 
 Program *program_get_testmode();
+Program *program_get_boidmode();
 
 
 #endif
