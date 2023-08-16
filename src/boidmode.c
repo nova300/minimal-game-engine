@@ -40,6 +40,11 @@ static float speed;
 static float steerSpeed;
 static float radius;
 
+static float separationWeight = 0.30;
+static float alignmentWeight = 0.145;
+
+char scrollmode = 0;
+
 static vec4 zero;
 
 static GeoObject *gobj;
@@ -74,9 +79,9 @@ int boidprogram_init()
 
     //p1 = particle_new(gobj, 100);
 
-    amount = 500;
+    amount = 150;
 
-    radius = 5.0f;
+    radius = 10.0f;
     steerSpeed = 0.01f;
     speed = 10.0f;
 
@@ -103,7 +108,7 @@ int boidprogram_init()
 
         transform_position(((rand() - rand()) % 30) + ((rand() - rand()) % 100), ((rand() - rand()) % 30) + ((rand() - rand()) % 100), ((rand() - rand()) % 30) + ((rand() - rand()) % 100), &b[i].transform);
         
-        b[i].localBoidList = malloc(sizeof(boid*) * 50);
+        b[i].localBoidList = malloc(sizeof(boid*) * 40);
         b[i].localBoidListAmount = 0;
 
         b[i].id = i;
@@ -120,7 +125,7 @@ void updateLocalBoidList(boid *b)
 
     for (int i = 0; i < amount; i++)
     {
-        if (b->localBoidListAmount == 49) break;
+        if (b->localBoidListAmount == 40) break;
         if (boids[i].id == b->id) continue;
 
         if (vector_distance(b->transform.position, boids[i].transform.position) < radius)
@@ -147,6 +152,8 @@ void doCohesion(boid *b)
 
     vec4 dir = vector_subtract(avg, b->transform.position);
 
+    vector_normalize(&dir);
+
     b->direction.x += dir.x * steerSpeed;
     b->direction.y += dir.y * steerSpeed;
     b->direction.z += dir.z * steerSpeed;
@@ -166,36 +173,52 @@ void doAlignment(boid *b)
     avg.y = avg.y / b->localBoidListAmount;
     avg.z = avg.z / b->localBoidListAmount;
 
-    b->direction.x += avg.x * steerSpeed;
-    b->direction.y += avg.y * steerSpeed;
-    b->direction.z += avg.z * steerSpeed;
+    float alignSpeed = steerSpeed * alignmentWeight;
+
+    b->direction.x += avg.x * alignSpeed;
+    b->direction.y += avg.y * alignSpeed;
+    b->direction.z += avg.z * alignSpeed;
 }
 
 void doSeperation(boid *b)
 {
-    float sepRad = radius * 0.1f;
-    boid *closeBoids[100];
+    float sepRad = radius * 0.8f;
+    //boid *closeBoids[50];
     int closeBoidsAmount = 0;
+    vec4 avg = zero;
     
-    for (int i = 0; i < b->localBoidListAmount; i++)
+    for (int i = 0; i < amount; i++)
     {
-        if (closeBoidsAmount == 99) break;
-        float dist = vector_distance(b->transform.position, b->localBoidList[i]->transform.position);
+        if (closeBoidsAmount == 49) break;
+        float dist = vector_distance(b->transform.position, boids[i].transform.position);
         if (dist < sepRad)
         {
-            closeBoids[closeBoidsAmount] = &boids[i];
+            //closeBoids[closeBoidsAmount] = &boids[i];
             closeBoidsAmount++;
-            sepRad = dist;
+            //sepRad = dist;
+
+            vec4 diff;
+
+            diff.x = boids[i].transform.position.x;
+            diff.y = boids[i].transform.position.y;
+            diff.z = boids[i].transform.position.z;
+
+            /*if (dist > 1.0f)
+            {
+                dist = 1.0f;
+            }
+
+            diff.x = diff.x - (diff.x * dist);
+            diff.y = diff.y - (diff.y * dist);
+            diff.z = diff.z - (diff.z * dist); */
+
+            avg = vector_add(avg, diff);
         }
     }
-    vec4 avg = zero;
+
     if (closeBoidsAmount == 0)
     {
         return;
-    }
-    for (int i = 0; i < closeBoidsAmount; i++)
-    {
-        avg = vector_add(avg, closeBoids[i]->transform.position);
     }
 
     avg.x = avg.x / closeBoidsAmount;
@@ -204,20 +227,28 @@ void doSeperation(boid *b)
 
     vec4 dir = vector_subtract(avg, b->transform.position);
 
-    b->direction.x -= dir.x * steerSpeed * 1.5f;
-    b->direction.y -= dir.y * steerSpeed * 1.5f;
-    b->direction.z -= dir.z * steerSpeed * 1.5f;
+    float separationSpeed = steerSpeed * separationWeight;
+
+    b->direction.x -= dir.x * separationSpeed;
+    b->direction.y -= dir.y * separationSpeed;
+    b->direction.z -= dir.z * separationSpeed;
 }
 
 void doRetention(boid *b)
 {
-    if (vector_distance(transform->position, b->transform.position) > 50.0f)
+    float retentionDist = 40.0f;
+    if (vector_distance(transform->position, b->transform.position) > (retentionDist * 2))
     {
-        vec4 dir = vector_subtract(transform->position, b->transform.position);
+        transform_position(0.0f, 0.0f, 0.0f, &b->transform);
+    }
 
-        b->direction.x += dir.x * steerSpeed;
-        b->direction.y += dir.y * steerSpeed;
-        b->direction.z += dir.z * steerSpeed;
+    if (vector_distance(transform->position, b->transform.position) > retentionDist)
+    {
+        vec4 dir = vector_subtract(b->transform.position, transform->position);
+
+        b->direction.x -= dir.x * steerSpeed * 2;
+        b->direction.y -= dir.y * steerSpeed * 2;
+        b->direction.z -= dir.z * steerSpeed * 2;
     }
 }
 
@@ -301,10 +332,27 @@ int boidprogram_mouseCallback(double xpos, double ypos)
 
 int boidprogram_scrollCallback(double xoffset, double yoffset)
 {
-    fov = fov - (yoffset * 10);
-    if (fov < 1.0f) fov = 1.0f;
-    if (fov > 120.0f) fov = 120.0f; 
-    projectionMatrix = matrix_perspective(radians(fov), (float)s_width/s_height, 0.1f, 100.0f);
+    if (scrollmode == 0)
+    {
+        fov = fov - (yoffset * 10);
+        if (fov < 1.0f)
+        fov = 1.0f;
+        if (fov > 120.0f)
+        fov = 120.0f;
+        projectionMatrix = matrix_perspective(radians(fov), (float)s_width / s_height, 0.1f, 100.0f);
+        return 0;
+    }
+    if (scrollmode == 1)
+    {
+        alignmentWeight += (yoffset * 0.01f);
+        printf("alignment weight: %f\n", alignmentWeight);
+    }
+
+    if (scrollmode == 2)
+    {
+        separationWeight += (yoffset * 0.01f);
+        printf("separation weight: %f\n", separationWeight);
+    }
 }
 
 void boidprogram_key_input_poll(void)
@@ -338,23 +386,19 @@ void boidprogram_key_input_poll(void)
 
     if (glfwGetKey(window, GLFW_KEY_F2) == GLFW_PRESS)
     {
-        radius = radius - 0.1f;
-        printf("radius: %f\n", radius);
+        scrollmode = 0;
     }
     if (glfwGetKey(window, GLFW_KEY_F3) == GLFW_PRESS)
     {
-        radius = radius + 0.1f;
-        printf("radius: %f\n", radius);
+        scrollmode = 1;
     }
     if (glfwGetKey(window, GLFW_KEY_F4) == GLFW_PRESS)
     {
-        steerSpeed = steerSpeed - 0.1f;
-        printf("steerspeed: %f\n", steerSpeed);
+        scrollmode = 2;
     }
     if (glfwGetKey(window, GLFW_KEY_F5) == GLFW_PRESS)
     {
-        steerSpeed = steerSpeed + 0.1f;
-        printf("steerspeed: %f\n", radius);
+        scrollmode = 3;
     }
 }
 

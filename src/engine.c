@@ -49,7 +49,7 @@ int main(void)
 
     program_init();
 
-    program_push(program_get_testmode());
+    program_push(program_get_boidmode());
 
     fb_init();
     glBindVertexArray(VertexArrayID);
