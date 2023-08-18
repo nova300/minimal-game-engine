@@ -2,6 +2,7 @@
 #include "shaders.h"
 
 #include <omp.h>
+#include "term.h"
 
 static GeoObject **rq;
 static RenderQueue renderQueue1;
@@ -55,7 +56,12 @@ static GeoObject *gobj;
 int boidprogram_init()
 {
 
-    glfwSetWindowTitle(window, "BOID PROGRAM");
+    glfwSetWindowTitle(window, "boids");
+
+    terminal_clear();
+    terminal_print("boid program loaded\n");
+
+    fb_load_bg("media/underwater2.png", true);
 
     par_shapes_mesh *mesh1 = par_shapes_create_tetrahedron();
 
@@ -82,6 +88,13 @@ int boidprogram_init()
     //p1 = particle_new(gobj, 100);
 
     amount = 2000;
+
+    int len = snprintf(NULL, 0, "%d", amount);
+    char *result = malloc(len + 1);
+    snprintf(result, len + 1, "%d", amount);
+    terminal_print(result);
+    terminal_print(" boids\n");
+    free(result);
 
     radius = 10.0f;
     steerSpeed = 0.01f;
@@ -258,9 +271,6 @@ int boidprogram_update(float deltaTime)
 {
     boidprogram_key_input_poll();
 
-    //particle_update(p1);
-
-
     geo_instanceop_clear(gobj);
 
     int i;
@@ -287,6 +297,13 @@ int boidprogram_update(float deltaTime)
     rq_update_buffers(&renderQueue1);
 
     geo_render(&renderQueue1.gpuHandle);
+
+    float fps = 1 / deltaTime;
+    int len = snprintf(NULL, 0, "%3.0f", fps);
+    char *result = malloc(len + 1);
+    snprintf(result, len + 1, "%3.0f", fps);
+    terminal_display(result);
+    free(result);
 }
 
 int boidprogram_destroy()
@@ -296,12 +313,18 @@ int boidprogram_destroy()
 
 int boidprogram_keyCallback(int key, int action)
 {
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+    {
+        program_pop();
+    }
     if (key == GLFW_KEY_F1 && action == GLFW_PRESS)
     {
        for (int i = 0; i < amount; i++)
-    {
-        transform_position(((rand() - rand()) % 30) + ((rand() - rand()) % 100), ((rand() - rand()) % 30) + ((rand() - rand()) % 100), ((rand() - rand()) % 30) + ((rand() - rand()) % 100), &boids[i].transform);
-    } 
+        {
+            transform_position(((rand() - rand()) % 30) + ((rand() - rand()) % 100), ((rand() - rand()) % 30) + ((rand() - rand()) % 100), ((rand() - rand()) % 30) + ((rand() - rand()) % 100), &boids[i].transform);
+        } 
+        terminal_clear();
+        terminal_print("reset simulation\n");
     }
 }
 

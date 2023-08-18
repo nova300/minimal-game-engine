@@ -18,8 +18,8 @@
 
 #define TITLE "minimal game engine"
 
-#define SCREEN_WIDTH 1024
-#define SCREEN_HEIGHT 768
+#define SCREEN_WIDTH 1440
+#define SCREEN_HEIGHT 800
 
 typedef int (*functionPointer)();
 typedef int (*functionPointerFloat)(float);
@@ -83,6 +83,7 @@ extern GLFWwindow *window;
 
 Program *program_get_testmode();
 Program *program_get_boidmode();
+Program *program_get_selftest();
 
 
 #endif

@@ -8,17 +8,26 @@
 #define FBWIDTH 320
 #define FBHEIGHT 200
 
+#define HIWIDTH 720
+#define HIHEIGHT 400
+
 GLuint program;
 GLuint program_bg;
 GLuint vao;
 GLuint vbo;
 GLuint texture;
 GLuint texture_bg;
+GLuint texture_hi;
+
+GLuint program1;
+GLuint program2;
 
 char bg_dirty;
+char hi_dirty;
 
 vec4 colors[FBWIDTH * FBHEIGHT];
 vec4 colors_bg[FBWIDTH * FBHEIGHT];
+vec4 colors_hi[HIWIDTH * HIHEIGHT];
 
 const char *vertex_shader_2d =
     "#version 430 core\n"
@@ -58,19 +67,14 @@ const char *fragment_shader_2d_water =
 
 void fb_init()
 {
-    program = loadShaders(vertex_shader_2d, fragment_shader_2d);
-    program_bg = loadShaders(vertex_shader_2d, fragment_shader_2d_water);
+    program1 = loadShaders(vertex_shader_2d, fragment_shader_2d);
+    program2 = loadShaders(vertex_shader_2d, fragment_shader_2d_water);
 
-    int w;
-    int h;
-    int comp;
-    float *image = stbi_loadf("media/underwater2.png", &w, &h, &comp, STBI_rgb_alpha);
-
-    //stbir_resize_float(image, w, h, 0, (float*)colors_bg, 320, 200, 0, STBI_rgb_alpha);
-
-    memcpy(colors_bg, image, sizeof(colors_bg));
+    program = program1;
+    program_bg = program1;
 
     bg_dirty = true;
+    hi_dirty = true;
 
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
@@ -103,6 +107,13 @@ void fb_init()
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, FBWIDTH, FBHEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    glGenTextures(1, &texture_hi);
+    glBindTexture(GL_TEXTURE_2D, texture_hi);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, HIWIDTH, HIHEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 }
 
 void fb_update()
@@ -116,6 +127,13 @@ void fb_update_bg()
     glBindTexture(GL_TEXTURE_2D, texture_bg);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, FBWIDTH, FBHEIGHT, GL_RGBA, GL_FLOAT, colors_bg);
     bg_dirty = false;
+}
+
+void fb_update_hi()
+{
+    glBindTexture(GL_TEXTURE_2D, texture_hi);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, HIWIDTH, HIHEIGHT, GL_RGBA, GL_FLOAT, colors_hi);
+    hi_dirty = false;
 }
 
 void fb_render()
@@ -149,6 +167,20 @@ void fb_render_bg()
     glDepthMask(GL_FALSE);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glDepthMask(GL_TRUE);
+}
+
+void fb_render_hi()
+{
+    if (hi_dirty)
+    {
+        fb_update_hi();
+    }
+    glUseProgram(program);
+    glBindTexture(GL_TEXTURE_2D, texture_hi);
+    glUniform1i(glGetUniformLocation(program, "colorTexture"), 0);
+    glUniform1f(glGetUniformLocation(program, "time"), (float)time);
+    glBindVertexArray(vao);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
 void fb_clear()
@@ -229,4 +261,54 @@ void fb_test_pattern(void)
             colors[pixelIndex].w = 1.0;
         }
     }
+}
+
+void fb_blit_hi(vec4 *sourceArray, int sourceWidth, rect sourceRect, int destX, int destY)
+{
+    int x, y;
+
+    for (y = 0; y < sourceRect.h; y++) 
+    {
+        for (x = 0; x < sourceRect.w; x++) 
+        {
+            int sourceIndex = (sourceRect.y + y) * sourceWidth + (sourceRect.x + x);
+            int destIndex = (destY + y) * HIWIDTH + (destX + x);
+
+            // Copy color values from source to destination
+            colors_hi[destIndex] = sourceArray[sourceIndex];
+        }
+    }
+
+    hi_dirty = true;
+}
+
+void fb_load_bg(const char *name, char water)
+{
+    int w;
+    int h;
+    int comp;
+    float *image = stbi_loadf(name, &w, &h, &comp, STBI_rgb_alpha);
+
+    //stbir_resize_float(image, w, h, 0, (float*)colors_bg, 320, 200, 0, STBI_rgb_alpha);
+
+    memcpy(colors_bg, image, sizeof(colors_bg));
+    free(image);
+
+    bg_dirty = true;
+
+    if (water)
+    {
+        program_bg = program2;
+    }
+    else
+    {
+        program_bg = program1;
+    }
+}
+
+void fb_unload_bg()
+{
+    program_bg = program1;
+    memset(colors_bg, 0, sizeof(colors_bg));
+    bg_dirty = true;
 }

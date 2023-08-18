@@ -66,6 +66,13 @@ typedef union
     
 }mat4;
 
+typedef struct
+{
+    int x, y;
+    int w, h;
+}rect;
+
+
 
 static const mat4 IDENTITY_MATRIX = 
 {{
@@ -265,5 +272,9 @@ void fb_test_pattern(void);
 void fb_copy_to_bg(void);
 void fb_render_bg(void);
 void fb_test_pattern_bg(void);
+void fb_blit_hi(vec4 *sourceArray, int sourceWidth, rect sourceRect, int destX, int destY);
+void fb_render_hi();
+void fb_load_bg(const char *name, char water);
+void fb_unload_bg();
 
 #endif

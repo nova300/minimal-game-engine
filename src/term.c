@@ -1,11 +1,16 @@
 #include "term.h"
 
-SDL_Texture *term_font;
+#include "stb_image.h"
+#include "stb_image_resize.h"
 
-unsigned long timer = 0;
+vec4 *term_font;
+int term_font_x;
+int term_font_y;
 
-char* buffer = NULL;
-char* framebuffer = NULL;
+float timer = 0;
+
+unsigned char* buffer = NULL;
+unsigned char* framebuffer = NULL;
 
 int cursorpos = 0;
 int buffpos = 0;
@@ -16,45 +21,50 @@ int buffalloc = 0;
 int doClear = 0;
 int cleared = 0;
 
+int rows = 25;
+int columns = 80;
+
+int bufsize = 2000;
 
 
-int terminal_render(Terminal *term)
+
+int terminal_render()
 {
     timer += deltaTime;
 
-    cursorpos = cursorpos % 799;
+    cursorpos = cursorpos % (bufsize - 1);
 
     if (framebuffer == NULL)
     {
-        framebuffer = malloc(800);
+        framebuffer = malloc(bufsize);
 
-        for (int i = 0; i < 800; i++)
+        for (int i = 0; i < bufsize; i++)
         {
             framebuffer[i] = rand();
         }
         
-        doClear = 800;
+        //doClear = bufsize;
 
         return 0;
     }
 
     int k = 0;
-    for (int i = 0; i < 19; i++)
+    for (int i = 0; i < rows; i++)
     {
-        for (int j = 0; j < 39; j++)
+        for (int j = 0; j < columns; j++)
         {
-            SDL_Rect glyph = {(16 * j) + 16 , (32 * i) + 16, 16, 32};
-            SDL_Rect clip  = term_get_glyph(framebuffer[k]);
-            SDL_RenderCopy(term->renderer, term_font, &clip, &glyph);
+            rect glyph = {(9 * j)  , (16 * i) , 9, 16};
+            rect clip  = term_get_glyph(framebuffer[k]);
+            fb_blit_hi(term_font, term_font_x, clip, glyph.x, glyph.y);
             k++;
         }
     }
 
     if (doClear)
     {
-        if (timer < 25) return 0;
+        if (timer < 0.01) return 0;
         
-        for (int c = 0; c < 32; c++)
+        for (int c = 0; c < columns; c++)
         {
             framebuffer[cleared] = 0;
             cleared++;
@@ -70,13 +80,15 @@ int terminal_render(Terminal *term)
         return 0;
     }
 
-    if (timer < 15) return 0;
+    if (cleared != bufsize) return 0;
+
+    if (timer < 0.0001) return 0;
     if (buffpos >= bufflen) return 0;
     timer = 0;
 
     if (buffer[buffpos] == '\n') 
     {
-        cursorpos = cursorpos + ( 39 - (cursorpos % 39));
+        cursorpos = cursorpos + ( columns - (cursorpos % columns));
         buffpos++;
     }
     framebuffer[cursorpos] = buffer[buffpos];
@@ -84,18 +96,18 @@ int terminal_render(Terminal *term)
     cursorpos++;
 }
 
-SDL_Rect term_get_glyph(int code)
+rect term_get_glyph(unsigned char code)
 {
     //code = code - 31;
-    SDL_Rect r = {8 * (code % 32), 16 * (((int) code / 32) % 8), 8, 16};
+    rect r = {8 * (code % 32), 16 * (((int) code / 32) % 8), 8, 16};
     return r;
 }
 
 int terminal_print(const char* str)
 {
-    if (bufflen > 800)
+    if (bufflen > bufsize)
     {
-        bufflen = bufflen % 800;
+        bufflen = bufflen % bufsize;
     }
     if ( buffpos >= bufflen)
     {
@@ -118,16 +130,34 @@ int terminal_print(const char* str)
     bufflen += len;
 }
 
-Terminal* terminal_new(SDL_Renderer *r)
+void terminal_display(const char *str)
 {
-    Terminal *s = malloc(sizeof(Terminal));
-    Transform *t = (Transform*)s;
-    t->position.x = 0;
-    t->position.y = 0;
-    t->position.z = 0;
-    s->w = 0;
-    s->h = 0;
-    s->renderer = r;
-    s->texture = NULL;
-    return s;
+    int n = strlen(str);
+    n++;
+    strcpy(framebuffer + (bufsize - n), str);
+}
+
+void terminal_clear()
+{
+    /*for (int i = 0; i < bufsize; i++)
+    {
+        framebuffer[i] = rand();
+    }*/
+    doClear = bufsize;
+    cleared = 0;
+    cursorpos = 0;
+    bufflen = 0;
+    buffpos = 0;
+}
+
+void terminal_init(const char *fontname)
+{
+    int comp;
+    term_font = (vec4*)stbi_loadf(fontname, &term_font_x, &term_font_y, &comp, STBI_rgb_alpha);
+
+    framebuffer = malloc(bufsize);
+    for (int i = 0; i < bufsize; i++)
+    {
+        framebuffer[i] = rand();
+    }
 }

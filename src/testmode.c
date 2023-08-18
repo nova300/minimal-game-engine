@@ -1,6 +1,8 @@
 #include "engine.h"
 #include "shaders.h"
 
+#include "term.h"
+
 static GeoObject **rq;
 static RenderQueue renderQueue1;
 static RenderQueue renderQueue2;
@@ -22,7 +24,9 @@ void testprogram_key_input_poll(void);
 int testprogram_init()
 {
 
-    glfwSetWindowTitle(window, "TEST PROGRAM 1");
+    glfwSetWindowTitle(window, "test");
+
+    terminal_print("test program no.1 loaded\n");
 
     par_shapes_mesh *dodecahedron = par_shapes_create_dodecahedron();
     par_shapes_translate(dodecahedron, 0, 0.934, 0);
@@ -114,13 +118,13 @@ int testprogram_init()
 int testprogram_update(float deltaTime)
 {
     testprogram_key_input_poll();
-    transform_rotate(0, 0, 1 * deltaTime, &rq[1]->baseTransform);
-    transform_rotate(1 * deltaTime, 0, 0, &rq[2]->baseTransform);
+    //transform_rotate(0, 0, 1 * deltaTime, &rq[1]->baseTransform);
+    //transform_rotate(1 * deltaTime, 0, 0, &rq[2]->baseTransform);
 
     // particle_update(p1);
 
-    rq[2]->baseTexture = rand() % 50;
-    rq[2]->instanceDirty = 1;
+    //rq[2]->baseTexture = rand() % 50;
+    //rq[2]->instanceDirty = 1;
 
     rq_update_buffers(&renderQueue1);
     rq_update_buffers(&renderQueue2);
@@ -136,6 +140,10 @@ int testprogram_destroy()
 
 int testprogram_keyCallback(int key, int action)
 {
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+    {
+        program_pop();
+    }
     if (key == GLFW_KEY_F1 && action == GLFW_PRESS)
     {
         if (captureMouse)

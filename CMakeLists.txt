@@ -13,7 +13,7 @@ find_package(OpenMP REQUIRED)
 add_subdirectory(lib/GLFW)
 include_directories(lib/GLFW/include)
 
-add_executable(engine lib/glew.c src/engine.c src/graphics.c src/shaders.c src/geometry.c src/ray.c src/event.c src/shapes.c src/2d.c src/init.c src/boidmode.c src/testmode.c)
+add_executable(engine lib/glew.c src/engine.c src/graphics.c src/shaders.c src/geometry.c src/ray.c src/event.c src/shapes.c src/2d.c src/term.c src/init.c src/boidmode.c src/testmode.c src/selftest.c)
 
 find_library(MATH_LIBRARY m)
 if(MATH_LIBRARY)

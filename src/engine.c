@@ -3,6 +3,9 @@
 #define SHADERS_H_IMPLEMENTATION
 #include "shaders.h"
 
+#include "term.h"
+#include <string.h>
+
 double time = 0;
 double deltaTime = 0;
 
@@ -47,11 +50,13 @@ int main(void)
     vec4 up = {{0, 1, 0, 0}};
     viewMatrix = matrix_lookAt(eye, center, up);
 
+    fb_init();
+    terminal_init("media/font_1.png");
+
     program_init();
 
-    program_push(program_get_boidmode());
+    program_push(program_get_selftest());
 
-    fb_init();
     glBindVertexArray(VertexArrayID);
     while (exitLoop == 0)
     {
@@ -69,7 +74,12 @@ int main(void)
 
         program_update(deltaTime);
 
-        fb_render();        
+        terminal_render();
+        fb_render_hi();
+        fb_render();
+
+
+
 
         glfwSwapBuffers(window);
         fb_clear();
@@ -122,6 +132,7 @@ int program_pop()
 
 int program_update(float deltatime)
 {
+    if(programTop == -1) return 1;
     Program *top = programStack[programTop];
     if (top->update != NULL) return top->update(deltatime);
     return 1;
@@ -129,6 +140,7 @@ int program_update(float deltatime)
 
 Program *program_get()
 {
+    if(programTop == -1) return NULL;
     Program *top = programStack[programTop];
     return top;
 }
