@@ -8,6 +8,8 @@ project(engine VERSION 0.1.0 LANGUAGES C)
 set(OpenGL_GL_PREFERENCE GLVND)
 find_package( OpenGL REQUIRED )
 
+find_package(OpenMP REQUIRED)
+
 add_subdirectory(lib/GLFW)
 include_directories(lib/GLFW/include)
 
@@ -18,7 +20,7 @@ if(MATH_LIBRARY)
     target_link_libraries(engine ${MATH_LIBRARY})
 endif()
 
-target_link_libraries(engine OpenGL::GL glfw )
+target_link_libraries(engine OpenGL::GL glfw OpenMP::OpenMP_C )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 

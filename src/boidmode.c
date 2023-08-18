@@ -1,6 +1,8 @@
 #include "engine.h"
 #include "shaders.h"
 
+#include <omp.h>
+
 static GeoObject **rq;
 static RenderQueue renderQueue1;
 static Program *this;
@@ -79,7 +81,7 @@ int boidprogram_init()
 
     //p1 = particle_new(gobj, 100);
 
-    amount = 150;
+    amount = 2000;
 
     radius = 10.0f;
     steerSpeed = 0.01f;
@@ -106,7 +108,7 @@ int boidprogram_init()
         b[i].texture = rand() % 50;
         transform_set_identity(&b[i].transform);
 
-        transform_position(((rand() - rand()) % 30) + ((rand() - rand()) % 100), ((rand() - rand()) % 30) + ((rand() - rand()) % 100), ((rand() - rand()) % 30) + ((rand() - rand()) % 100), &b[i].transform);
+        transform_position(((rand() - rand()) % 3) + ((rand() - rand()) % 10), ((rand() - rand()) % 3) + ((rand() - rand()) % 10), ((rand() - rand()) % 3) + ((rand() - rand()) % 10), &b[i].transform);
         
         b[i].localBoidList = malloc(sizeof(boid*) * 40);
         b[i].localBoidListAmount = 0;
@@ -260,7 +262,10 @@ int boidprogram_update(float deltaTime)
 
 
     geo_instanceop_clear(gobj);
-    for (int i = 0; i < amount; i++)
+
+    int i;
+    #pragma omp parallel for
+    for (i = 0; i < amount; i++)
     {
         updateLocalBoidList(&boids[i]);
         doAlignment(&boids[i]);
@@ -270,6 +275,12 @@ int boidprogram_update(float deltaTime)
         vector_normalize(&boids[i].direction);
         transform_move(boids[i].direction.x * (deltaTime * speed), boids[i].direction.y * (deltaTime * speed), boids[i].direction.z * (deltaTime * speed), &boids[i].transform);
         transform_set_rotation(boids[i].direction.x, boids[i].direction.y, boids[i].direction.z, &boids[i].transform);
+        transform_make_matrix(&boids[i].transform);
+        //geo_instanceop_add(gobj, boids[i].transform.matrix, boids[i].texture);
+    }
+
+    for (int i = 0; i < amount; i++)
+    {
         geo_instanceop_add(gobj, boids[i].transform.matrix, boids[i].texture);
     }
 
