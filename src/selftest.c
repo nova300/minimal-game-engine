@@ -14,7 +14,6 @@ void selftest_key_input_poll(void);
 int selftest_init()
 {
     terminal_clear();
-    terminal_print("test: OK\n");
     terminal_print("press F1 to load boid program or F2 to load test program\n");
     terminal_print("or press ESCAPE to exit\n");
     fb_unload_bg();

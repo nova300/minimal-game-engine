@@ -52,9 +52,15 @@ static vec4 zero;
 
 static GeoObject *gobj;
 
+static float fpstimer = 0;
+static float fps = 999;
+static int fpscounter = 0;
+
+static char initialized = false;
+
 
 int boidprogram_init()
-{
+{   
 
     glfwSetWindowTitle(window, "boids");
 
@@ -62,6 +68,8 @@ int boidprogram_init()
     terminal_print("boid program loaded\n");
 
     fb_load_bg("media/underwater2.png", true);
+
+    if (initialized) return 0;
 
     par_shapes_mesh *mesh1 = par_shapes_create_tetrahedron();
 
@@ -132,6 +140,7 @@ int boidprogram_init()
     
     boids = b;
 
+    initialized = true;
 }
 
 void updateLocalBoidList(boid *b)
@@ -298,7 +307,20 @@ int boidprogram_update(float deltaTime)
 
     geo_render(&renderQueue1.gpuHandle);
 
-    float fps = 1 / deltaTime;
+
+
+    if (fpstimer > 1)
+    {
+        fps = fpstimer / fpscounter;
+        fps = 1 / fps;
+        fpscounter = 0;
+        fpstimer = 0;
+    }
+    else
+    {
+        fpstimer = fpstimer + deltaTime;
+        fpscounter++;
+    }
     int len = snprintf(NULL, 0, "%3.0f", fps);
     char *result = malloc(len + 1);
     snprintf(result, len + 1, "%3.0f", fps);

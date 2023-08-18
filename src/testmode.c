@@ -17,16 +17,19 @@ static float lastY = SCREEN_HEIGHT / 2;
 static float yaw = -90.0f;
 static float pitch = 0.0f;
 static char captureMouse = 0;
+static char initialized = false;
 
 void testprogram_key_input_poll(void);
 
 
 int testprogram_init()
 {
-
     glfwSetWindowTitle(window, "test");
 
+    terminal_clear();
     terminal_print("test program no.1 loaded\n");
+
+    if (initialized) return 0;
 
     par_shapes_mesh *dodecahedron = par_shapes_create_dodecahedron();
     par_shapes_translate(dodecahedron, 0, 0.934, 0);
@@ -113,6 +116,8 @@ int testprogram_init()
     geo_obj_loadFromFile("media/cube.obj", cube1);
 
     rq_add_object(&renderQueue1, cube1);
+
+    initialized = true;
 }
 
 int testprogram_update(float deltaTime)

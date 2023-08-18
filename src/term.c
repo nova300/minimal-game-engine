@@ -82,7 +82,7 @@ int terminal_render()
 
     if (cleared != bufsize) return 0;
 
-    if (timer < 0.0001) return 0;
+    //if (timer < 0.0001) return 0;
     if (buffpos >= bufflen) return 0;
     timer = 0;
 
