@@ -282,6 +282,34 @@ void fb_blit_hi(vec4 *sourceArray, int sourceWidth, rect sourceRect, int destX, 
     hi_dirty = true;
 }
 
+void fb_blit(vec4 *sourceArray, int sourceWidth, rect sourceRect, int destX, int destY)
+{
+    int x, y;
+    for (y = 0; y < sourceRect.h; y++) 
+    {
+        for (x = 0; x < sourceRect.w; x++) 
+        {
+            int sourceIndex = (sourceRect.y + y) * sourceWidth + (sourceRect.x + x);
+            int destIndex = (destY + y) * FBWIDTH + (destX + x);
+            colors[destIndex] = sourceArray[sourceIndex];
+        }
+    }
+}
+
+void fb_blit_bg(vec4 *sourceArray, int sourceWidth, rect sourceRect, int destX, int destY)
+{
+    int x, y;
+    for (y = 0; y < sourceRect.h; y++) 
+    {
+        for (x = 0; x < sourceRect.w; x++) 
+        {
+            int sourceIndex = (sourceRect.y + y) * sourceWidth + (sourceRect.x + x);
+            int destIndex = (destY + y) * FBWIDTH + (destX + x);
+            colors_bg[destIndex] = sourceArray[sourceIndex];
+        }
+    }
+}
+
 void fb_load_bg(const char *name, char water)
 {
     int w;

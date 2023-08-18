@@ -276,5 +276,7 @@ void fb_blit_hi(vec4 *sourceArray, int sourceWidth, rect sourceRect, int destX, 
 void fb_render_hi();
 void fb_load_bg(const char *name, char water);
 void fb_unload_bg();
+void fb_blit_bg(vec4 *sourceArray, int sourceWidth, rect sourceRect, int destX, int destY);
+void fb_blit(vec4 *sourceArray, int sourceWidth, rect sourceRect, int destX, int destY);
 
 #endif
