@@ -14,31 +14,13 @@
 #include "GLFW/glfw3.h"
 
 #include "graphics.h"
+#include "progman.h"
 
 
 #define TITLE "minimal game engine"
 
 #define SCREEN_WIDTH 1440
 #define SCREEN_HEIGHT 800
-
-typedef int (*functionPointer)();
-typedef int (*functionPointerFloat)(float);
-typedef int (*functionPointerDoubleDouble)(double, double);
-typedef int (*functionPointerIntInt)(int, int);
-
-typedef struct
-{
-    functionPointer init;
-    functionPointerFloat update;
-    functionPointer destroy;
-    functionPointerIntInt keyCallback;
-    functionPointerDoubleDouble mouseCallback;
-    functionPointerDoubleDouble scrollCallback;
-}Program;
-
-extern Program **programStack;
-extern int programCapacity;
-extern int programTop;
 
 extern int errorCode;
 extern int exitLoop;
@@ -63,13 +45,6 @@ int init();
 int initGL();
 void quit();
 
-int program_init(void);
-int program_free(void);
-int program_push(Program *program);
-int program_pop(void);
-int program_update(float deltaTime);
-Program *program_get(void);
-
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void error_callback(int error, const char* description);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -77,10 +52,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 extern GLFWwindow *window;
 
-
-
 /* program prototypes */
-
 Program *program_get_testmode();
 Program *program_get_boidmode();
 Program *program_get_selftest();
