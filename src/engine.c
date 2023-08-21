@@ -4,6 +4,7 @@
 #include "shaders.h"
 
 #include "term.h"
+#include "systems.h"
 #include <string.h>
 
 double time = 0;

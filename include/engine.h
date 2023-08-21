@@ -14,7 +14,6 @@
 #include "GLFW/glfw3.h"
 
 #include "graphics.h"
-#include "progman.h"
 
 
 #define TITLE "minimal game engine"
@@ -52,10 +51,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 extern GLFWwindow *window;
 
-/* program prototypes */
-Program *program_get_testmode();
-Program *program_get_boidmode();
-Program *program_get_selftest();
+
 
 
 #endif

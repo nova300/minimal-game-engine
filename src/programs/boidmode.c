@@ -3,6 +3,7 @@
 
 #include <omp.h>
 #include "term.h"
+#include "systems.h"
 
 static GeoObject **rq;
 static RenderQueue renderQueue1;
