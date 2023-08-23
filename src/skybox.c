@@ -79,16 +79,16 @@ void skybox_load_texture(const char* filename)
 
 int calculate_skybox_scaled_x()
 {
-    float yawScaled = (360.0f / fov) * (skyboxinfo.yaw / 360) * SCREEN_WIDTH;
+    float yawScaled = SCREEN_WIDTH * skyboxinfo.yaw / fov;
     int scaledX = yawScaled * 0.5f;
 
     if (scaledX > SKYBOX_WIDTH) 
     {
         scaledX -= scaledX / SKYBOX_WIDTH * SKYBOX_WIDTH;
     }
-    if (scaledX < SKYBOX_WIDTH)
+    if (scaledX < 0)
     {
-        scaledX += scaledX / SKYBOX_WIDTH * SKYBOX_WIDTH;
+        return SKYBOX_WIDTH - -scaledX;
     }
     return SKYBOX_WIDTH - scaledX;
 }
@@ -97,7 +97,7 @@ int calculate_skybox_scaled_y()
 {
     float pitchInDegrees = (float) skyboxinfo.pitch;
 
-    float degreesToScale =  pitchInDegrees / fov;
+    float degreesToScale = 360.0f * pitchInDegrees / fov;
     int roundedY = (int)degreesToScale;
 
     int scaledY = roundedY + 5 * SKYBOX_TILE_HEIGHT;
@@ -135,8 +135,7 @@ vertex *make_skybox_rect(int tileIndex, int *indicies)
 
 void render_skybox(float pitch, float yaw)
 {
-    unsigned int yaw1 = -pitch;
-    skyboxinfo.yaw = yaw1 % 360;
+    skyboxinfo.yaw = pitch;
     skyboxinfo.pitch = yaw;
     skyboxinfo.scaledX = calculate_skybox_scaled_x();
     skyboxinfo.scaledY = calculate_skybox_scaled_y();
