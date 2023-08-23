@@ -6,8 +6,8 @@
 
 typedef struct
 {
-    unsigned short yaw;
-    short pitch;
+    float yaw;
+    float pitch;
     int scaledX;
     int scaledY;
     int upperLeftIndex;
@@ -20,11 +20,11 @@ Shader *skyboxShader;
 static RenderQueue skyboxRq;
 static char renderQueueInitialized = false;
 
-#define SKYBOX_WIDTH (4 * s_width)
-#define SKYBOX_HEIGHT (4 * s_height)
+#define SKYBOX_WIDTH (4 * SCREEN_WIDTH)
+#define SKYBOX_HEIGHT (4 * SCREEN_HEIGHT)
 
-#define SKYBOX_TILE_WIDTH (s_width / 2)
-#define SKYBOX_TILE_HEIGHT (s_height / 2)
+#define SKYBOX_TILE_WIDTH (SCREEN_WIDTH / 2)
+#define SKYBOX_TILE_HEIGHT (SCREEN_HEIGHT / 2)
 
 #define SKYBOX_COLS (10)
 #define SKYBOX_ROWS (8)
@@ -35,8 +35,8 @@ void skybox_load_texture(const char* filename)
 {
     int tileWidth = 32;
     int channels = 4;
-    int tilesX = 8;
-    int tilesY = 10;
+    int tilesX = 10;
+    int tilesY = 8;
     int imageCount = tilesX * tilesY;
     int w;
     int h;
@@ -79,20 +79,25 @@ void skybox_load_texture(const char* filename)
 
 int calculate_skybox_scaled_x()
 {
-    float yawScaled = s_width * 360.0f * skyboxinfo.yaw / (fov * 65536.0f);
+    float yawScaled = (360.0f / fov) * (skyboxinfo.yaw / 360) * SCREEN_WIDTH;
     int scaledX = yawScaled * 0.5f;
 
-    if (scaledX > SKYBOX_WIDTH) {
+    if (scaledX > SKYBOX_WIDTH) 
+    {
         scaledX -= scaledX / SKYBOX_WIDTH * SKYBOX_WIDTH;
+    }
+    if (scaledX < SKYBOX_WIDTH)
+    {
+        scaledX += scaledX / SKYBOX_WIDTH * SKYBOX_WIDTH;
     }
     return SKYBOX_WIDTH - scaledX;
 }
 
 int calculate_skybox_scaled_y()
 {
-    float pitchInDegrees = (float) skyboxinfo.pitch * 360.0 / 65535.0;
+    float pitchInDegrees = (float) skyboxinfo.pitch;
 
-    float degreesToScale = 360.0f * pitchInDegrees / 90.0;
+    float degreesToScale =  pitchInDegrees / fov;
     int roundedY = (int)degreesToScale;
 
     int scaledY = roundedY + 5 * SKYBOX_TILE_HEIGHT;
@@ -120,32 +125,26 @@ vertex *make_skybox_rect(int tileIndex, int *indicies)
     int x = tileIndex % SKYBOX_COLS * SKYBOX_TILE_WIDTH;
     int y = SKYBOX_HEIGHT - tileIndex / SKYBOX_COLS * SKYBOX_TILE_HEIGHT;
 
-    if (verts != NULL) {
-        verts[0] = gfx_make_vertex(x, y, -1, 0, 0);
-        verts[1] = gfx_make_vertex(x, y - SKYBOX_TILE_HEIGHT, -1, 0, 31);
-        verts[2] = gfx_make_vertex(x + SKYBOX_TILE_WIDTH, y - SKYBOX_TILE_HEIGHT, -1, 31, 31);
-        verts[3] = gfx_make_vertex(x + SKYBOX_TILE_WIDTH, y, -1, 31, 0);
-    } else {
-    }
+    verts[0] = gfx_make_vertex(x, y, -1, 0, 0);
+    verts[1] = gfx_make_vertex(x, y - SKYBOX_TILE_HEIGHT, -1, 0, 1);
+    verts[2] = gfx_make_vertex(x + SKYBOX_TILE_WIDTH, y - SKYBOX_TILE_HEIGHT, -1, 1, 1);
+    verts[3] = gfx_make_vertex(x + SKYBOX_TILE_WIDTH, y, -1, 1, 0);
+
     return verts;
 }
 
-void render_skybox()
+void render_skybox(float pitch, float yaw)
 {
-    vec3 cameraFace;
-    vec4 cameraTarget = c_front;
-    vec4 cameraPos = c_pos;
-    cameraFace.x = cameraTarget.x - cameraPos.x;
-    cameraFace.y = cameraTarget.y - cameraPos.y;
-    cameraFace.z = cameraTarget.z - cameraPos.z;
-
-    skyboxinfo.yaw = atan2f(cameraFace.z, cameraFace.x);
-    skyboxinfo.pitch = atan2f(sqrtf(cameraFace.x * cameraFace.x + cameraFace.z * cameraFace.z), cameraFace.y);
+    unsigned int yaw1 = -pitch;
+    skyboxinfo.yaw = yaw1 % 360;
+    skyboxinfo.pitch = yaw;
     skyboxinfo.scaledX = calculate_skybox_scaled_x();
     skyboxinfo.scaledY = calculate_skybox_scaled_y();
     skyboxinfo.upperLeftIndex = get_top_left_tile_idx();
 
-    mat4 matrix = matrix_ortho(skyboxinfo.scaledX, skyboxinfo.scaledX + s_width, skyboxinfo.scaledY - s_width, skyboxinfo.scaledY, 0.0f, 3.0f);
+    printf("%f\n", skyboxinfo.yaw);
+
+    mat4 matrix = matrix_ortho(skyboxinfo.scaledX, skyboxinfo.scaledX + SCREEN_WIDTH, skyboxinfo.scaledY - SCREEN_HEIGHT, skyboxinfo.scaledY, 0.0f, 3.0f);
     mat4 modelMatrix = IDENTITY_MATRIX;
 
     GeoObject tile_grid[9];
@@ -176,11 +175,13 @@ void render_skybox()
         {
             int tileIndex = skyboxinfo.upperLeftIndex + row * SKYBOX_COLS + col;
 
-            int *indicies = malloc(sizeof(int) * 4);
+            int *indicies = malloc(sizeof(int) * 6);
             indicies[0] = 0;
             indicies[1] = 1;
             indicies[2] = 2;
             indicies[3] = 3;
+            indicies[4] = 2;
+            indicies[5] = 0;
             vertex *vertices = make_skybox_rect(tileIndex, indicies);
             int *texture = malloc(sizeof(int));
             *texture = tileIndex;
@@ -188,7 +189,7 @@ void render_skybox()
             tile_grid[object].data = vertices;
             tile_grid[object].indicies = indicies;
             tile_grid[object].dataCount = 4;
-            tile_grid[object].indexCount = 4;
+            tile_grid[object].indexCount = 6;
             tile_grid[object].transform = &modelMatrix;
             tile_grid[object].instanceCapacity = 1;
             tile_grid[object].instanceCount = 1;
@@ -204,11 +205,14 @@ void render_skybox()
 
     rq_update_buffers(&skyboxRq);
 
-
-    mat4 oldPjm = projectionMatrix;
+    mat4 oldproj = projectionMatrix;
     projectionMatrix = matrix;
+    glDepthMask(GL_FALSE);
+    glDisable(GL_BLEND);
     geo_render(&skyboxRq.gpuHandle);
-    projectionMatrix = oldPjm;
+    glDepthMask(GL_TRUE);
+    glEnable(GL_BLEND);
+    projectionMatrix = oldproj;
 
     for(int i = 0; i < 9; i++)
     {

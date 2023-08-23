@@ -137,7 +137,7 @@ int testprogram_update(float deltaTime)
     rq_update_buffers(&renderQueue1);
     rq_update_buffers(&renderQueue2);
 
-    render_skybox();
+    render_skybox(yaw, pitch);
 
     geo_render(&renderQueue1.gpuHandle);
     geo_render(&renderQueue2.gpuHandle);

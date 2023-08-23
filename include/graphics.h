@@ -282,7 +282,7 @@ void fb_unload_bg();
 void fb_blit_bg(vec4 *sourceArray, int sourceWidth, rect sourceRect, int destX, int destY);
 void fb_blit(vec4 *sourceArray, int sourceWidth, rect sourceRect, int destX, int destY);
 
-void render_skybox();
+void render_skybox(float yaw, float pitch);
 void skybox_load_texture(const char* filename);
 
 #endif
