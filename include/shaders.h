@@ -8,6 +8,9 @@ extern const char *fragment_shader_1;
 extern const char *vertex_shader_2;
 extern const char *fragment_shader_2;
 
+extern const char *vertex_shader_3;
+extern const char *fragment_shader_3;
+
 
 #ifdef SHADERS_H_IMPLEMENTATION
 
@@ -153,6 +156,37 @@ const char *fragment_shader_2 =
 "   vec3 col = texture( texSampler, vec3(uv.x, uv.y, textureIndex)).rgb;\n"
 "   col = col * light;\n"
 "   color = vec4(col , 1);\n"
+"}\n";
+
+
+const char *vertex_shader_3 = 
+    "#version 430 core\n"
+    "layout(location = 0) in vec3 vertexPosition_modelspace;\n"
+    "layout(location = 1) in vec2 vertexUV;\n"
+    "layout(location = 2) in vec3 vertexNormal;\n"
+    "layout(location = 3) in uint texture;\n"
+    "layout(location = 4) in mat4 MOD;\n"
+    "out vec2 uv;\n"
+    "flat out uint textureIndex;\n"
+    "uniform mat4 PRO;\n"
+    "uniform mat4 VIE;\n"
+    "void main()\n"
+    "{\n"
+    "    //mat4 mvp = PRO * VIE * MOD;\n"
+    "    vec4 vertexPosition_clipspace = MOD * PRO * vec4(vertexPosition_modelspace,1);\n"
+    "    gl_Position = vertexPosition_clipspace;\n"
+    "    uv = vertexUV;\n"
+    "    textureIndex = texture;\n"
+    "}\n";
+
+const char *fragment_shader_3 =
+"#version 430 core\n"
+"in vec2 uv;\n"
+"flat in uint textureIndex;\n"
+"out vec3 color;\n"
+"uniform sampler2DArray texSampler;\n"
+"void main(){\n"
+"   color = texture( texSampler, vec3(uv.x, uv.y, textureIndex)).rgb;\n"
 "}\n";
 
 #endif

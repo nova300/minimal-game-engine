@@ -32,6 +32,8 @@ int testprogram_init()
 
     if (initialized) return 0;
 
+    skybox_load_texture("media/skyboxtest.png");
+
     par_shapes_mesh *dodecahedron = par_shapes_create_dodecahedron();
     par_shapes_translate(dodecahedron, 0, 0.934, 0);
 
@@ -134,6 +136,8 @@ int testprogram_update(float deltaTime)
 
     rq_update_buffers(&renderQueue1);
     rq_update_buffers(&renderQueue2);
+
+    render_skybox();
 
     geo_render(&renderQueue1.gpuHandle);
     geo_render(&renderQueue2.gpuHandle);

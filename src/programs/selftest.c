@@ -19,6 +19,7 @@ int selftest_init()
     terminal_print("or press ESCAPE to exit\n");
     fb_unload_bg();
     reinit = false;
+    
 }
 
 int selftest_update(float deltaTime)
@@ -35,6 +36,8 @@ int selftest_update(float deltaTime)
     snprintf(result, len + 1, "%f", countdown);
     terminal_display(result);
     free(result);
+
+
 }
 
 int selftest_destroy()

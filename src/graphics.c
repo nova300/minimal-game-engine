@@ -267,6 +267,21 @@ mat4 matrix_perspective(float fovy, float aspect_ratio, float near_plane, float 
 	return out;
 }
 
+mat4 matrix_ortho(float left, float right, float bottom, float top, float near_plane, float far_plane) 
+{
+	mat4 out = IDENTITY_MATRIX;
+
+	out.x.x = 2.0f / (right - left);
+	out.y.y = 2.0f / (top - bottom);
+	out.z.z = -2.0f / (far_plane - near_plane);
+	out.w.x = -(right + left) / (right - left);
+	out.w.y = -(top + bottom) / (top - bottom);
+    out.w.z = -(far_plane + near_plane) / (far_plane - near_plane);
+    out.w.w = 1.0f;
+	
+	return out;
+}
+
 mat4 matrix_lookAt(vec4 eye, vec4 center, vec4 up) 
 {
     vec4 f = vector_subtract(center, eye);
@@ -848,6 +863,39 @@ void geo_obj_gpu_handle_genBuffers(GeoObject_gpu_handle *gpuHandle, unsigned int
     }
 }
 
+void geo_obj_gpu_handle_deleteBuffers(GeoObject_gpu_handle *gpuHandle)
+{
+    glDeleteBuffers(1, &gpuHandle->vertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, gpuHandle->vertexBuffer);
+
+    glDeleteBuffers(1, &gpuHandle->transformBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, gpuHandle->transformBuffer);
+
+    glDeleteBuffers(1, &gpuHandle->textureBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, gpuHandle->textureBuffer);
+
+    glDeleteBuffers(1, &gpuHandle->elementBuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gpuHandle->elementBuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+    unsigned char type = gpuHandle->type;
+
+    switch (type)
+    {
+    case GOBJ_TYPE_MULTI:
+        glDeleteBuffers(1, &gpuHandle->commandBuffer);
+        break;    
+    default:
+        break;
+    }
+}
+
+void rq_free(RenderQueue *r)
+{
+    free(r->objectBuffer);
+    geo_obj_gpu_handle_deleteBuffers(&r->gpuHandle);
+}
+
 void rq_add_object(RenderQueue *rq, GeoObject *obj)
 {
     if (rq->capacity <= rq->count)
@@ -863,6 +911,24 @@ void rq_add_object(RenderQueue *rq, GeoObject *obj)
 
     buf[rq->count] = obj;
     rq->count++;
+}
+
+
+vertex gfx_make_vertex(float x, float y, float z, float uvx, float uvy)
+{
+    vertex out;
+
+    out.vertex.x = x;
+    out.vertex.y = y;
+    out.vertex.z = z;
+    out.uv.x = uvx;
+    out.uv.y = uvy;
+
+    out.normal.x = 0;
+    out.normal.y = 0;
+    out.normal.z = 0;
+
+    return out;
 }
 
 

@@ -95,6 +95,7 @@ void matrix_rotateY(mat4* m, float angle);
 mat4 matrix_multiply(mat4* m1, mat4* m2);
 mat4 matrix_lookAt(vec4 eye, vec4 center, vec4 up);
 mat4 matrix_perspective(float fovy, float aspect_ratio, float near_plane, float far_plane);
+mat4 matrix_ortho(float left, float right, float bottom, float top, float near_plane, float far_plane);
 
 float radians(float dgr);
 int FloatEquals(float a, float b, float floatEqualityThreshold);
@@ -163,6 +164,8 @@ typedef union
         char a;
     };
 }vertex_c;
+
+vertex gfx_make_vertex(float x, float y, float z, float uvx, float uvy);
 
 
 typedef struct
@@ -278,5 +281,8 @@ void fb_load_bg(const char *name, char water);
 void fb_unload_bg();
 void fb_blit_bg(vec4 *sourceArray, int sourceWidth, rect sourceRect, int destX, int destY);
 void fb_blit(vec4 *sourceArray, int sourceWidth, rect sourceRect, int destX, int destY);
+
+void render_skybox();
+void skybox_load_texture(const char* filename);
 
 #endif
