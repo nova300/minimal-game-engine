@@ -3,6 +3,16 @@
 #include "stb_image.h"
 #include "shaders.h"
 
+#define DEGREES(x) ((x) * 0x10000 / 360)
+
+#define CONVERT(x) ((x) * (180/3.14f))
+
+#define GFX_DIMENSIONS_ASPECT_RATIO (4.0f / 3.0f)
+
+float convert(float radian)
+{
+   return(radian * (180/3.14f));
+}
 
 typedef struct
 {
@@ -34,8 +44,9 @@ Skybox skyboxinfo;
 void skybox_load_texture(const char* filename)
 {
     int tileWidth = 32;
+    int tileHeight = 32;
     int channels = 4;
-    int tilesX = 10;
+    int tilesX = 8;
     int tilesY = 8;
     int imageCount = tilesX * tilesY;
     int w;
@@ -43,7 +54,10 @@ void skybox_load_texture(const char* filename)
     int comp;
     unsigned char *image = stbi_load(filename, &w, &h, &comp, STBI_rgb_alpha);
 
-    unsigned char tile[tileWidth * tileWidth * channels];
+    tileWidth = w / tilesX;
+    tileHeight = h / tilesY;
+
+    unsigned char tile[tileWidth * tileHeight * channels];
 
     int tileSizeX = tileWidth * channels;
     int rowLenght = tilesX * tileSizeX;
@@ -52,20 +66,24 @@ void skybox_load_texture(const char* filename)
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
 
-    glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGBA8, tileWidth, tileWidth, imageCount);
+    glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGBA8, tileWidth, tileHeight, imageCount);
+
+    int n = 0;
 
     for (unsigned int i = 0; i < tilesY; ++i)
     {   
         for (unsigned int y = 0; y < tilesX; ++y)
         {
-            unsigned char *ptr = image + i * rowLenght + y * tileSizeX;
-            for (int row = 0; row < tileWidth; ++row)
+            unsigned char *ptr = image + (i * (tileHeight * rowLenght)) + (y * tileSizeX);
+            for (int row = 0; row < tileHeight; ++row)
             {
                 memcpy(tile + row * tileSizeX, ptr + row * rowLenght, sizeof(unsigned char) * tileSizeX);
             }
             
-            int n = i * tilesX + y;
-            glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, n, tileWidth, tileWidth, 1, GL_RGBA, GL_UNSIGNED_BYTE, tile);
+            //int n = (i * tilesX) + (y * tilesY);
+            //n = 80 - n;
+            glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, n, tileWidth, tileHeight, 1, GL_RGBA, GL_UNSIGNED_BYTE, tile);
+            n++;
         }
     }
 
@@ -79,28 +97,26 @@ void skybox_load_texture(const char* filename)
 
 int calculate_skybox_scaled_x()
 {
-    float yawScaled = SCREEN_WIDTH * skyboxinfo.yaw / fov;
-    int scaledX = yawScaled * 0.5f;
+    float yawInDegrees = skyboxinfo.yaw + 3.14f;
+    //float yawScaled = SCREEN_WIDTH * 360.0f * skyboxinfo.yaw / (fov / 3.14f);
+    float yawScaled = (360 / 90.0f) * (yawInDegrees / 6.28f) * SCREEN_WIDTH;
+    int scaledX = yawScaled + 0.5f;
 
     if (scaledX > SKYBOX_WIDTH) 
     {
         scaledX -= scaledX / SKYBOX_WIDTH * SKYBOX_WIDTH;
-    }
-    if (scaledX < 0)
-    {
-        return SKYBOX_WIDTH - -scaledX;
     }
     return SKYBOX_WIDTH - scaledX;
 }
 
 int calculate_skybox_scaled_y()
 {
-    float pitchInDegrees = (float) skyboxinfo.pitch;
+    float pitchInDegrees = skyboxinfo.pitch * 360.0f / 6.28f;
 
-    float degreesToScale = 360.0f * pitchInDegrees / fov;
+    float degreesToScale = 360.0f * pitchInDegrees / 90.0;
     int roundedY = (int)degreesToScale;
 
-    int scaledY = roundedY + 5 * SKYBOX_TILE_HEIGHT;
+    int scaledY = roundedY + 6 * SKYBOX_TILE_HEIGHT;
 
     if (scaledY > SKYBOX_HEIGHT) {
         scaledY = SKYBOX_HEIGHT;
@@ -116,7 +132,7 @@ int get_top_left_tile_idx()
     int tileCol = skyboxinfo.scaledX / SKYBOX_TILE_WIDTH;
     int tileRow = (SKYBOX_HEIGHT - skyboxinfo.scaledY) / SKYBOX_TILE_HEIGHT;
 
-    return tileRow * SKYBOX_COLS + tileCol;
+    return tileRow * 10 + tileCol;
 }
 
 vertex *make_skybox_rect(int tileIndex, int *indicies)
@@ -133,17 +149,34 @@ vertex *make_skybox_rect(int tileIndex, int *indicies)
     return verts;
 }
 
-void render_skybox(float pitch, float yaw)
+void render_skybox()
 {
-    skyboxinfo.yaw = pitch;
-    skyboxinfo.pitch = yaw;
+    vec4 cameraFocus = vector_add(c_pos, c_front);
+    vec4 cameraFace = vector_subtract(cameraFocus, c_pos);
+    //vector_normalize(&cameraFace);
+
+    skyboxinfo.yaw = ((atan2f(cameraFace.x, cameraFace.z)));
+    skyboxinfo.pitch = -((atan2f(sqrtf(cameraFace.x * cameraFace.x + cameraFace.z * cameraFace.z), cameraFace.y)));
     skyboxinfo.scaledX = calculate_skybox_scaled_x();
     skyboxinfo.scaledY = calculate_skybox_scaled_y();
     skyboxinfo.upperLeftIndex = get_top_left_tile_idx();
 
-    printf("%f\n", skyboxinfo.yaw);
+    
 
-    mat4 matrix = matrix_ortho(skyboxinfo.scaledX, skyboxinfo.scaledX + SCREEN_WIDTH, skyboxinfo.scaledY - SCREEN_HEIGHT, skyboxinfo.scaledY, 0.0f, 3.0f);
+    float left = skyboxinfo.scaledX;
+    float right = skyboxinfo.scaledX + SCREEN_WIDTH;
+
+    float half_width = (4.0f / 3.0f) / GFX_DIMENSIONS_ASPECT_RATIO * SCREEN_WIDTH / 2;
+    float center = (skyboxinfo.scaledX + SCREEN_WIDTH / 2);
+    if (half_width < SCREEN_WIDTH / 2)
+    {
+        left = center - half_width;
+        right = center + half_width;
+    }
+
+    //printf("%d\n", skyboxinfo.scaledX);
+
+    mat4 matrix = matrix_ortho(left, right, skyboxinfo.scaledY - SCREEN_HEIGHT, skyboxinfo.scaledY, 0.0f, 3.0f);
     mat4 modelMatrix = IDENTITY_MATRIX;
 
     GeoObject tile_grid[9];
@@ -172,7 +205,7 @@ void render_skybox(float pitch, float yaw)
     {
         for (col = 0; col < 3; col++) 
         {
-            int tileIndex = skyboxinfo.upperLeftIndex + row * SKYBOX_COLS + col;
+            int tileIndex = skyboxinfo.upperLeftIndex + (row * SKYBOX_COLS) + col;
 
             int *indicies = malloc(sizeof(int) * 6);
             indicies[0] = 0;
@@ -183,7 +216,17 @@ void render_skybox(float pitch, float yaw)
             indicies[5] = 0;
             vertex *vertices = make_skybox_rect(tileIndex, indicies);
             int *texture = malloc(sizeof(int));
-            *texture = tileIndex;
+
+
+            int texIndex = tileIndex - (2 * (int)(tileIndex / 10));
+
+            if (tileIndex % 10 == 8 || tileIndex % 10 == 9)
+            {
+                texIndex = tileIndex - 8 - (2 * (int)(tileIndex / 10));
+            }
+
+            *texture = texIndex;
+            //printf("%d\n", texIndex);
 
             tile_grid[object].data = vertices;
             tile_grid[object].indicies = indicies;

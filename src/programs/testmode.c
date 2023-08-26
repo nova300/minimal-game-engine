@@ -20,6 +20,8 @@ static float pitch = 0.0f;
 static char captureMouse = 0;
 static char initialized = false;
 
+static unsigned int texNum = 0;
+
 void testprogram_key_input_poll(void);
 
 
@@ -30,9 +32,15 @@ int testprogram_init()
     terminal_clear();
     terminal_print("test program no.1 loaded\n");
 
+    vec4 eye = {{0, 0, 5, 0}};
+    vec4 center = {{0, 0, -1, 0}};
+
+    c_pos = eye;
+    c_front = center;
+
     if (initialized) return 0;
 
-    skybox_load_texture("media/skyboxtest.png");
+    skybox_load_texture("media/bitfs2.png");
 
     par_shapes_mesh *dodecahedron = par_shapes_create_dodecahedron();
     par_shapes_translate(dodecahedron, 0, 0.934, 0);
@@ -137,7 +145,7 @@ int testprogram_update(float deltaTime)
     rq_update_buffers(&renderQueue1);
     rq_update_buffers(&renderQueue2);
 
-    render_skybox(yaw, pitch);
+    render_skybox();
 
     geo_render(&renderQueue1.gpuHandle);
     geo_render(&renderQueue2.gpuHandle);
@@ -164,6 +172,14 @@ int testprogram_keyCallback(int key, int action)
         }
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         captureMouse = 1;
+    }
+    if (key == GLFW_KEY_UP && action == GLFW_PRESS)
+    {
+        texNum++;
+    }
+    if (key == GLFW_KEY_DOWN && action == GLFW_PRESS)
+    {
+        texNum--;
     }
 }
 

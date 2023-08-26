@@ -70,6 +70,12 @@ int boidprogram_init()
 
     fb_load_bg("media/underwater2.png", true);
 
+    vec4 eye = {{0, 0, 50, 0}};
+    vec4 center = {{0, 0, -1, 0}};
+
+    c_pos = eye;
+    c_front = center;
+
     if (initialized) return 0;
 
     par_shapes_mesh *mesh1 = par_shapes_create_tetrahedron();
