@@ -3,7 +3,8 @@
 #include "stb_image.h"
 #include "shaders.h"
 
-#include "thread.h"
+#include <threads.h>
+#include <stdatomic.h>
 
 #define DEGREES(x) ((x) * 0x10000 / 360)
 
@@ -43,9 +44,9 @@ static char renderQueueInitialized = false;
 
 Skybox skyboxinfo;
 
-static thread_atomic_int_t threadStatus;
+static atomic_int threadStatus;
 
-static thread_ptr_t thread;
+static thrd_t thread;
 
 mat4 matrix;
 mat4 modelMatrix;
@@ -53,7 +54,7 @@ GeoObject tile_grid[9];
 
 void skybox_load_texture(const char* filename)
 {
-    thread_atomic_int_store(&threadStatus, 0);
+    threadStatus = 0;
     int tileWidth = 32;
     int tileHeight = 32;
     int channels = 4;
@@ -160,7 +161,7 @@ vertex *make_skybox_rect(int tileIndex, int *indicies)
     return verts;
 }
 
-int update_skybox()
+void update_skybox()
 {
     vec4 cameraFocus = vector_add(c_pos, c_front);
     vec4 cameraFace = vector_subtract(cameraFocus, c_pos);
@@ -240,15 +241,14 @@ int update_skybox()
             object++;
         }
     }
-    thread_atomic_int_store(&threadStatus, 0);
-    thread_exit(EXIT_SUCCESS);
+    threadStatus = 0;
 }
 
 void render_skybox()
 {
-    if (thread_atomic_int_load( &threadStatus ) == 0)
+    if (threadStatus == 0)
     {
-        thread_atomic_int_store( &threadStatus, 1);
+        threadStatus = 1;
         
         if(renderQueueInitialized)
         {
@@ -261,8 +261,8 @@ void render_skybox()
             }
         }
 
-        thread = thread_create(update_skybox, (void*)0, THREAD_STACK_SIZE_DEFAULT);
-        thread_detach(thread);
+        thrd_create(&thread, (thrd_start_t)update_skybox, NULL);
+        thrd_detach(thread);
     }
 
     

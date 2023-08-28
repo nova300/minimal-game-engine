@@ -3,9 +3,6 @@
 #define SHADERS_H_IMPLEMENTATION
 #include "shaders.h"
 
-#define THREAD_IMPLEMENTATION
-#include "thread.h"
-
 #include "term.h"
 #include "systems.h"
 #include <string.h>

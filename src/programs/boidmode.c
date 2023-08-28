@@ -4,7 +4,9 @@
 #include "term.h"
 #include "systems.h"
 
-#include "thread.h"
+//#include "thread.h"
+#include <threads.h>
+#include <stdatomic.h>
 
 static GeoObject **rq;
 static RenderQueue renderQueue1;
@@ -60,9 +62,13 @@ static int fpscounter = 0;
 
 static char initialized = false;
 
-static thread_atomic_int_t threadStatus;
+//static thread_atomic_int_t threadStatus;
 
-static thread_ptr_t thread;
+//static thread_ptr_t thread;
+
+static thrd_t thread;
+
+static atomic_int threadStatus;
 
 
 int boidprogram_init()
@@ -152,7 +158,7 @@ int boidprogram_init()
     
     boids = b;
 
-    thread_atomic_int_store( &threadStatus, 0 );
+    //thread_atomic_int_store( &threadStatus, 0 );
 
     initialized = true;
 }
@@ -290,7 +296,7 @@ void doRetention(boid *b)
     }
 }
 
-int update_boids(void *in_deltaTime)
+void update_boids(void)
 {
     //thread_set_high_priority();
     //float deltaTime = 0;
@@ -310,17 +316,17 @@ int update_boids(void *in_deltaTime)
         transform_make_matrix(&boids[i].transform);
         //geo_instanceop_add(gobj, boids[i].transform.matrix, boids[i].texture);
     }
-    thread_atomic_int_store( &threadStatus, 0);
-    thread_exit(EXIT_SUCCESS);
+    threadStatus = 0;
+    //thread_exit(EXIT_SUCCESS);
 }
 
 int boidprogram_update(float deltaTime)
 {
     boidprogram_key_input_poll();
 
-    if (thread_atomic_int_load( &threadStatus ) == 0)
+    if (threadStatus == 0)
     {
-        thread_atomic_int_store( &threadStatus, 1);
+        threadStatus = 1;
         geo_instanceop_clear(gobj);
         for (int i = 0; i < amount; i++)
         {
@@ -328,8 +334,8 @@ int boidprogram_update(float deltaTime)
         }
         rq_update_buffers(&renderQueue1);
 
-        thread = thread_create(update_boids, NULL, THREAD_STACK_SIZE_DEFAULT);
-        thread_detach(thread);
+        thrd_create(&thread, (thrd_start_t)update_boids, NULL);
+        thrd_detach(thread);
     }
 
     geo_render(&renderQueue1.gpuHandle);
