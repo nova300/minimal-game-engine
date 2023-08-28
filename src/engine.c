@@ -3,11 +3,14 @@
 #define SHADERS_H_IMPLEMENTATION
 #include "shaders.h"
 
+#define THREAD_IMPLEMENTATION
+#include "thread.h"
+
 #include "term.h"
 #include "systems.h"
 #include <string.h>
 
-double time = 0;
+double appTime = 0;
 double deltaTime = 0;
 
 GLFWwindow *window;
@@ -62,9 +65,9 @@ int main(void)
     while (exitLoop == 0)
     {
         viewMatrix = matrix_lookAt(c_pos, vector_add(c_pos, c_front), c_up);
-        deltaTime = glfwGetTime() - time;
+        deltaTime = glfwGetTime() - appTime;
         if (deltaTime > 10) deltaTime = 10;
-        time = glfwGetTime();
+        appTime = glfwGetTime();
 
         glClearColor(0.0f, 0.0f, 0.2f, 0.0f);
         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );

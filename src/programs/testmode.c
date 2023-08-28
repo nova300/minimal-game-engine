@@ -266,7 +266,7 @@ void testprogram_key_input_poll(void)
     }
     if (glfwGetKey(window, GLFW_KEY_F4) == GLFW_PRESS)
     {
-        fb_drawSineWave(10, 3.1f, time);
+        fb_drawSineWave(10, 3.1f, appTime);
     }
     if (glfwGetKey(window, GLFW_KEY_F5) == GLFW_PRESS)
     {

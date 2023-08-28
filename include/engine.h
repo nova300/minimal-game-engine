@@ -26,7 +26,7 @@ extern int exitLoop;
 
 extern float degrees;
 extern double deltaTime;
-extern double time;
+extern double appTime;
 
 extern mat4 viewMatrix;
 extern mat4 projectionMatrix;

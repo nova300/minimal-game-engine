@@ -3,6 +3,8 @@
 #include "stb_image.h"
 #include "shaders.h"
 
+#include "thread.h"
+
 #define DEGREES(x) ((x) * 0x10000 / 360)
 
 #define CONVERT(x) ((x) * (180/3.14f))
@@ -41,8 +43,17 @@ static char renderQueueInitialized = false;
 
 Skybox skyboxinfo;
 
+static thread_atomic_int_t threadStatus;
+
+static thread_ptr_t thread;
+
+mat4 matrix;
+mat4 modelMatrix;
+GeoObject tile_grid[9];
+
 void skybox_load_texture(const char* filename)
 {
+    thread_atomic_int_store(&threadStatus, 0);
     int tileWidth = 32;
     int tileHeight = 32;
     int channels = 4;
@@ -149,7 +160,7 @@ vertex *make_skybox_rect(int tileIndex, int *indicies)
     return verts;
 }
 
-void render_skybox()
+int update_skybox()
 {
     vec4 cameraFocus = vector_add(c_pos, c_front);
     vec4 cameraFace = vector_subtract(cameraFocus, c_pos);
@@ -176,23 +187,8 @@ void render_skybox()
 
     //printf("%d\n", skyboxinfo.scaledX);
 
-    mat4 matrix = matrix_ortho(left, right, skyboxinfo.scaledY - SCREEN_HEIGHT, skyboxinfo.scaledY, 0.0f, 3.0f);
-    mat4 modelMatrix = IDENTITY_MATRIX;
-
-    GeoObject tile_grid[9];
-
-    if (!renderQueueInitialized)
-    {
-        rq_init(&skyboxRq, 10);
-        Shader *s = newShaderObject(vertex_shader_3, fragment_shader_3);
-
-        skyboxRq.gpuHandle.shader = s;
-        skyboxShader = s;
-
-        skyboxRq.gpuHandle.textureAtlas = skyboxTexture;
-
-        renderQueueInitialized = true;
-    }
+    matrix = matrix_ortho(left, right, skyboxinfo.scaledY - SCREEN_HEIGHT, skyboxinfo.scaledY, 0.0f, 3.0f);
+    modelMatrix = IDENTITY_MATRIX;
 
     skyboxRq.count = 0;
 
@@ -244,8 +240,44 @@ void render_skybox()
             object++;
         }
     }
+    thread_atomic_int_store(&threadStatus, 0);
+    thread_exit(EXIT_SUCCESS);
+}
 
-    rq_update_buffers(&skyboxRq);
+void render_skybox()
+{
+    if (thread_atomic_int_load( &threadStatus ) == 0)
+    {
+        thread_atomic_int_store( &threadStatus, 1);
+        
+        if(renderQueueInitialized)
+        {
+            rq_update_buffers(&skyboxRq);
+            for(int i = 0; i < 9; i++)
+            {
+                free(tile_grid[i].texture);
+                free(tile_grid[i].data);
+                free(tile_grid[i].indicies);
+            }
+        }
+
+        thread = thread_create(update_skybox, (void*)0, THREAD_STACK_SIZE_DEFAULT);
+        thread_detach(thread);
+    }
+
+    
+    if (!renderQueueInitialized)
+    {
+        rq_init(&skyboxRq, 10);
+        Shader *s = newShaderObject(vertex_shader_3, fragment_shader_3);
+
+        skyboxRq.gpuHandle.shader = s;
+        skyboxShader = s;
+
+        skyboxRq.gpuHandle.textureAtlas = skyboxTexture;
+
+        renderQueueInitialized = true;
+    }
 
     mat4 oldproj = projectionMatrix;
     projectionMatrix = matrix;
@@ -256,11 +288,6 @@ void render_skybox()
     glEnable(GL_BLEND);
     projectionMatrix = oldproj;
 
-    for(int i = 0; i < 9; i++)
-    {
-        free(tile_grid[i].texture);
-        free(tile_grid[i].data);
-        free(tile_grid[i].indicies);
-    }
+
 
 }
