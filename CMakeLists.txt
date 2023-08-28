@@ -23,6 +23,7 @@ endif()
 target_link_libraries(engine OpenGL::GL glfw OpenMP::OpenMP_C )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/assets)
 
 add_custom_command(TARGET engine POST_BUILD
                     COMMAND ${CMAKE_COMMAND} -E copy_directory

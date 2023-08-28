@@ -52,7 +52,7 @@ int main(void)
     viewMatrix = matrix_lookAt(eye, center, up);
 
     fb_init();
-    terminal_init("media/font_1.png");
+    terminal_init();
 
     program_init();
 

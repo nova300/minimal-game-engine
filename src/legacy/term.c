@@ -150,10 +150,12 @@ void terminal_clear()
     buffpos = 0;
 }
 
-void terminal_init(const char *fontname)
+#include "font.inc.c"
+
+void terminal_init()
 {
     int comp;
-    term_font = (vec4*)stbi_loadf(fontname, &term_font_x, &term_font_y, &comp, STBI_rgb_alpha);
+    term_font = (vec4*)stbi_loadf_from_memory(&font_data, font_len, &term_font_x, &term_font_y, &comp, STBI_rgb_alpha);
 
     framebuffer = malloc(bufsize);
     for (int i = 0; i < bufsize; i++)
