@@ -20,7 +20,7 @@ if(MATH_LIBRARY)
     target_link_libraries(engine ${MATH_LIBRARY})
 endif()
 
-target_link_libraries(engine OpenGL::GL glfw OpenMP::OpenMP_C )
+target_link_libraries(engine OpenGL::GL glfw)
 
 if(OpenMP)
     target_link_libraries(engine OpenMP::OpenMP_C )
