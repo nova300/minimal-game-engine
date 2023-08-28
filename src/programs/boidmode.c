@@ -292,10 +292,11 @@ void doRetention(boid *b)
 
 int update_boids(void *in_deltaTime)
 {
-    thread_set_high_priority();
-    float deltaTime = 0;
-    deltaTime = *(float*)in_deltaTime;
+    //thread_set_high_priority();
+    //float deltaTime = 0;
+    //deltaTime = *(float*)in_deltaTime;
     int i;
+    #pragma omp parallel for
     for (i = 0; i < amount; i++)
     {
         updateLocalBoidList(&boids[i]);
@@ -327,7 +328,7 @@ int boidprogram_update(float deltaTime)
         }
         rq_update_buffers(&renderQueue1);
 
-        thread = thread_create(update_boids, &deltaTime, THREAD_STACK_SIZE_DEFAULT);
+        thread = thread_create(update_boids, NULL, THREAD_STACK_SIZE_DEFAULT);
         thread_detach(thread);
     }
 
