@@ -22,7 +22,7 @@ endif()
 
 target_link_libraries(engine OpenGL::GL glfw)
 
-if(OpenMP)
+if(OpenMP_C_FOUND)
     target_link_libraries(engine OpenMP::OpenMP_C )
 endif()
 
