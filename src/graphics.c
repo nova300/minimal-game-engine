@@ -672,7 +672,6 @@ void rq_update_buffers(RenderQueue *rq)
     int count = rq->count;
     int i;
     GeoObject **obj = rq->objectBuffer;
-    //#pragma omp parallel for
     for (i = 0; i < count; i++)
     {
         dataNeedsUpdate = dataNeedsUpdate | obj[i]->dataDirty;
@@ -685,7 +684,6 @@ void rq_update_buffers(RenderQueue *rq)
     {
         int indexCount = 0;
         int vertexCount = 0;
-        //#pragma omp parallel for
         for (i = 0; i < count; i++)
         {
             indexCount += obj[i]->indexCount;
@@ -696,7 +694,6 @@ void rq_update_buffers(RenderQueue *rq)
         vertex *vertices = malloc(vertexCount * sizeof(vertex));
         int vertex_offset = 0;
         int index_offset = 0;
-        //#pragma omp parallel for
         for (i = 0; i < count; i++) 
         {
             memcpy(vertices + vertex_offset, obj[i]->data, obj[i]->dataCount * sizeof(vertex));
@@ -721,7 +718,6 @@ void rq_update_buffers(RenderQueue *rq)
     if (instanceNeedUpdate)
     {
         int instanceCount = 0;
-        //#pragma omp parallel for
         for (i = 0; i < count; i++)
         {
             instanceCount += obj[i]->instanceCount;
@@ -729,7 +725,6 @@ void rq_update_buffers(RenderQueue *rq)
         int *textures = malloc(sizeof(int) * instanceCount);
         mat4 *transforms = malloc(sizeof(mat4) * instanceCount);
         int instance_offset = 0;
-        //#pragma omp parallel for
         for (i = 0; i < count; i++)
         {
             memcpy(textures + instance_offset, obj[i]->texture, obj[i]->instanceCount * sizeof(int));
@@ -755,7 +750,6 @@ void rq_update_buffers(RenderQueue *rq)
         int baseVert = 0;
         int fIndex = 0;
         int baseInst = 0;
-        //#pragma omp parallel for
         for (i = 0; i < count; i++)
         {
             commands[i].count = obj[i]->indexCount;

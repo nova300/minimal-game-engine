@@ -1,7 +1,6 @@
 #include "engine.h"
 #include "shaders.h"
 
-#include <omp.h>
 #include "term.h"
 #include "systems.h"
 
@@ -290,7 +289,6 @@ int boidprogram_update(float deltaTime)
     geo_instanceop_clear(gobj);
 
     int i;
-    #pragma omp parallel for
     for (i = 0; i < amount; i++)
     {
         updateLocalBoidList(&boids[i]);
