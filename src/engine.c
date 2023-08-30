@@ -40,10 +40,6 @@ int main(void)
     }
     printf("ok\n");
 
-    GLuint VertexArrayID;
-    glGenVertexArrays(1, &VertexArrayID);
-    glBindVertexArray(VertexArrayID);
-
     projectionMatrix = matrix_perspective(radians(fov), (float)SCREEN_WIDTH/SCREEN_HEIGHT, 0.1f, 100.0f);
 
     vec4 eye = {{5, 5, 5, 0}};
@@ -58,7 +54,6 @@ int main(void)
 
     program_push(program_get_selftest());
 
-    glBindVertexArray(VertexArrayID);
     while (exitLoop == 0)
     {
         viewMatrix = matrix_lookAt(c_pos, vector_add(c_pos, c_front), c_up);
@@ -70,8 +65,6 @@ int main(void)
         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
         fb_render_bg();
-
-        glBindVertexArray(VertexArrayID);
 
         program_update(deltaTime);
 

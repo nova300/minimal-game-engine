@@ -514,6 +514,7 @@ void transform_set_identity(Transform* t)
 
 void geo_render(GeoObject_gpu_handle *rq)
 {
+    glBindVertexArray(rq->vertexArray);
     glUseProgram(rq->shader->ShaderID);
     glUniformMatrix4fv(rq->shader->ViewID, 1, GL_FALSE, &(viewMatrix.m[0]));
     glUniformMatrix4fv(rq->shader->ProjectionID, 1, GL_FALSE, &(projectionMatrix.m[0]));
@@ -523,32 +524,10 @@ void geo_render(GeoObject_gpu_handle *rq)
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rq->elementBuffer);
 
     glBindBuffer(GL_ARRAY_BUFFER, rq->vertexBuffer);
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0); // Position
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float))); // Normal
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float))); // Texture coordinates
 
     glBindBuffer(GL_ARRAY_BUFFER, rq->textureBuffer);
-    glEnableVertexAttribArray(3);
-    glVertexAttribIPointer(3, 1, GL_UNSIGNED_INT, 0, (void*)0);
-    glVertexAttribDivisor(3, 1);
 
     glBindBuffer(GL_ARRAY_BUFFER, rq->transformBuffer);
-    int model_matrix_location = 4;
-    glEnableVertexAttribArray(model_matrix_location);
-    glEnableVertexAttribArray(model_matrix_location + 1);
-    glEnableVertexAttribArray(model_matrix_location + 2);
-    glEnableVertexAttribArray(model_matrix_location + 3);
-    glVertexAttribPointer(model_matrix_location, 4, GL_FLOAT, GL_FALSE, sizeof(mat4), (void*)0);
-    glVertexAttribPointer(model_matrix_location + 1, 4, GL_FLOAT, GL_FALSE, sizeof(mat4), (void*)(sizeof(vec4)));
-    glVertexAttribPointer(model_matrix_location + 2, 4, GL_FLOAT, GL_FALSE, sizeof(mat4), (void*)(2*sizeof(vec4)));
-    glVertexAttribPointer(model_matrix_location + 3, 4, GL_FLOAT, GL_FALSE, sizeof(mat4), (void*)(3*sizeof(vec4)));
-    glVertexAttribDivisor(model_matrix_location, 1);
-    glVertexAttribDivisor(model_matrix_location + 1, 1);
-    glVertexAttribDivisor(model_matrix_location + 2, 1); 
-    glVertexAttribDivisor(model_matrix_location + 3, 1);
 
     switch (rq->type)
     {
@@ -568,14 +547,7 @@ void geo_render(GeoObject_gpu_handle *rq)
     }
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    glDisableVertexAttribArray(0);
-    glDisableVertexAttribArray(1);
-    glDisableVertexAttribArray(2);
-    glDisableVertexAttribArray(3);
-    glDisableVertexAttribArray(model_matrix_location);
-    glDisableVertexAttribArray(model_matrix_location + 1);
-    glDisableVertexAttribArray(model_matrix_location + 2);
-    glDisableVertexAttribArray(model_matrix_location + 3);
+    glBindVertexArray(0);
 }
 
 /*void geo_render_translated(GeoObject_gpu *gobj, Transform *t)
@@ -827,16 +799,96 @@ void rq_init(RenderQueue *rq, int capacity)
     geo_obj_gpu_handle_genBuffers(&rq->gpuHandle, GOBJ_TYPE_MULTI);
 }
 
-void geo_obj_gpu_handle_genBuffers(GeoObject_gpu_handle *gpuHandle, unsigned int type)
+static void setup_standard_vertexattribs(void)
 {
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0); // Position
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float))); // Normal
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float))); // Texture coordinates
+}
+
+static void setup_color_vertexattribs(void)
+{
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
+    glEnableVertexAttribArray(4);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);                           // Position
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(3 * sizeof(float)));         // Normal
+    glVertexAttribPointer(1, 2, GL_UNSIGNED_SHORT, GL_TRUE, 8 * sizeof(float), (void *)(6 * sizeof(float))); // Texture coordinates
+    glVertexAttribPointer(4, 3, GL_UNSIGNED_BYTE, GL_TRUE, 8 * sizeof(float), (void *)(7 * sizeof(float)));  // Color
+}
+
+static void setup_standard_modelmatrix(int model_matrix_location)
+{
+    glEnableVertexAttribArray(model_matrix_location);
+    glEnableVertexAttribArray(model_matrix_location + 1);
+    glEnableVertexAttribArray(model_matrix_location + 2);
+    glEnableVertexAttribArray(model_matrix_location + 3);
+    glVertexAttribPointer(model_matrix_location, 4, GL_FLOAT, GL_FALSE, sizeof(mat4), (void *)0);
+    glVertexAttribPointer(model_matrix_location + 1, 4, GL_FLOAT, GL_FALSE, sizeof(mat4), (void *)(sizeof(vec4)));
+    glVertexAttribPointer(model_matrix_location + 2, 4, GL_FLOAT, GL_FALSE, sizeof(mat4), (void *)(2 * sizeof(vec4)));
+    glVertexAttribPointer(model_matrix_location + 3, 4, GL_FLOAT, GL_FALSE, sizeof(mat4), (void *)(3 * sizeof(vec4)));
+    glVertexAttribDivisor(model_matrix_location, 1);
+    glVertexAttribDivisor(model_matrix_location + 1, 1);
+    glVertexAttribDivisor(model_matrix_location + 2, 1);
+    glVertexAttribDivisor(model_matrix_location + 3, 1);
+}
+
+void geo_obj_gpu_handle_genBuffers(GeoObject_gpu_handle *gpuHandle, unsigned char type)
+{
+    
+    glGenVertexArrays(1, &gpuHandle->vertexArray);
+    glBindVertexArray(gpuHandle->vertexArray);
+
     glGenBuffers(1, &gpuHandle->vertexBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, gpuHandle->vertexBuffer);
 
+    switch (type)
+    {
+    case GOBJ_TYPE_MULTI:
+        setup_standard_vertexattribs();
+        break;
+    case GOBJ_TYPE_SINGLE:
+        setup_standard_vertexattribs();
+        break;
+    
+    case GOBJ_TYPE_COLOR_MULTI:
+        setup_color_vertexattribs();
+        break;
+    case GOBJ_TYPE_COLOR_SINGLE:
+        setup_color_vertexattribs();
+        break;
+    
+    default:
+        break;
+    }
+
+
     glGenBuffers(1, &gpuHandle->transformBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, gpuHandle->transformBuffer);
+    switch (type)
+    {
+    case GOBJ_TYPE_COLOR_MULTI:
+        setup_standard_modelmatrix(5);
+        break;
+    case GOBJ_TYPE_COLOR_SINGLE:
+        setup_standard_modelmatrix(5);
+        break;
+    
+    default:
+        setup_standard_modelmatrix(4);
+        break;
+    }
+
 
     glGenBuffers(1, &gpuHandle->textureBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, gpuHandle->textureBuffer);
+    glEnableVertexAttribArray(3);
+    glVertexAttribIPointer(3, 1, GL_UNSIGNED_INT, 0, (void*)0);
+    glVertexAttribDivisor(3, 1);
 
     glGenBuffers(1, &gpuHandle->elementBuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gpuHandle->elementBuffer);
@@ -845,6 +897,13 @@ void geo_obj_gpu_handle_genBuffers(GeoObject_gpu_handle *gpuHandle, unsigned int
     switch (type)
     {
     case GOBJ_TYPE_MULTI:
+        glGenBuffers(1, &gpuHandle->commandBuffer);
+        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, gpuHandle->commandBuffer);
+        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
+        gpuHandle->type = type;
+        break;
+
+    case GOBJ_TYPE_COLOR_MULTI:
         glGenBuffers(1, &gpuHandle->commandBuffer);
         glBindBuffer(GL_DRAW_INDIRECT_BUFFER, gpuHandle->commandBuffer);
         glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);

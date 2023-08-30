@@ -16,9 +16,6 @@
 
 #define DO_INTEL_WORKAROUND false
 
-#define GOBJ_TYPE_SINGLE 1
-#define GOBJ_TYPE_MULTI 2
-
 typedef union
 {
 	float m[4];
@@ -100,6 +97,15 @@ mat4 matrix_ortho(float left, float right, float bottom, float top, float near_p
 float radians(float dgr);
 int FloatEquals(float a, float b, float floatEqualityThreshold);
 
+enum GeoObjectType
+{
+    GOBJ_TYPE_UNDEFINED,
+    GOBJ_TYPE_SINGLE,
+    GOBJ_TYPE_MULTI,
+    GOBJ_TYPE_COLOR_SINGLE,
+    GOBJ_TYPE_COLOR_MULTI
+};
+
 typedef struct
 {
     char shaderType;
@@ -158,10 +164,10 @@ typedef union
         vec3 normal;
         short uvx;
         short uvy;
-        char r;
-        char g;
-        char b;
-        char a;
+        unsigned char r;
+        unsigned char g;
+        unsigned char b;
+        unsigned char a;
     };
 }vertex_c;
 
@@ -174,6 +180,7 @@ typedef struct
     unsigned int count;
     unsigned int indexCount;
     Shader *shader;
+    GLuint vertexArray;
     GLuint textureAtlas;
     GLuint vertexBuffer;
     GLuint transformBuffer;
@@ -217,7 +224,7 @@ void rq_update_buffers(RenderQueue *rq);
 void rq_add_object(RenderQueue *rq, GeoObject *obj);
 void rq_init(RenderQueue *rq, int capacity);
 
-void geo_obj_gpu_handle_genBuffers(GeoObject_gpu_handle *gpuHandle, unsigned int type);
+void geo_obj_gpu_handle_genBuffers(GeoObject_gpu_handle *gpuHandle, unsigned char type);
 GeoObject_gpu *geo_obj_bindToGpu(GeoObject obj);
 GeoObject_gpu *geo_obj_bindToGpu_and_free(GeoObject *obj);
 void geo_obj_gpu_updateBuffers(GeoObject_gpu *obj);
