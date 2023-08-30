@@ -3,7 +3,7 @@
 #include "stb_image.h"
 #include "shaders.h"
 
-#include <threads.h>
+#include <pthread.h>
 #include <stdatomic.h>
 
 #define DEGREES(x) ((x) * 0x10000 / 360)
@@ -46,7 +46,7 @@ Skybox skyboxinfo;
 
 static atomic_int threadStatus;
 
-static thrd_t thread;
+static pthread_t thread;
 
 mat4 matrix;
 mat4 modelMatrix;
@@ -161,7 +161,7 @@ vertex *make_skybox_rect(int tileIndex, int *indicies)
     return verts;
 }
 
-void update_skybox()
+void *update_skybox(void *arg)
 {
     vec4 cameraFocus = vector_add(c_pos, c_front);
     vec4 cameraFace = vector_subtract(cameraFocus, c_pos);
@@ -261,8 +261,8 @@ void render_skybox()
             }
         }
 
-        thrd_create(&thread, (thrd_start_t)update_skybox, NULL);
-        thrd_detach(thread);
+        pthread_create(&thread, NULL, update_skybox, NULL);
+        pthread_detach(thread);
     }
 
     

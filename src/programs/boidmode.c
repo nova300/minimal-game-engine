@@ -5,7 +5,7 @@
 #include "systems.h"
 
 //#include "thread.h"
-#include <threads.h>
+#include <pthread.h>
 #include <stdatomic.h>
 
 static GeoObject **rq;
@@ -66,7 +66,7 @@ static char initialized = false;
 
 //static thread_ptr_t thread;
 
-static thrd_t thread;
+static pthread_t thread;
 
 static atomic_int threadStatus;
 
@@ -296,7 +296,7 @@ void doRetention(boid *b)
     }
 }
 
-void update_boids(void)
+void *update_boids(void* arg)
 {
     //thread_set_high_priority();
     //float deltaTime = 0;
@@ -334,8 +334,8 @@ int boidprogram_update(float deltaTime)
         }
         rq_update_buffers(&renderQueue1);
 
-        thrd_create(&thread, (thrd_start_t)update_boids, NULL);
-        thrd_detach(thread);
+        pthread_create(&thread, NULL, update_boids, NULL);
+        pthread_detach(thread);
     }
 
     geo_render(&renderQueue1.gpuHandle);
