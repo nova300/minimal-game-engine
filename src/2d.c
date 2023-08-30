@@ -114,6 +114,7 @@ void fb_init()
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, HIWIDTH, HIHEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glBindVertexArray(0);
 }
 
 void fb_update()
@@ -138,13 +139,14 @@ void fb_update_hi()
 
 void fb_render()
 {
+    glBindVertexArray(vao);
     fb_update();
     glUseProgram(program);
     glBindTexture(GL_TEXTURE_2D, texture);
     glUniform1i(glGetUniformLocation(program, "colorTexture"), 0);
     glUniform1f(glGetUniformLocation(program, "time"), (float)appTime);
-    glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glBindVertexArray(0);
 }
 
 void fb_copy_to_bg()
@@ -159,14 +161,15 @@ void fb_render_bg()
     {
         fb_update_bg();
     }
+    glBindVertexArray(vao);
     glUseProgram(program_bg);
     glBindTexture(GL_TEXTURE_2D, texture_bg);
     glUniform1i(glGetUniformLocation(program_bg, "colorTexture"), 0);
     glUniform1f(glGetUniformLocation(program_bg, "time"), (float)appTime);
-    glBindVertexArray(vao);
     glDepthMask(GL_FALSE);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glDepthMask(GL_TRUE);
+    glBindVertexArray(0);
 }
 
 void fb_render_hi()
@@ -175,12 +178,13 @@ void fb_render_hi()
     {
         fb_update_hi();
     }
+    glBindVertexArray(vao);
     glUseProgram(program);
     glBindTexture(GL_TEXTURE_2D, texture_hi);
     glUniform1i(glGetUniformLocation(program, "colorTexture"), 0);
     glUniform1f(glGetUniformLocation(program, "time"), (float)appTime);
-    glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glBindVertexArray(0);
 }
 
 void fb_clear()
