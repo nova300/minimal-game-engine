@@ -459,59 +459,6 @@ void transform_set_identity(Transform* t)
     t->matrix = IDENTITY_MATRIX;
 }
 
-/*void geo_render(GeoObject_gpu *gobj)
-{
-    GeoObject *obj = (GeoObject*)gobj;
-    glUseProgram(gobj->shader->ShaderID);
-    glUniformMatrix4fv(gobj->shader->ViewID, 1, GL_FALSE, &(viewMatrix.m[0]));
-    glUniformMatrix4fv(gobj->shader->ProjectionID, 1, GL_FALSE, &(projectionMatrix.m[0]));
-    glBindTexture(GL_TEXTURE_2D, obj->baseTexture);
-    
-    glBindBuffer(GL_ARRAY_BUFFER, gobj->vertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, obj->dataCount * sizeof(vertex), obj->data, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gobj->elementBuffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, obj->indexCount * sizeof(unsigned int), obj->indicies, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0); // Position
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float))); // Normal
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float))); // Texture coordinates
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-    glEnableVertexAttribArray(2);
-
-    glBindBuffer(GL_ARRAY_BUFFER, gobj->textureBuffer);
-    glBufferData(GL_ARRAY_BUFFER, obj->instanceCount * sizeof(unsigned int), obj->texture, GL_DYNAMIC_DRAW);
-    glEnableVertexAttribArray(3);
-    glVertexAttribDivisor(3, 1); 
-
-    glBindBuffer(GL_ARRAY_BUFFER, gobj->transformBuffer);
-    glBufferData(GL_ARRAY_BUFFER, obj->instanceCount * sizeof(mat4), obj->transform, GL_DYNAMIC_DRAW);
-    int model_matrix_location = 4;
-    glEnableVertexAttribArray(model_matrix_location);
-    glEnableVertexAttribArray(model_matrix_location + 1);
-    glEnableVertexAttribArray(model_matrix_location + 2);
-    glEnableVertexAttribArray(model_matrix_location + 3);
-    glVertexAttribPointer(model_matrix_location, 4, GL_FLOAT, GL_FALSE, sizeof(mat4), (void*)0);
-    glVertexAttribPointer(model_matrix_location + 1, 4, GL_FLOAT, GL_FALSE, sizeof(mat4), (void*)(sizeof(vec4)));
-    glVertexAttribPointer(model_matrix_location + 2, 4, GL_FLOAT, GL_FALSE, sizeof(mat4), (void*)(2*sizeof(vec4)));
-    glVertexAttribPointer(model_matrix_location + 3, 4, GL_FLOAT, GL_FALSE, sizeof(mat4), (void*)(3*sizeof(vec4)));
-    glVertexAttribDivisor(model_matrix_location, 1);
-    glVertexAttribDivisor(model_matrix_location + 1, 1);
-    glVertexAttribDivisor(model_matrix_location + 2, 1);
-    glVertexAttribDivisor(model_matrix_location + 3, 1);
-
-    glDrawElementsInstanced(GL_TRIANGLES, obj->indexCount, GL_UNSIGNED_INT, (void*)0, obj->instanceCount);
-
-    glDisableVertexAttribArray(0);
-    glDisableVertexAttribArray(1);
-    glDisableVertexAttribArray(2);
-    glDisableVertexAttribArray(3);
-    glDisableVertexAttribArray(model_matrix_location);
-    glDisableVertexAttribArray(model_matrix_location + 1);
-    glDisableVertexAttribArray(model_matrix_location + 2);
-    glDisableVertexAttribArray(model_matrix_location + 3);
-}*/
-
 void geo_render(GeoObject_gpu_handle *rq)
 {
     glBindVertexArray(rq->vertexArray);
@@ -550,36 +497,6 @@ void geo_render(GeoObject_gpu_handle *rq)
     glBindVertexArray(0);
 }
 
-/*void geo_render_translated(GeoObject_gpu *gobj, Transform *t)
-{
-    GeoObject *obj = (GeoObject*)gobj;
-
-    glUseProgram(gobj->shader->ShaderID);
-    glUniformMatrix4fv(gobj->shader->ViewID, 1, GL_FALSE, &(viewMatrix.m[0]));
-    glUniformMatrix4fv(gobj->shader->ProjectionID, 1, GL_FALSE, &(projectionMatrix.m[0]));
-
-    glBindTexture(GL_TEXTURE_2D, obj->baseTexture);
-    
-    glBindBuffer(GL_ARRAY_BUFFER, gobj->vertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, obj->dataCount * sizeof(vertex), obj->data, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gobj->elementBuffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, obj->indexCount * sizeof(unsigned int), obj->indicies, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0); // Position
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float))); // Normal
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float))); // Texture coordinates
-
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-    glEnableVertexAttribArray(2);
-
-    glDrawElements(GL_TRIANGLES, obj->indexCount, GL_UNSIGNED_INT, (void*)0);
-
-    glDisableVertexAttribArray(0);
-    glDisableVertexAttribArray(1);
-    glDisableVertexAttribArray(2);
-}*/
 
 GLuint generateColorTexture(float r, float g, float b, float a)
 {
