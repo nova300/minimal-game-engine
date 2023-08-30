@@ -99,7 +99,7 @@ float vector_dot(vec4 *v1, vec4 *v2)
     #endif
 }
 
-
+/*
 float *vector_dot_multi(vec4 *v1, vec4 *v2, unsigned int count) 
 {
 
@@ -202,6 +202,7 @@ float *vector_dot_multi(vec4 *v1, vec4 *v2, unsigned int count)
 
     #endif
 }
+*/
 
 
 vec4 vector_cross(vec4 v1, vec4 v2) 

@@ -68,7 +68,9 @@ static char initialized = false;
 
 static pthread_t thread;
 
-static atomic_int threadStatus;
+static atomic_int threadStatus = 0;
+
+void *update_boids(void* arg);
 
 
 int boidprogram_init()
@@ -86,6 +88,8 @@ int boidprogram_init()
 
     c_pos = eye;
     c_front = center;
+
+    pthread_create(&thread, NULL, update_boids, NULL);
 
     if (initialized) return 0;
 
@@ -149,7 +153,7 @@ int boidprogram_init()
 
         transform_position(((rand() - rand()) % 3) + ((rand() - rand()) % 10), ((rand() - rand()) % 3) + ((rand() - rand()) % 10), ((rand() - rand()) % 3) + ((rand() - rand()) % 10), &b[i].transform);
         
-        b[i].localBoidList = malloc(sizeof(boid*) * 40);
+        b[i].localBoidList = malloc(sizeof(boid*) * 20);
         b[i].localBoidListAmount = 0;
 
         b[i].id = i;
@@ -157,8 +161,6 @@ int boidprogram_init()
     }
     
     boids = b;
-
-    //thread_atomic_int_store( &threadStatus, 0 );
 
     initialized = true;
 }
@@ -169,7 +171,7 @@ void updateLocalBoidList(boid *b)
 
     for (int i = 0; i < amount; i++)
     {
-        if (b->localBoidListAmount == 40) break;
+        if (b->localBoidListAmount == 20) break;
         if (boids[i].id == b->id) continue;
 
         if (vector_distance(b->transform.position, boids[i].transform.position) < radius)
@@ -231,10 +233,9 @@ void doSeperation(boid *b)
     int closeBoidsAmount = 0;
     vec4 avg = zero;
     
-    for (int i = 0; i < amount; i++)
+    for (int i = 0; i < b->localBoidListAmount; i++)
     {
-        if (closeBoidsAmount == 49) break;
-        float dist = vector_distance(b->transform.position, boids[i].transform.position);
+        float dist = vector_distance(b->transform.position, b->localBoidList[i]->transform.position);
         if (dist < sepRad)
         {
             //closeBoids[closeBoidsAmount] = &boids[i];
@@ -243,9 +244,9 @@ void doSeperation(boid *b)
 
             vec4 diff;
 
-            diff.x = boids[i].transform.position.x;
-            diff.y = boids[i].transform.position.y;
-            diff.z = boids[i].transform.position.z;
+            diff.x = b->localBoidList[i]->transform.position.x;
+            diff.y = b->localBoidList[i]->transform.position.y;
+            diff.z = b->localBoidList[i]->transform.position.z;
 
             /*if (dist > 1.0f)
             {
@@ -298,26 +299,28 @@ void doRetention(boid *b)
 
 void *update_boids(void* arg)
 {
-    //thread_set_high_priority();
-    //float deltaTime = 0;
-    //deltaTime = *(float*)in_deltaTime;
-    int i;
-    #pragma omp parallel for
-    for (i = 0; i < amount; i++)
+    while (true)
     {
-        updateLocalBoidList(&boids[i]);
-        doAlignment(&boids[i]);
-        doCohesion(&boids[i]);
-        doSeperation(&boids[i]);
-        doRetention(&boids[i]);
-        vector_normalize(&boids[i].direction);
-        transform_move(boids[i].direction.x * (deltaTime * speed), boids[i].direction.y * (deltaTime * speed), boids[i].direction.z * (deltaTime * speed), &boids[i].transform);
-        transform_set_rotation(boids[i].direction.x, boids[i].direction.y, boids[i].direction.z, &boids[i].transform);
-        transform_make_matrix(&boids[i].transform);
-        //geo_instanceop_add(gobj, boids[i].transform.matrix, boids[i].texture);
+        pthread_testcancel();
+        if (threadStatus == 1)
+        {
+            int i;
+            #pragma omp parallel for
+            for (i = 0; i < amount; i++)
+            {
+                updateLocalBoidList(&boids[i]);
+                doAlignment(&boids[i]);
+                doCohesion(&boids[i]);
+                doSeperation(&boids[i]);
+                doRetention(&boids[i]);
+                vector_normalize(&boids[i].direction);
+                transform_move(boids[i].direction.x * (deltaTime * speed), boids[i].direction.y * (deltaTime * speed), boids[i].direction.z * (deltaTime * speed), &boids[i].transform);
+                transform_set_rotation(boids[i].direction.x, boids[i].direction.y, boids[i].direction.z, &boids[i].transform);
+                transform_make_matrix(&boids[i].transform);
+            }
+            threadStatus = 0;
+        }
     }
-    threadStatus = 0;
-    //thread_exit(EXIT_SUCCESS);
 }
 
 int boidprogram_update(float deltaTime)
@@ -326,7 +329,7 @@ int boidprogram_update(float deltaTime)
 
     if (threadStatus == 0)
     {
-        threadStatus = 1;
+        
         geo_instanceop_clear(gobj);
         for (int i = 0; i < amount; i++)
         {
@@ -334,8 +337,8 @@ int boidprogram_update(float deltaTime)
         }
         rq_update_buffers(&renderQueue1);
 
-        pthread_create(&thread, NULL, update_boids, NULL);
-        pthread_detach(thread);
+        threadStatus = 1;
+
     }
 
     geo_render(&renderQueue1.gpuHandle);
@@ -363,6 +366,9 @@ int boidprogram_update(float deltaTime)
 
 int boidprogram_destroy()
 {
+    pthread_cancel(thread);
+    pthread_join(thread, NULL);
+    threadStatus = 0;
     free(this);
 }
 

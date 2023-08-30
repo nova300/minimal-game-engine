@@ -2,7 +2,6 @@
 #define engine_h
 
 #define GLEW_STATIC
-#define DO_MMX
 
 #include <stdio.h>
 #include <stdlib.h>
