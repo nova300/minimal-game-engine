@@ -12,6 +12,12 @@ Shader* newShaderObject(const char *vertex_source, const char *fragment_source)
     return s;
 }
 
+void freeShaderObject(Shader *shader)
+{
+    glDeleteProgram(shader->ShaderID);
+    free(shader);
+}
+
 GLuint loadShaders(const char *vertex_source, const char *fragment_source)
 {
     GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);

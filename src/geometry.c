@@ -272,6 +272,13 @@ GeoObject *geo_obj_createFromParShape(par_shapes_mesh* mesh)
     return g;
 }
 
+void geo_obj_free(GeoObject *gobj)
+{
+    free(gobj->data);
+    free(gobj->indicies);
+    free(gobj);
+}
+
 void geo_instanceop_init(GeoObject *obj, int capacity) 
 {
     obj->transform = malloc(capacity * sizeof(mat4));
@@ -283,7 +290,9 @@ void geo_instanceop_init(GeoObject *obj, int capacity)
 void geo_instanceop_free(GeoObject *obj)
 {
     free(obj->transform);
+    free(obj->texture);
     obj->transform = NULL;
+    obj->texture = NULL;
     obj->instanceCapacity = 0;
     obj->instanceCount = 0;
     obj->instanceDirty = 1;

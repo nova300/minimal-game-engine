@@ -116,6 +116,7 @@ typedef struct
 
 GLuint loadShaders(const char *vertex_source, const char *fragment_source);
 Shader* newShaderObject(const char *vertex_source, const char *fragment_source);
+void freeShaderObject(Shader *shader);
 
 typedef struct
 {
@@ -223,11 +224,14 @@ RenderQueue *rq_new_queue(int capacity);
 void rq_update_buffers(RenderQueue *rq);
 void rq_add_object(RenderQueue *rq, GeoObject *obj);
 void rq_init(RenderQueue *rq, int capacity);
+void rq_free(RenderQueue *r);
+void rq_free_with_objects(RenderQueue *r);
 
 void geo_obj_gpu_handle_genBuffers(GeoObject_gpu_handle *gpuHandle, unsigned char type);
 GeoObject_gpu *geo_obj_bindToGpu(GeoObject obj);
 GeoObject_gpu *geo_obj_bindToGpu_and_free(GeoObject *obj);
 void geo_obj_gpu_updateBuffers(GeoObject_gpu *obj);
+void geo_obj_free(GeoObject *gobj);
 
 GLuint loadTexture(const char *name);
 GLuint generateColorTexture(float r, float g, float b, float a);

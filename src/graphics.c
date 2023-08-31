@@ -462,6 +462,7 @@ void transform_set_identity(Transform* t)
 
 void geo_render(GeoObject_gpu_handle *rq)
 {
+    if (rq->type == GOBJ_TYPE_UNDEFINED) return;
     glBindVertexArray(rq->vertexArray);
     glUseProgram(rq->shader->ShaderID);
     glUniformMatrix4fv(rq->shader->ViewID, 1, GL_FALSE, &(viewMatrix.m[0]));
@@ -556,6 +557,7 @@ GLuint loadTexture(const char *name)
 
 void rq_update_buffers(RenderQueue *rq)
 {
+    if (rq->gpuHandle.type == GOBJ_TYPE_UNDEFINED) return;
     char dataNeedsUpdate = 0;
     char instanceNeedUpdate = 0;
     char commandsNeedUpdate = 0;
@@ -678,6 +680,7 @@ void rq_update_buffers(RenderQueue *rq)
 
 void geo_obj_gpu_update_buffers(GeoObject_gpu *gobj)
 {
+    if (gobj->gpuHandle.type == GOBJ_TYPE_UNDEFINED) return;
 
     if (gobj->geoObject.dataDirty)
     {
@@ -767,15 +770,11 @@ void geo_obj_gpu_handle_genBuffers(GeoObject_gpu_handle *gpuHandle, unsigned cha
     switch (type)
     {
     case GOBJ_TYPE_MULTI:
-        setup_standard_vertexattribs();
-        break;
     case GOBJ_TYPE_SINGLE:
         setup_standard_vertexattribs();
         break;
     
     case GOBJ_TYPE_COLOR_MULTI:
-        setup_color_vertexattribs();
-        break;
     case GOBJ_TYPE_COLOR_SINGLE:
         setup_color_vertexattribs();
         break;
@@ -790,8 +789,6 @@ void geo_obj_gpu_handle_genBuffers(GeoObject_gpu_handle *gpuHandle, unsigned cha
     switch (type)
     {
     case GOBJ_TYPE_COLOR_MULTI:
-        setup_standard_modelmatrix(5);
-        break;
     case GOBJ_TYPE_COLOR_SINGLE:
         setup_standard_modelmatrix(5);
         break;
@@ -815,12 +812,6 @@ void geo_obj_gpu_handle_genBuffers(GeoObject_gpu_handle *gpuHandle, unsigned cha
     switch (type)
     {
     case GOBJ_TYPE_MULTI:
-        glGenBuffers(1, &gpuHandle->commandBuffer);
-        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, gpuHandle->commandBuffer);
-        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
-        gpuHandle->type = type;
-        break;
-
     case GOBJ_TYPE_COLOR_MULTI:
         glGenBuffers(1, &gpuHandle->commandBuffer);
         glBindBuffer(GL_DRAW_INDIRECT_BUFFER, gpuHandle->commandBuffer);
@@ -836,33 +827,45 @@ void geo_obj_gpu_handle_genBuffers(GeoObject_gpu_handle *gpuHandle, unsigned cha
 
 void geo_obj_gpu_handle_deleteBuffers(GeoObject_gpu_handle *gpuHandle)
 {
+    if (gpuHandle->type == GOBJ_TYPE_UNDEFINED) return;
+
+    glDeleteVertexArrays(1, &gpuHandle->vertexArray);
+
     glDeleteBuffers(1, &gpuHandle->vertexBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, gpuHandle->vertexBuffer);
 
     glDeleteBuffers(1, &gpuHandle->transformBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, gpuHandle->transformBuffer);
 
     glDeleteBuffers(1, &gpuHandle->textureBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, gpuHandle->textureBuffer);
 
     glDeleteBuffers(1, &gpuHandle->elementBuffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gpuHandle->elementBuffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
     unsigned char type = gpuHandle->type;
 
     switch (type)
     {
     case GOBJ_TYPE_MULTI:
+    case GOBJ_TYPE_COLOR_MULTI:
         glDeleteBuffers(1, &gpuHandle->commandBuffer);
         break;    
     default:
         break;
     }
+
+    gpuHandle->type = GOBJ_TYPE_UNDEFINED;
 }
 
 void rq_free(RenderQueue *r)
 {
+    free(r->objectBuffer);
+    geo_obj_gpu_handle_deleteBuffers(&r->gpuHandle);
+}
+
+void rq_free_with_objects(RenderQueue *r)
+{
+    for (int i = 0; i < r->count; i++)
+    {
+        geo_obj_free(r->objectBuffer[i]);
+    }
     free(r->objectBuffer);
     geo_obj_gpu_handle_deleteBuffers(&r->gpuHandle);
 }

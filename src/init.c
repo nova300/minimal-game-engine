@@ -58,8 +58,8 @@ void quit()
 
 int initGL()
 {
-    glEnable(GL_DEBUG_OUTPUT);
-    glDebugMessageCallback(MessageCallback, 0);
+    //glEnable(GL_DEBUG_OUTPUT);
+    //glDebugMessageCallback(MessageCallback, 0);
 
     glfwSetFramebufferSizeCallback(window, frameBufferSizeCallback);
 

@@ -4,7 +4,7 @@
 #include "term.h"
 #include "systems.h"
 
-static Program *this;
+static Program *this = NULL;
 static float countdown = 5;
 
 char reinit;
@@ -43,6 +43,7 @@ int selftest_update(float deltaTime)
 int selftest_destroy()
 {
     free(this);
+    this = NULL;
 }
 
 int selftest_keyCallback(int key, int action)
@@ -83,6 +84,7 @@ void selftest_key_input_poll(void)
 
 Program *program_get_selftest()
 {
+    if (this != NULL) return this;
     this = malloc(sizeof(Program));
 
     this->init = selftest_init;

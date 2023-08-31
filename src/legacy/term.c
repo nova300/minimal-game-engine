@@ -124,7 +124,7 @@ int terminal_print(const char* str)
     {
         buffer = realloc(buffer, buffalloc + 32 + len);
         buffalloc += 32 + len;
-        printf("allocated %i bytes\n", buffalloc);
+        //printf("allocated %i bytes\n", buffalloc);
     }
     strcpy(buffer + bufflen, str);
     bufflen += len;
