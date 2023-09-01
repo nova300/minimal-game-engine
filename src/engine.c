@@ -6,7 +6,6 @@
 #include "term.h"
 #include "systems.h"
 #include <string.h>
-#include <pthread.h>
 
 double appTime = 0;
 double deltaTime = 0;
@@ -85,7 +84,6 @@ int main(void)
 
     quit();
     printf("Goodbye.\n");
-    pthread_exit(EXIT_SUCCESS);
     return 0;
 }
 
