@@ -485,13 +485,9 @@ void geo_render(GeoObject_gpu_handle *rq)
         glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (void*)0, rq->count, 0);
         glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
         break;
-
-    case GOBJ_TYPE_SINGLE:
-        glDrawElementsInstanced(GL_TRIANGLES, rq->indexCount, GL_UNSIGNED_INT, (void*)0, rq->count);
-        break;
     
     default:
-        printf("GRAPHICS: could not determine handle render type, skipping draw call\n");
+        glDrawElementsInstanced(GL_TRIANGLES, rq->indexCount, GL_UNSIGNED_INT, (void*)0, rq->indexCount);
         break;
     }
 
@@ -684,16 +680,19 @@ void geo_obj_gpu_update_buffers(GeoObject_gpu *gobj)
 
     if (gobj->geoObject.dataDirty)
     {
+        gobj->geoObject.dataDirty = false;
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gobj->gpuHandle.elementBuffer);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, gobj->geoObject.indexCount * sizeof(unsigned int), gobj->geoObject.indicies, GL_STATIC_DRAW);
 
+        gobj->gpuHandle.indexCount = gobj->geoObject.indexCount;
+
         glBindBuffer(GL_ARRAY_BUFFER, gobj->gpuHandle.vertexBuffer);
         glBufferData(GL_ARRAY_BUFFER, gobj->geoObject.dataCount * sizeof(vertex), gobj->geoObject.data, GL_STATIC_DRAW);
-
     }
 
     if (gobj->geoObject.instanceDirty)
     {
+        gobj->geoObject.instanceDirty = false;
         glBindBuffer(GL_ARRAY_BUFFER, gobj->gpuHandle.textureBuffer);
         glBufferData(GL_ARRAY_BUFFER, gobj->geoObject.instanceCount * sizeof(int), gobj->geoObject.texture, GL_STATIC_DRAW);
 
@@ -718,6 +717,17 @@ void rq_init(RenderQueue *rq, int capacity)
     rq->count = 0;
 
     geo_obj_gpu_handle_genBuffers(&rq->gpuHandle, GOBJ_TYPE_MULTI);
+}
+
+void rq_init_c(RenderQueue *rq, int capacity)
+{
+    rq->capacity = capacity;
+    GeoObject **buf;
+    buf = malloc(sizeof(*buf) * capacity);
+    rq->objectBuffer = buf;
+    rq->count = 0;
+
+    geo_obj_gpu_handle_genBuffers(&rq->gpuHandle, GOBJ_TYPE_COLOR_MULTI);
 }
 
 static void setup_standard_vertexattribs(void)
@@ -769,17 +779,13 @@ void geo_obj_gpu_handle_genBuffers(GeoObject_gpu_handle *gpuHandle, unsigned cha
 
     switch (type)
     {
-    case GOBJ_TYPE_MULTI:
-    case GOBJ_TYPE_SINGLE:
-        setup_standard_vertexattribs();
-        break;
-    
     case GOBJ_TYPE_COLOR_MULTI:
-    case GOBJ_TYPE_COLOR_SINGLE:
+    case GOBJ_TYPE_COLOR:
         setup_color_vertexattribs();
         break;
     
     default:
+        setup_standard_vertexattribs();
         break;
     }
 
@@ -789,7 +795,7 @@ void geo_obj_gpu_handle_genBuffers(GeoObject_gpu_handle *gpuHandle, unsigned cha
     switch (type)
     {
     case GOBJ_TYPE_COLOR_MULTI:
-    case GOBJ_TYPE_COLOR_SINGLE:
+    case GOBJ_TYPE_COLOR:
         setup_standard_modelmatrix(5);
         break;
     
@@ -901,6 +907,39 @@ vertex gfx_make_vertex(float x, float y, float z, float uvx, float uvy)
     out.normal.x = 0;
     out.normal.y = 0;
     out.normal.z = 0;
+
+    return out;
+}
+
+vertex_c gfx_make_color_vertex(float x, float y, float z, short uvx, short uvy, color vertexColor)
+{
+    vertex_c out;
+
+    out.vertex.x = x;
+    out.vertex.y = y;
+    out.vertex.z = z;
+    out.uvx = uvx;
+    out.uvy = uvy;
+
+    out.normal.x = 0;
+    out.normal.y = 0;
+    out.normal.z = 0;
+
+    out.r = vertexColor.r;
+    out.g = vertexColor.g;
+    out.b = vertexColor.b;
+
+    return out;
+}
+
+color gfx_make_color(unsigned char r, unsigned char g, unsigned char b, unsigned char a)
+{
+    color out;
+
+    out.r = r;
+    out.g = g;
+    out.b = b;
+    out.a = a;
 
     return out;
 }

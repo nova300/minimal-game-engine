@@ -18,6 +18,18 @@
 
 typedef union
 {
+	unsigned char m[4];
+	struct 
+    {
+	    unsigned char r;
+        unsigned char g;
+        unsigned char b;
+        unsigned char a;
+	};
+}color;
+
+typedef union
+{
 	float m[4];
 	struct 
     {
@@ -100,9 +112,9 @@ int FloatEquals(float a, float b, float floatEqualityThreshold);
 enum GeoObjectType
 {
     GOBJ_TYPE_UNDEFINED,
-    GOBJ_TYPE_SINGLE,
+    GOBJ_TYPE_STANDARD,
+    GOBJ_TYPE_COLOR,
     GOBJ_TYPE_MULTI,
-    GOBJ_TYPE_COLOR_SINGLE,
     GOBJ_TYPE_COLOR_MULTI
 };
 
@@ -173,6 +185,8 @@ typedef union
 }vertex_c;
 
 vertex gfx_make_vertex(float x, float y, float z, float uvx, float uvy);
+vertex_c gfx_make_color_vertex(float x, float y, float z, short uvx, short uvy, color vertexColor);
+color gfx_make_color(unsigned char r, unsigned char g, unsigned char b, unsigned char a);
 
 
 typedef struct
@@ -194,6 +208,7 @@ typedef struct
 {
     Transform baseTransform;
     int baseTexture;
+    unsigned char type;
     vertex *data;
     int dataCount;
     int *indicies;
@@ -224,6 +239,7 @@ RenderQueue *rq_new_queue(int capacity);
 void rq_update_buffers(RenderQueue *rq);
 void rq_add_object(RenderQueue *rq, GeoObject *obj);
 void rq_init(RenderQueue *rq, int capacity);
+void rq_init_c(RenderQueue *rq, int capacity);
 void rq_free(RenderQueue *r);
 void rq_free_with_objects(RenderQueue *r);
 

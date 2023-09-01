@@ -176,6 +176,8 @@ int geo_obj_createObjectData(GeoObject *obj, vec3* vertices, vec2* uvs, vec3* no
     
     obj->indexCount = vertexCount;
 
+    obj->type = GOBJ_TYPE_STANDARD;
+
     obj->data = (vertex *)malloc(vertexCount * sizeof(vertex));
     
     obj->indicies = (unsigned int*)malloc(vertexCount * sizeof(unsigned int));
@@ -220,6 +222,7 @@ GeoObject *geo_obj_createFromParShape(par_shapes_mesh* mesh)
     GeoObject *g = malloc(sizeof(GeoObject));
     g->data = NULL;
     g->indicies = NULL;
+    g->type = GOBJ_TYPE_STANDARD;
     transform_set_identity(&g->baseTransform);
     g->instanceCount = 1;
     g->instanceCapacity = 1;
@@ -291,8 +294,8 @@ void geo_instanceop_free(GeoObject *obj)
 {
     free(obj->transform);
     free(obj->texture);
-    obj->transform = NULL;
-    obj->texture = NULL;
+    obj->transform = &obj->baseTransform;
+    obj->texture = &obj->baseTexture;
     obj->instanceCapacity = 0;
     obj->instanceCount = 0;
     obj->instanceDirty = 1;
@@ -349,6 +352,7 @@ GeoObject *geo_new_object(void)
     g->data = NULL;
     g->indicies = NULL;
     g->baseTexture = 1;
+    g->type = GOBJ_TYPE_UNDEFINED;
 
     transform_set_identity(&g->baseTransform);
     g->instanceCount = 1;
@@ -367,6 +371,7 @@ GeoObject geo_new_stack_object(void)
     GeoObject g;
     g.data = NULL;
     g.indicies = NULL;
+    g.type = GOBJ_TYPE_UNDEFINED;
 
     transform_set_identity(&g.baseTransform);
 
@@ -439,7 +444,7 @@ GeoObject_gpu *geo_obj_bindToGpu(GeoObject obj)
 
     gobj->geoObject = obj;
 
-    geo_obj_gpu_handle_genBuffers(&gobj->gpuHandle, GOBJ_TYPE_SINGLE);
+    geo_obj_gpu_handle_genBuffers(&gobj->gpuHandle, gobj->geoObject.type);
 
     return gobj;
 }

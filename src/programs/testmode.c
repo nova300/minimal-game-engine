@@ -11,6 +11,7 @@ typedef struct
 {
     GeoObject **rq;
     RenderQueue renderQueue1;
+    GeoObject_gpu *obj2;
     float sensitivity;
     float speed;
     char firstMouse;
@@ -78,6 +79,34 @@ int testprogram_init()
     //rq_add_object(&localstorage->renderQueue1, cube1);
 
     par_shapes_free_mesh(cube);
+
+    vertex_c *verices = malloc(sizeof(vertex_c) * 3);
+
+    verices[0] = gfx_make_color_vertex(1, 1, -1, 1, 1, gfx_make_color(255, 0, 0, 255));
+    verices[1] = gfx_make_color_vertex(1, 0, -1, 1, 1, gfx_make_color(0, 255, 0, 255));
+    verices[2] = gfx_make_color_vertex(0, 0, -1, 1, 1, gfx_make_color(0, 0, 255, 255));
+
+    unsigned int *indices = malloc(sizeof(unsigned int) * 3);
+    indices[0] = 0;
+    indices[1] = 1;
+    indices[2] = 2;
+
+    GeoObject *gobj2 = geo_new_object();
+
+    gobj2->type = GOBJ_TYPE_COLOR;
+    gobj2->data = (vertex*)verices;
+    gobj2->dataCount = 3;
+    gobj2->indicies = indices;
+    gobj2->indexCount = 3;
+    
+    localstorage->obj2 = geo_obj_bindToGpu(*gobj2);
+
+    geo_obj_gpu_updateBuffers(localstorage->obj2);
+
+    localstorage->obj2->gpuHandle.shader = s;
+    localstorage->obj2->gpuHandle.textureAtlas = generateRandomAtlas();
+
+
 }
 
 int testprogram_update(float deltaTime)
@@ -96,7 +125,9 @@ int testprogram_update(float deltaTime)
 
     render_skybox();
 
-    geo_render(&localstorage->renderQueue1.gpuHandle);
+    geo_render(&localstorage->obj2->gpuHandle);
+
+    //geo_render(&localstorage->renderQueue1.gpuHandle);
 }
 
 int testprogram_destroy()
