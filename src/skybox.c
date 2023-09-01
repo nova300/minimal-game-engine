@@ -46,6 +46,8 @@ mat4 matrix;
 mat4 modelMatrix;
 GeoObject tile_grid[9];
 
+static char initialized = false;
+
 void skybox_cleanup(void)
 {
     freeShaderObject(skyboxShader);
@@ -53,15 +55,21 @@ void skybox_cleanup(void)
     rq_free(&skyboxRq);
 }
 
-void skybox_load_texture(const char* filename)
-{
-    if (glIsTexture(skyboxTexture)) skybox_cleanup();
-
+void skybox_initialize(void)
+{  
     rq_init(&skyboxRq, 10);
     Shader *s = newShaderObject(vertex_shader_3, fragment_shader_3);
 
     skyboxRq.gpuHandle.shader = s;
+    skyboxRq.gpuHandle.textureAtlas = skyboxTexture;
     skyboxShader = s;
+
+    initialized = true;
+}
+
+void skybox_load_texture(const char* filename)
+{
+    if (!initialized) skybox_initialize();
 
     int tileWidth = 32;
     int tileHeight = 32;
@@ -82,9 +90,10 @@ void skybox_load_texture(const char* filename)
     int tileSizeX = tileWidth * channels;
     int rowLenght = tilesX * tileSizeX;
 
-    GLuint texture;
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
+    if(glIsTexture(skyboxTexture)) glDeleteTextures(1, &skyboxTexture);
+    
+    glGenTextures(1, &skyboxTexture);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, skyboxTexture);
 
     glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGBA8, tileWidth, tileHeight, imageCount);
 
@@ -112,9 +121,7 @@ void skybox_load_texture(const char* filename)
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-    free(image);
-
-    skyboxTexture = texture;
+    stbi_image_free(image);
 }
 
 int calculate_skybox_scaled_x()
@@ -173,6 +180,7 @@ vertex *make_skybox_rect(int tileIndex, int *indicies)
 
 void render_skybox()
 {
+    if (!initialized) return;
     vec4 cameraFocus = vector_add(c_pos, c_front);
     vec4 cameraFace = vector_subtract(cameraFocus, c_pos);
     //vector_normalize(&cameraFace);
