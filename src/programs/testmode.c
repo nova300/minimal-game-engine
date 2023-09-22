@@ -53,12 +53,8 @@ int testprogram_init()
 
     skybox_load_texture("media/bitfs2.png");
 
-    par_shapes_mesh *cube = par_shapes_create_cube(); //f
-    par_shapes_rotate(cube, PAR_PI / 5.0, (float[]){0, 1, 0});
-    par_shapes_translate(cube, 1, 0, 0.5);
-    par_shapes_scale(cube, 1.2, 1.2, 1.2);
-
-    GeoObject *gobj = geo_obj_createFromParShape(cube);
+    GeoObject *gobj = geo_new_object();
+    geo_obj_loadFromFile("media/cube.obj", gobj);
 
     rq_init(&localstorage->renderQueue1, 10);
 
@@ -77,8 +73,6 @@ int testprogram_init()
     //geo_obj_loadFromFile("media/cube.obj", cube1);
 
     //rq_add_object(&localstorage->renderQueue1, cube1);
-
-    par_shapes_free_mesh(cube);
 
     vertex_c *verices = malloc(sizeof(vertex_c) * 3);
 

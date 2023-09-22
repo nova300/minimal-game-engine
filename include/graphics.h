@@ -5,14 +5,13 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#include <stdbool.h>
 #define GLEW_STATIC
 #include <GL/glew.h>
 
 #ifdef DO_MMX
 #include <xmmintrin.h>
 #endif
-
-#include "shapes.h"
 
 #define DO_INTEL_WORKAROUND false
 
@@ -255,7 +254,7 @@ GLuint generateRandomAtlas(void);
 int geo_obj_loadFromFile(const char* filename, GeoObject *obj);
 int geo_mdl_loadFromFile(const char* filename, GeoObject *obj);
 
-GeoObject *geo_obj_createFromParShape(par_shapes_mesh* mesh);
+//GeoObject *geo_obj_createFromParShape(par_shapes_mesh* mesh);
 
 int geo_obj_createObjectData(GeoObject *obj, vec3* vertices, vec2* uvs, vec3* normals, int vertexCount, float floatEqualityThreshold);
 

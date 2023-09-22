@@ -217,7 +217,7 @@ int geo_obj_createObjectData(GeoObject *obj, vec3* vertices, vec2* uvs, vec3* no
     return 0;
 }
 
-GeoObject *geo_obj_createFromParShape(par_shapes_mesh* mesh)
+/*GeoObject *geo_obj_createFromParShape(par_shapes_mesh* mesh)
 {
     GeoObject *g = malloc(sizeof(GeoObject));
     g->data = NULL;
@@ -273,7 +273,7 @@ GeoObject *geo_obj_createFromParShape(par_shapes_mesh* mesh)
     }
 
     return g;
-}
+} */
 
 void geo_obj_free(GeoObject *gobj)
 {
