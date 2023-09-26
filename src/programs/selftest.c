@@ -4,8 +4,13 @@
 #include "term.h"
 #include "systems.h"
 
+#include "libfixmath/fixmath.h"
+
 static Program *this = NULL;
 static float countdown = 5;
+
+static fix16_t num1;
+static fix16_t num2;
 
 char reinit;
 
@@ -19,7 +24,19 @@ int selftest_init()
     terminal_print("or press ESCAPE to exit\n");
     fb_unload_bg();
     reinit = false;
-    
+
+    num1 = fix16_from_float(1.32f);
+    num2 = fix16_from_float(4.343f);
+
+    fix16_t result1 = fix16_mul(num1, num2);
+
+    float result2 = fix16_to_float(result1);
+
+    int len = snprintf(NULL, 0, "%f", result2);
+    char *result = malloc(len + 1);
+    snprintf(result, len + 1, "%f", result2);
+    terminal_print(result);
+    free(result);
 }
 
 int selftest_update(float deltaTime)
@@ -36,7 +53,6 @@ int selftest_update(float deltaTime)
     snprintf(result, len + 1, "%f", countdown);
     terminal_display(result);
     free(result);
-
 
 }
 

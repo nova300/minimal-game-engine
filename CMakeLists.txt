@@ -13,6 +13,8 @@ find_package(OpenMP)
 add_subdirectory(lib/GLFW)
 include_directories(lib/GLFW/include)
 
+add_library(fixmath lib/libfixmath/fix16.c lib/libfixmath/fix16_exp.c lib/libfixmath/fix16_sqrt.c lib/libfixmath/fix16_trig.c lib/libfixmath/fixarray.c lib/libfixmath/fixmatrix.c lib/libfixmath/fixquat.c lib/libfixmath/fixstring.c lib/libfixmath/fixvector2d.c lib/libfixmath/fixvector3d.c lib/libfixmath/fract32.c lib/libfixmath/uint32.c)
+
 add_executable(engine lib/glew.c src/engine.c src/graphics.c src/shaders.c src/geometry.c src/event.c src/2d.c src/legacy/term.c src/behaviour.c src/init.c src/programs/boidmode.c src/programs/testmode.c src/programs/selftest.c src/skybox.c)
 
 find_library(MATH_LIBRARY m)
@@ -20,13 +22,14 @@ if(MATH_LIBRARY)
     target_link_libraries(engine ${MATH_LIBRARY})
 endif()
 
-target_link_libraries(engine OpenGL::GL glfw)
+target_link_libraries(engine OpenGL::GL glfw fixmath)
 
 if(OpenMP_C_FOUND)
     target_link_libraries(engine OpenMP::OpenMP_C )
 endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/libfixmath)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/assets)
 
 add_custom_command(TARGET engine POST_BUILD
