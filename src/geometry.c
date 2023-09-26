@@ -294,7 +294,7 @@ void geo_instanceop_free(GeoObject *obj)
 {
     free(obj->transform);
     free(obj->texture);
-    obj->transform = &obj->baseTransform;
+    obj->transform = &obj->baseTransform.matrix;
     obj->texture = &obj->baseTexture;
     obj->instanceCapacity = 0;
     obj->instanceCount = 0;
