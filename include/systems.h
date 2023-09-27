@@ -27,7 +27,7 @@ int task_throw(TaskHandle *task);
 int task_queue(TaskHandle *task);
 
 
-/* PROGRAMS */
+/* SCENES */
 
 typedef struct
 {
@@ -37,23 +37,20 @@ typedef struct
     functionPointerIntInt keyCallback;
     functionPointerDoubleDouble mouseCallback;
     functionPointerDoubleDouble scrollCallback;
-}Program;
+}Scene;
 
-extern Program **programStack;
-extern int programCapacity;
-extern int programTop;
+extern Scene **sceneStack;
+extern int sceneCapacity;
+extern int sceneTop;
 
-int program_init(void);
-int program_free(void);
-int program_push(Program *program);
-int program_pop(void);
-int program_update(float deltaTime);
-Program *program_get(void);
+int scene_init(void);
+int scene_free(void);
+int scene_push(Scene *program);
+int scene_pop(void);
+int scene_update(float deltaTime);
+Scene *scene_get(void);
 
-/* program prototypes */
-Program *program_get_testmode();
-Program *program_get_boidmode();
-Program *program_get_selftest();
+Scene *scene_get_selftest();
 
 /* BEHAVIOURS */
 

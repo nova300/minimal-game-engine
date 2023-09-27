@@ -34,9 +34,9 @@ Behaviour *behaviour_get_next()
 
 int behaviour_update(float deltatime)
 {
-    if(programTop == -1) return 1;
+    if(sceneTop == -1) return 1;
     int i;
-    for(i = 0; i < programTop; i++)
+    for(i = 0; i < sceneTop; i++)
     {
         Behaviour *b = behaviourVector + i;
         if (!b->active) continue;

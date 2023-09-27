@@ -2,10 +2,10 @@
 #include "shaders.h"
 
 #include "term.h"
-#include "systems.h"
+#include "program1.h"
 
 
-static Program *this = NULL;
+static Scene *this = NULL;
 
 typedef struct
 {
@@ -139,7 +139,7 @@ int testprogram_keyCallback(int key, int action)
 {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
     {
-        program_pop();
+        scene_pop();
     }
     if (key == GLFW_KEY_F1 && action == GLFW_PRESS)
     {
@@ -246,10 +246,10 @@ void testprogram_key_input_poll(void)
 }
 
 
-Program *program_get_testmode()
+Scene *scene_get_testmode()
 {
     if (this != NULL) return this;
-    this = malloc(sizeof(Program));
+    this = malloc(sizeof(Scene));
 
     this->init = testprogram_init;
     this->update = testprogram_update;

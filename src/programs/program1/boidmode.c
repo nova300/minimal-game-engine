@@ -2,14 +2,14 @@
 #include "shaders.h"
 
 #include "term.h"
-#include "systems.h"
+#include "program1.h"
 
-//#include "thread.h"
-#include <pthread.h>
-#include <stdatomic.h>
+#include "c11threads.h"
+//#include <pthread.h>
+//#include <stdatomic.h>
 
 
-static Program *this = NULL;
+static Scene *this = NULL;
 
 void boidprogram_key_input_poll(void);
 
@@ -52,8 +52,9 @@ typedef struct
     float fpstimer;
     float fps;
     int fpscounter;
-    pthread_t thread;
-    atomic_int threadStatus;
+    thrd_t thread;
+    volatile int threadStatus;
+    volatile bool runThread;
 }boidmode_localstorage;
 
 static boidmode_localstorage *localstorage;
@@ -88,6 +89,7 @@ int boidprogram_init()
     localstorage->fps = 999;
     localstorage->fpscounter = 0;
     localstorage->threadStatus = 0;
+    localstorage->runThread = true;
 
     vec4 eye = {{0, 0, 50, 0}};
     vec4 center = {{0, 0, -1, 0}};
@@ -95,7 +97,7 @@ int boidprogram_init()
     c_pos = eye;
     c_front = center;
 
-    pthread_create(&localstorage->thread, NULL, update_boids, NULL);
+    thrd_create(&localstorage->thread, (thrd_start_t)update_boids, NULL);
 
     localstorage->gobj = geo_new_object();
     geo_obj_loadFromFile("media/cube.obj", localstorage->gobj);
@@ -298,9 +300,8 @@ void doRetention(boid *b)
 
 void *update_boids(void* arg)
 {
-    while (true)
+    while (localstorage->runThread)
     {
-        pthread_testcancel();
         boid *boids = localstorage->boids;
         if (localstorage->threadStatus == 1)
         {
@@ -367,8 +368,8 @@ int boidprogram_update(float deltaTime)
 
 int boidprogram_destroy()
 {
-    pthread_cancel(localstorage->thread);
-    pthread_join(localstorage->thread, NULL);
+    localstorage->runThread = false;
+    thrd_join(localstorage->thread, NULL);
     localstorage->threadStatus = 0;
     for (int i = 0; i < localstorage->amount; i++)
     {   
@@ -390,7 +391,7 @@ int boidprogram_keyCallback(int key, int action)
 {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
     {
-        program_pop();
+        scene_pop();
     }
     if (key == GLFW_KEY_F1 && action == GLFW_PRESS)
     {
@@ -512,10 +513,10 @@ void boidprogram_key_input_poll(void)
 }
 
 
-Program *program_get_boidmode()
+Scene *scene_get_boidmode()
 {
     if (this != NULL) return this;
-    this = malloc(sizeof(Program));
+    this = malloc(sizeof(Scene));
 
     this->init = boidprogram_init;
     this->update = boidprogram_update;

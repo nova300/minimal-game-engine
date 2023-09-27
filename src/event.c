@@ -7,7 +7,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 {
     
     
-    Program *p = program_get();
+    Scene *p = scene_get();
     if (p != NULL)
     {
         if (p->keyCallback != NULL)
@@ -23,7 +23,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
 
-    Program *p = program_get();
+    Scene *p = scene_get();
     if (p != NULL)
     {
         if (p->mouseCallback != NULL)
@@ -35,7 +35,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-    Program *p = program_get();
+    Scene *p = scene_get();
     if (p != NULL)
     {
         if (p->scrollCallback != NULL)

@@ -25,9 +25,9 @@ float fov = 60.0f;
 int s_width = SCREEN_WIDTH;
 int s_height = SCREEN_HEIGHT;
 
-Program **programStack;
-int programCapacity;
-int programTop;
+Scene **sceneStack;
+int sceneCapacity;
+int sceneTop;
 
 int main(void)
 {
@@ -50,9 +50,9 @@ int main(void)
     fb_init();
     terminal_init();
 
-    program_init();
+    scene_init();
 
-    program_push(program_get_selftest());
+    scene_push(scene_get_selftest());
 
     while (exitLoop == 0)
     {
@@ -66,7 +66,7 @@ int main(void)
 
         fb_render_bg();
 
-        program_update(deltaTime);
+        scene_update(deltaTime);
 
         terminal_render();
         fb_render_hi();
@@ -93,48 +93,48 @@ void helloworld()
     return;
 }
 
-int program_init()
+int scene_init()
 {
-    programCapacity = 3;
-    programStack = malloc(programCapacity * sizeof(Program *));
-    programTop = -1;
+    sceneCapacity = 3;
+    sceneStack = malloc(sceneCapacity * sizeof(Scene *));
+    sceneTop = -1;
     return 0;
 }
 
-int program_push(Program *program)
+int scene_push(Scene *program)
 {
-    if (programTop + 1 == programCapacity)
+    if (sceneTop + 1 == sceneCapacity)
     {
-        programCapacity *= 2;
-        programStack = realloc(programStack, programCapacity * sizeof(Program *));
+        sceneCapacity *= 2;
+        sceneStack = realloc(sceneStack, sceneCapacity * sizeof(Scene *));
     }
-    programTop++;
-    programStack[programTop] = program;
+    sceneTop++;
+    sceneStack[sceneTop] = program;
     if (program->init != NULL) program->init();
-    return programTop;
+    return sceneTop;
 }
 
-int program_pop()
+int scene_pop()
 {
-    if (programTop == -1) return 0;
-    Program *top = programStack[programTop];
+    if (sceneTop == -1) return 0;
+    Scene *top = sceneStack[sceneTop];
     if (top->destroy != NULL) top->destroy();
-    programStack[programTop] = NULL;
-    programTop--;
-    return programTop;
+    sceneStack[sceneTop] = NULL;
+    sceneTop--;
+    return sceneTop;
 }
 
-int program_update(float deltatime)
+int scene_update(float deltatime)
 {
-    if(programTop == -1) return 1;
-    Program *top = programStack[programTop];
+    if(sceneTop == -1) return 1;
+    Scene *top = sceneStack[sceneTop];
     if (top->update != NULL) return top->update(deltatime);
     return 1;
 }
 
-Program *program_get()
+Scene *scene_get()
 {
-    if(programTop == -1) return NULL;
-    Program *top = programStack[programTop];
+    if(sceneTop == -1) return NULL;
+    Scene *top = sceneStack[sceneTop];
     return top;
 }

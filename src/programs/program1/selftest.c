@@ -2,9 +2,9 @@
 #include "shaders.h"
 
 #include "term.h"
-#include "systems.h"
+#include "program1.h"
 
-static Program *this = NULL;
+static Scene *this = NULL;
 static float countdown = 5;
 
 char reinit;
@@ -55,13 +55,13 @@ int selftest_keyCallback(int key, int action)
 
     if (key == GLFW_KEY_F1 && action == GLFW_PRESS)
     {
-        program_push(program_get_boidmode());
+        scene_push(scene_get_boidmode());
         reinit = true;
     }
 
     if (key == GLFW_KEY_F2 && action == GLFW_PRESS)
     {
-        program_push(program_get_testmode());
+        scene_push(scene_get_testmode());
         reinit = true;
     }
 }
@@ -82,10 +82,10 @@ void selftest_key_input_poll(void)
 }
 
 
-Program *program_get_selftest()
+Scene *scene_get_selftest()
 {
     if (this != NULL) return this;
-    this = malloc(sizeof(Program));
+    this = malloc(sizeof(Scene));
 
     this->init = selftest_init;
     this->update = selftest_update;
