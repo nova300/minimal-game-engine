@@ -6,6 +6,8 @@
 #include "term.h"
 #include "systems.h"
 #include <string.h>
+#include <signal.h>
+#include <setjmp.h>
 
 double appTime = 0;
 double deltaTime = 0;
@@ -28,6 +30,10 @@ int s_height = SCREEN_HEIGHT;
 Scene **sceneStack;
 int sceneCapacity;
 int sceneTop;
+
+volatile unsigned char crashc = 0;
+volatile unsigned char crashr = 0;
+static jmp_buf jump_env;
 
 int main(void)
 {
@@ -52,7 +58,26 @@ int main(void)
 
     scene_init();
 
-    scene_push(scene_get_selftest());
+    init_crash_handler();
+
+    if (setjmp(jump_env))
+    {
+        printf("CRASH: %d handler invoked\n", crashr);
+        if(crashc > 1)
+        {
+            printf("CRASH: %d the program has entered an infinite loop that cannot be exited\n", crashc);
+            exitLoop = 1;
+        }
+        else
+        {
+            scene_push(scene_get_crash());
+            printf("CRASH: crash screen loaded\n");
+        }
+    }
+    else
+    {
+        scene_push(scene_get_selftest());
+    }
 
     while (exitLoop == 0)
     {
@@ -61,7 +86,7 @@ int main(void)
         if (deltaTime > 10) deltaTime = 10;
         appTime = glfwGetTime();
 
-        glClearColor(0.0f, 0.0f, 0.2f, 0.0f);
+        glClearColor(0.0f, 0.1f, 0.1f, 0.0f);
         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
         fb_render_bg();
@@ -70,13 +95,10 @@ int main(void)
 
         terminal_render();
         fb_render_hi();
-        fb_render();
-
-
-
+        //fb_render();
 
         glfwSwapBuffers(window);
-        fb_clear();
+        //fb_clear();
         glfwPollEvents();
         if (glfwWindowShouldClose(window)) exitLoop = 1;
     }
@@ -137,4 +159,81 @@ Scene *scene_get()
     if(sceneTop == -1) return NULL;
     Scene *top = sceneStack[sceneTop];
     return top;
+}
+
+int crash_init()
+{
+    terminal_slowmode = false;
+    terminal_clear();
+    fb_unload_bg();
+    fb_clear();
+
+    terminal_print("--- MGE CRASH HANDLER ---\n \n");
+
+    switch (crashr)
+    {
+    case SIGSEGV:
+        terminal_print("CRASH: SEGMENTATION FAULT\n");
+        break;
+    case SIGFPE:
+        terminal_print("CRASH: FLOATING POINT EXCEPTION\n");
+        break;
+    case SIGINT:
+        terminal_print("PROGRAM TERMINATED BY USER\n");
+        break;
+    default:
+        terminal_print("CRASH: UNCORRECTABLE ERROR\n");
+        break;
+    }
+
+    terminal_print("CODE: ");
+    int len = snprintf(NULL, 0, "%d", crashr);
+    char result[len + 1];
+    snprintf(result, len + 1, "%d", crashr);
+    terminal_print(result);
+    terminal_print(" \n");
+
+    terminal_print(" \nPRESS ESCAPE TO EXIT\n");
+}
+
+int crash_update(float deltaTime)
+{
+
+}
+
+int crash_keyCallback(int key, int action)
+{
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+    {
+        glfwSetWindowShouldClose(window, GLFW_TRUE);
+        exitLoop = true;
+    }
+}
+
+Scene *scene_get_crash()
+{
+    Scene *this = malloc(sizeof(Scene));
+
+    this->init = crash_init;
+    this->update = crash_update;
+    this->keyCallback = crash_keyCallback;
+
+    this->destroy = NULL;
+    this->mouseCallback = NULL;
+    this->scrollCallback = NULL;    
+    
+    return this;
+}
+
+void crash_handler(int c)
+{
+    crashr = c;
+    crashc++;
+    longjmp(jump_env, 1);
+}
+
+void init_crash_handler()
+{
+    signal(SIGSEGV, crash_handler);
+    signal(SIGFPE, crash_handler);
 }

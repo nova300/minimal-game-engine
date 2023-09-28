@@ -51,6 +51,7 @@ int scene_update(float deltaTime);
 Scene *scene_get(void);
 
 Scene *scene_get_selftest();
+Scene *scene_get_crash();
 
 /* BEHAVIOURS */
 

@@ -3,6 +3,7 @@
 
 #include "term.h"
 #include "program1.h"
+#include <signal.h>
 
 static Scene *this = NULL;
 static float countdown = 5;
@@ -37,7 +38,11 @@ int selftest_update(float deltaTime)
     terminal_display(result);
     free(result);
 
-
+    if (countdown > 20)
+    {
+        GeoObject *g = NULL;
+        g->baseTexture = 10;
+    }
 }
 
 int selftest_destroy()

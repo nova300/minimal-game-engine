@@ -5,6 +5,7 @@
 #include <string.h>
 
 extern vec4 *term_font;
+extern char terminal_slowmode;
 
 
 int terminal_render();

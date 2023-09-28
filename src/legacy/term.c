@@ -26,13 +26,42 @@ int columns = 80;
 
 int bufsize = 2000;
 
-
+char terminal_slowmode = true;
 
 int terminal_render()
 {
-    timer += deltaTime;
 
     cursorpos = cursorpos % (bufsize - 1);
+
+    if(!terminal_slowmode)
+    {
+        if (doClear)
+        {
+            for (int i = 0; i < bufsize; i++)
+            {
+                framebuffer[i] = 0;
+            }
+            doClear = false;
+        }
+
+        while(buffpos < bufflen)
+        {
+            cursorpos = cursorpos % (bufsize - 1);
+            if (buffer[buffpos] == '\n') 
+            {
+                cursorpos = cursorpos + ( columns - (cursorpos % columns));
+                buffpos++;
+            }
+            framebuffer[cursorpos] = buffer[buffpos];
+            buffpos++;
+            cursorpos++;
+        }
+
+    }
+
+    timer += deltaTime;
+
+    
 
     if (framebuffer == NULL)
     {
