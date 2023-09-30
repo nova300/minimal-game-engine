@@ -25,9 +25,9 @@ endif()
 
 target_link_libraries(engine OpenGL::GL glfw )
 
-#if(OpenMP_C_FOUND)
-#    target_link_libraries(engine OpenMP::OpenMP_C )
-#endif()
+if(OpenMP_C_FOUND)
+    target_link_libraries(engine OpenMP::OpenMP_C )
+endif()
 
 add_executable(program1 src/programs/program1/boidmode.c src/programs/program1/testmode.c src/programs/program1/selftest.c)
 target_link_libraries(program1 engine Threads::Threads)
