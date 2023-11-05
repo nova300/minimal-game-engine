@@ -47,8 +47,8 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/programs)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/assets)
 
-add_custom_command(TARGET engine POST_BUILD
+add_custom_command(TARGET program1 POST_BUILD
                     COMMAND ${CMAKE_COMMAND} -E copy_directory
-                        ${CMAKE_SOURCE_DIR}/media $<TARGET_FILE_DIR:engine>/media)
+                        ${CMAKE_SOURCE_DIR}/media $<TARGET_FILE_DIR:program1>/media)
 
 #include(./Harden.cmake)
