@@ -7,6 +7,55 @@
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include "stb_image_resize.h"
 
+/* 2D math */
+
+void vector2_normalize(vec2* v) 
+{
+	float sqr = v->x * v->x + v->y * v->y;
+	if(sqr == 1 || sqr == 0)
+		return;
+	float invrt = 1.f/sqrt(sqr);
+	v->x *= invrt;
+	v->y *= invrt;
+}
+
+float vector2_dot(vec2 *v1, vec2 *v2) 
+{
+	return v1->x * v2->x + v1->y * v2->y;
+}
+
+vec2 vector2_subtract(vec2 v1, vec2 v2)
+{
+    vec2 out = {{0}};
+    out.x = v1.x - v2.x;
+    out.y = v1.y - v2.y;
+    return out;
+}
+
+vec2 vector2_scale(vec2 v1, float s)
+{
+    vec2 out = {{0}};
+    out.x = v1.x * s;
+    out.y = v1.y * s;
+    return out;
+}
+
+vec2 vector2_add(vec2 v1, vec2 v2)
+{
+    vec2 out = {{0}};
+    out.x = v1.x + v2.x;
+    out.y = v1.y + v2.y;
+    return out;
+}
+
+float vector2_distance(vec2 v1, vec2 v2)
+{
+    float dx = v2.x - v1.x;
+    float dy = v2.y - v1.y;
+    
+    return sqrt(dx * dx + dy * dy);
+}
+
 /* 3D math */
 
 float radians(float dgr)
@@ -98,112 +147,6 @@ float vector_dot(vec4 *v1, vec4 *v2)
     return _mm_cvtss_f32(sums);
     #endif
 }
-
-/*
-float *vector_dot_multi(vec4 *v1, vec4 *v2, unsigned int count) 
-{
-
-    //scalar failsafe
-    #ifndef DO_MMX
-    float ret = v1->x * v2->x + v1->y * v2->y + v1->z * v2->z;
-	return &ret;
-    #endif
-
-    #ifdef DO_MMX
-    float *results = malloc(sizeof(float) * count);
-
-    const float *p1 = (float*)v1;
-    const float *p2 = (float*)v2;
-    unsigned int accumulators = 0;
-
-    if (count > 3) accumulators = 4;
-    else if(count > 1) accumulators = 2;
-    else accumulators = 1;
-
-    unsigned int valuesPerLoop = 0;
-    valuesPerLoop = accumulators * 4;
-
-    if( !(0 == count % valuesPerLoop ))
-    {
-        printf("[VECTOR DOT MULTI] alignment error\n");
-    }
-
-    const float* const p1End = p1 + count;
-
-    __m128 acc0, acc1, acc2, acc3;
-
-    for (; p1 < p1End; v1 += valuesPerLoop, p2 += valuesPerLoop)
-    {
-        __m128 a = _mm_loadu_ps(p1);
-        __m128 b = _mm_loadu_ps(p2);
-        acc0 = _mm_mul_ps(a , b);
-        __m128 shuf = _mm_shuffle_ps(acc0, acc0, _MM_SHUFFLE(2, 3, 0, 1));
-        __m128 sums = _mm_add_ps(acc0, shuf);
-        shuf = _mm_movehl_ps(shuf, sums);
-        sums = _mm_add_ss(sums, shuf);
-        //float result = _mm_cvtss_f32(sums);
-
-        if (accumulators > 1)
-        {
-            a = _mm_loadu_ps(p1 + 4);
-            b = _mm_loadu_ps(p2 + 4);
-            acc1 = _mm_mul_ps(a , b);
-            shuf = _mm_shuffle_ps(acc1, acc1, _MM_SHUFFLE(2, 3, 0, 1));
-            sums = _mm_add_ps(acc1, shuf);
-            shuf = _mm_movehl_ps(shuf, sums);
-            sums = _mm_add_ss(sums, shuf);
-            //float result = _mm_cvtss_f32(sums);
-        }
-        if (accumulators > 2)
-        {
-            a = _mm_loadu_ps(p1 + 8);
-            b = _mm_loadu_ps(p2 + 8);
-            acc2 = _mm_mul_ps(a , b);
-            shuf = _mm_shuffle_ps(acc2, acc2, _MM_SHUFFLE(2, 3, 0, 1));
-            sums = _mm_add_ps(acc2, shuf);
-            shuf = _mm_movehl_ps(shuf, sums);
-            sums = _mm_add_ss(sums, shuf);
-            //float result = _mm_cvtss_f32(sums);
-        }
-        if (accumulators > 3)
-        {
-            a = _mm_loadu_ps(p1 + 12);
-            b = _mm_loadu_ps(p2 + 12);
-            acc3 = _mm_mul_ps(a , b);
-            shuf = _mm_shuffle_ps(acc3, acc3, _MM_SHUFFLE(2, 3, 0, 1));
-            sums = _mm_add_ps(acc3, shuf);
-            shuf = _mm_movehl_ps(shuf, sums);
-            sums = _mm_add_ss(sums, shuf);
-            //float result = _mm_cvtss_f32(sums);
-        }
-    }
-
-    return results;
-
-    for (; p1 < p1End; v1 += 4, p2 += 4)
-    {
-        const __m128 a = _mm_loadu_ps(p1);
-        const __m128 b = _mm_loadu_ps(p2);
-        acc = _mm_add_ps( _mm_mul_ps( a, b ), acc );
-    }
-
-    //const __m128 r2 = _mm_add_ps( dot0, _mm_movehl_ps( dot0, dot0 ) );
-    //const __m128 r1 = _mm_add_ss( r2, _mm_shuffle_ps(r2, r2, 0x55) );
-
-    //r = _mm_shuffle_ps(dot0, dot0, 0x55);
-
-    __m128 shuf = _mm_shuffle_ps(acc, acc, _MM_SHUFFLE(2, 3, 0, 1));
-    __m128 sums = _mm_add_ps(acc, shuf);
-    shuf = _mm_movehl_ps(shuf, sums);
-    sums = _mm_add_ss(sums, shuf);
-    //float result = _mm_cvtss_f32(sums);
-
-    //return _mm_cvtss_f32(sums);
-
-    #endif
-}
-*/
-
 
 vec4 vector_cross(vec4 v1, vec4 v2) 
 {

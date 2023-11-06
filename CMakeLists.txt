@@ -16,7 +16,7 @@ find_package(Threads)
 add_subdirectory(lib/GLFW)
 include_directories(lib/GLFW/include)
 
-add_library(engine lib/glew.c src/engine.c src/graphics.c src/shaders.c src/geometry.c src/event.c src/2d.c src/legacy/term.c src/behaviour.c src/init.c src/skybox.c)
+add_library(engine lib/glew.c src/engine.c src/graphics.c src/shaders.c src/geometry.c src/event.c src/2d.c src/legacy/term.c src/behaviour.c src/init.c src/skybox.c src/physics.c)
 
 find_library(MATH_LIBRARY m)
 if(MATH_LIBRARY)
