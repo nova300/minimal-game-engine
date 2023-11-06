@@ -13,7 +13,8 @@ void ResetCollider(Collider2D *col)
     zero.y = 0.0f;
     col->active = true;
     col->collisionFlag = false;
-    col->collisionVector = zero;
+    col->collision.vector= zero;
+    col->collision.channel = 0;
     col->position = zero;
     col->radius = 0.1f;
     col->id = 0;
@@ -101,14 +102,14 @@ void UpdateColliders(float deltaTime)
                 {
                     far->collisionFlag = true;
                     near->collisionFlag = true;
-                    far->collisionChannel = near->channel;
-                    near->collisionChannel = far->channel;
+                    far->collision.channel = near->channel;
+                    near->collision.channel = far->channel;
                     vec2 dir = vector2_subtract(far->position, near->position);
                     vector2_normalize(&dir);
-                    near->collisionVector = dir;
+                    near->collision.vector = dir;
                     dir = vector2_subtract(near->position, far->position);
                     vector2_normalize(&dir);
-                    far->collisionVector = dir;
+                    far->collision.vector = dir;
                 }
             }
         }

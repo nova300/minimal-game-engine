@@ -8,6 +8,13 @@ typedef int objectid;
 
 typedef struct
 {
+    vec2 vector;
+    unsigned char channel;
+}collisionData;
+
+
+typedef struct
+{
     bool active;
     objectid id;
     unsigned char channel;
@@ -16,8 +23,7 @@ typedef struct
     int height;
     float radius;
     bool collisionFlag;
-    vec2 collisionVector;
-    unsigned char collisionChannel;
+    collisionData collision;
 }Collider2D;
 
 objectid GetNewCollider();
