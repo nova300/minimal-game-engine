@@ -4,19 +4,23 @@
 #include <geomath.h>
 #include <stdbool.h>
 
-typedef unsigned char objectid;
+typedef int objectid;
 
 typedef struct
 {
     bool active;
     objectid id;
+    unsigned char channel;
     vec2 position;
-    vec2 velocity;
+    int width;
+    int height;
     float radius;
     bool collisionFlag;
     vec2 collisionVector;
+    unsigned char collisionChannel;
 }Collider2D;
 
+objectid GetNewCollider();
 void UpdateColliders(float deltaTime);
 
 typedef struct
