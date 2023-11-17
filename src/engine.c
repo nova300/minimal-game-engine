@@ -188,7 +188,7 @@ int crash_init()
 
     terminal_print("CODE: ");
     int len = snprintf(NULL, 0, "%d", crashr);
-    char result[len + 1];
+    char *result = malloc(len + 1);
     snprintf(result, len + 1, "%d", crashr);
     terminal_print(result);
     terminal_print(" \n");
